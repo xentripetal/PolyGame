@@ -101,19 +101,19 @@ public class Schedule
         return this;
     }
 
-    public void Run(World world)
+    public void Run(IScheduleWorld scheduleWorld)
     {
-        world.BeforeRun();
+        scheduleWorld.BeforeRun();
         // TODO resource system to get skip systems
-        Executor.Run(Executable, world, null);
-        world.AfterRun();
+        Executor.Run(Executable, scheduleWorld, null);
+        scheduleWorld.AfterRun();
     }
 
-    public void Initialize(World world)
+    public void Initialize(IScheduleWorld scheduleWorld)
     {
         if (Graph.Changed)
         {
-            Graph.Initialize(world);
+            Graph.Initialize(scheduleWorld);
             // TODO - resource system to get Schedules ambiguitites
             Graph.UpdateSchedule(Executable, new HashSet<Type>(), Label);
             Graph.Changed = false;
@@ -127,11 +127,11 @@ public class Schedule
         }
     }
     
-    public void ApplyDeferred(World world)
+    public void ApplyDeferred(IScheduleWorld scheduleWorld)
     {
         foreach (var sys in Executable.Systems)
         {
-            sys.ApplyDeferred(world);
+            sys.ApplyDeferred(scheduleWorld);
         }
     }
 }

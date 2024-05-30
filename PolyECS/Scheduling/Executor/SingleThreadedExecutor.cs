@@ -5,7 +5,7 @@ using PolyFlecs.Systems.Graph;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class SimpleExecutor : IExecutor
+public class SingleThreadedExecutor : IExecutor
 {
     /// <summary>
     /// System sets whose conditions have been evaluated
@@ -15,8 +15,16 @@ public class SimpleExecutor : IExecutor
     /// Systems that have run or been skipped
     /// </summary>
     protected FixedBitSet CompletedSystems;
+    /// <summary>
+    /// Systems that have run but not had their buffers applied
+    /// </summary>
+    protected FixedBitSet UnappliedSystems;
+    /// <summary>
+    /// Applies deferred system buffers after all systems have ran
+    /// </summary>
+    protected bool ApplyFinalDeferred = true;
 
-    public SimpleExecutor() { }
+    public SingleThreadedExecutor() { }
 
     public void Init(SystemSchedule schedule)
     {
@@ -24,19 +32,31 @@ public class SimpleExecutor : IExecutor
         int setCount = schedule.SetIds.Count;
         EvaluatedSets = new FixedBitSet(setCount);
         CompletedSystems = new FixedBitSet(sysCount);
+        UnappliedSystems = new FixedBitSet(sysCount);
     }
 
     public void SetApplyFinalDeferred(bool apply)
     {
-        // do nothing. simple executor does not do a final sync
+        ApplyFinalDeferred = apply;
     }
 
-    public void Run(SystemSchedule schedule, IScheduleWorld scheduleWorld, FixedBitSet? skipSystems)
+    protected void ApplyDeferred(SystemSchedule schedule, IScheduleWorld world)
+    {
+        foreach (var systemIndex in UnappliedSystems.Ones())
+        {
+            var system = schedule.Systems[systemIndex];
+            system.ApplyDeferred(world);
+        }
+        UnappliedSystems.Clear();
+    }
+
+    public void Run(SystemSchedule schedule, IScheduleWorld world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
             CompletedSystems.Or(skipSystems.Value);
         }
+        
         for (int systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
         {
             var shouldRun = !CompletedSystems.Contains(systemIndex);
@@ -47,7 +67,7 @@ public class SimpleExecutor : IExecutor
                     continue;
                 }
                 // Evaluate system set's conditions
-                var setConditionsMet = EvaluateAndFoldConditions(schedule.SetConditions[setIdx], scheduleWorld);
+                var setConditionsMet = EvaluateAndFoldConditions(schedule.SetConditions[setIdx], world);
 
                 // Skip all systems that belong to this set, not just the current one
                 if (!setConditionsMet)
@@ -60,7 +80,7 @@ public class SimpleExecutor : IExecutor
             }
 
             // Evaluate System's conditions
-            var systemConditionsMet = EvaluateAndFoldConditions(schedule.SystemConditions[systemIndex], scheduleWorld);
+            var systemConditionsMet = EvaluateAndFoldConditions(schedule.SystemConditions[systemIndex], world);
             shouldRun &= systemConditionsMet;
 
             CompletedSystems.Set(systemIndex);
@@ -70,19 +90,33 @@ public class SimpleExecutor : IExecutor
             }
 
             var system = schedule.Systems[systemIndex];
-            // Simple executor always applys deferred after a system, so skip inserted deferred systems
             if (system is ApplyDeferredSystem)
             {
+                ApplyDeferred(schedule, world);
                 continue;
             }
+            
             try
             {
-                system.RunExclusive(scheduleWorld);
+                if (system.IsExclusive)
+                {
+                    system.RunExclusive(world);
+                }
+                else
+                {
+                    system.RunDeferred(world);
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Error in system {system.GetType().Name}: {e.Message}");
             }
+            UnappliedSystems.Set(systemIndex);
+        }
+        
+        if (ApplyFinalDeferred)
+        {
+            ApplyDeferred(schedule, world);
         }
         EvaluatedSets.Clear();
         CompletedSystems.Clear();

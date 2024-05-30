@@ -7,9 +7,11 @@ public sealed class ApplyDeferredSystem : System
 {
     private Access access = new Access().WriteAll();
 
-    public override void Initialize(World world) { }
+    public override void Initialize(IScheduleWorld scheduleWorld) { }
 
-    public override void Update() { }
+    public override void RunDeferred(IDeferredScheduleWorld scheduleWorld) { }
+
+    public override void RunExclusive(IScheduleWorld world) { }
 
     public override Access GetAccess()
     {
@@ -17,4 +19,5 @@ public sealed class ApplyDeferredSystem : System
     }
 
     public override List<SystemSet> GetDefaultSystemSets() => throw new NotImplementedException();
+    public override void ApplyDeferred(IScheduleWorld scheduleWorld) { }
 }

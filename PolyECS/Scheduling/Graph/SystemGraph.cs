@@ -18,8 +18,10 @@ namespace PolyECS.Scheduling.Graph;
 /// Metadata for a Schedule.
 ///
 /// The order isn't optimized; calling <see cref="BuildSchedule"/> return a SystemSchedule where the order is optimized for execution
-/// Port of bevy_ecs::schedule::SystemGraph
 /// </summary>
+/// <remarks>
+/// Port of bevy_ecs::schedule::SystemGraph
+/// </remarks>
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class SystemGraph
 {
@@ -143,7 +145,7 @@ public class SystemGraph
     /// <summary>
     /// Returns the list of systems that conflict with each other, i.e. have ambiguities in their data access.
     ///
-    /// If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="World"/> access.
+    /// If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="IScheduleWorld"/> access.
     /// Must be called after <see cref="BuildSchedule"/> to be non-empty.
     /// </summary>
     /// <returns></returns>
@@ -422,23 +424,23 @@ public class SystemGraph
     }
 
     /// Initializes any newly-added systems and conditions by calling [`System::initialize`]
-    public void Initialize(World world)
+    public void Initialize(IScheduleWorld scheduleWorld)
     {
         foreach (var (id, i) in Uninit)
         {
             if (id.IsSystem)
             {
-                Systems[id.Id].Initialize(world);
+                Systems[id.Id].Initialize(scheduleWorld);
                 foreach (var condition in SystemConditions)
                 {
-                    condition[id.Id].Initialize(world);
+                    condition[id.Id].Initialize(scheduleWorld);
                 }
             }
             else
             {
                 foreach (var condition in SystemSetConditions[id.Id].Skip(i))
                 {
-                    condition.Initialize(world);
+                    condition.Initialize(scheduleWorld);
                 }
             }
         }
@@ -650,7 +652,7 @@ public class SystemGraph
             var systemA = Systems[a.Id];
             var systemB = Systems[b.Id];
 
-            if (systemA.IsExclusive() || systemB.IsExclusive())
+            if (systemA.IsExclusive || systemB.IsExclusive)
             {
                 conflictingSystems.Add((a, b, []));
             }
@@ -714,7 +716,7 @@ public class SystemGraph
         var distances = new Dictionary<int, uint>(topo.Length);
         foreach (var node in topo)
         {
-            var addSyncAfter = Systems[node.Id].HasDeferred();
+            var addSyncAfter = Systems[node.Id].HasDeferred;
             var nodeDist = distances.GetValueOrDefault<int, uint>(node.Id, 0);
 
             foreach (var edge in flattened.OutEdges(node))

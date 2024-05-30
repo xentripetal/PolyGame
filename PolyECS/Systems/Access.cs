@@ -21,7 +21,7 @@ public class Access
     protected HashSet<Type> Writes;
     /// <summary>
     /// Is true if this has access to all elements in the collection.
-    /// This field is a performance optimization for <see cref="World"/> (also harder to mess up for soundness)
+    /// This field is a performance optimization for <see cref="IScheduleWorld"/> (also harder to mess up for soundness)
     /// </summary>
     protected bool ReadsAll;
     /// <summary>
