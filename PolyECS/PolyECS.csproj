@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>PolyECS</AssemblyName>
+        <RootNamespace>PolyECS</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <IsAotCompatible>true</IsAotCompatible>
+        <StripSymbols>false</StripSymbols> <!-- Includes debug info in the release executable -->
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\lib\Friflo.Json.Fliox\Engine\src\ECS\Engine.ECS.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="QuikGraph" Version="2.5.0" />
+    </ItemGroup>
+
+</Project>

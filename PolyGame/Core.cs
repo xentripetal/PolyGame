@@ -1,0 +1,132 @@
+﻿using Friflo.Engine.ECS;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace PolyGame;
+
+public class Core : Game
+{
+    public EntityStore GameStore;
+    public EntityStore RenderStore;
+
+    public Core(
+        int width = 1280,
+        int height = 720,
+        bool isFullScreen = false,
+        string windowTitle = "PolyGame",
+        string contentDirectory = "Content",
+        bool hardwareModeSwitch = true
+    ) : base()
+    {
+        Console.WriteLine(Environment.ProcessorCount);
+        var runner = new ParallelJobRunner(Environment.ProcessorCount);
+
+        var graphicsManager = new GraphicsDeviceManager(this)
+        {
+            PreferredBackBufferWidth = width,
+            PreferredBackBufferHeight = height,
+            IsFullScreen = isFullScreen,
+            SynchronizeWithVerticalRetrace = true,
+            HardwareModeSwitch = hardwareModeSwitch,
+            PreferHalfPixelOffset = true,
+            // Nez uses half pixel offset but I don't plan on using FNA shaders so that should be fine?
+            //PreferHalfPixelOffset = true
+        };
+
+        graphicsManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
+
+        Content.RootDirectory = contentDirectory;
+        IsMouseVisible = false;
+        IsFixedTimeStep = false;
+
+        GameStore = new EntityStore
+        {
+            JobRunner = runner
+        };
+        GameStore.EventRecorder.Enabled = true;
+        
+        RenderStore = new EntityStore
+        {
+            JobRunner = runner
+        };
+    }
+
+    /// <summary>
+    /// Task for progressing the game world in the current frame
+    /// </summary>
+    protected Task GameWorldProgress = Task.CompletedTask;
+
+    /// <summary>
+    /// Task for rendering the game world from the previous frame
+    /// </summary>
+    protected Task RenderWorldProgress = Task.CompletedTask;
+
+
+    public bool SynchronousRendering = false;
+
+    protected override void Update(GameTime gameTime)
+    {
+        base.Update(gameTime);
+        GameWorldProgress = ProgressSchedule(GameScheduler, gameTime.ElapsedGameTime);
+    }
+
+    protected virtual async Task ProgressSchedule(Scheduler schedule, TimeSpan gameTime)
+    {
+        float delta = gameTime.Milliseconds;
+        await Task.Run(schedule.Run);
+    }
+
+
+    protected TimeSpan previousFrameElapsedTime = TimeSpan.Zero;
+
+    protected override void Draw(GameTime gameTime)
+    {
+        base.Draw(gameTime);
+        if (SynchronousRendering)
+        {
+            GameWorldProgress.Wait();
+            Extract();
+            RenderWorldProgress = ProgressSchedule(RenderScheduler, gameTime.ElapsedGameTime);
+            RenderWorldProgress.Wait();
+        }
+        else
+        {
+            // We render the previous frame, so if this is the first frame, we won't render anything.
+            // Otherwise we start rendering the previous frame and then wait for both this frames logic to finish
+            // and the render before prepping the rendering for the future frame.
+            if (_hasRenderState)
+            {
+                RenderWorldProgress = ProgressSchedule(RenderScheduler, previousFrameElapsedTime);
+            }
+            Task.WaitAll(GameWorldProgress, RenderWorldProgress);
+            previousFrameElapsedTime = gameTime.ElapsedGameTime;
+            Extract();
+        }
+    }
+
+    public List<IExtractor> Extractors = new ();
+    private bool _hasRenderState = false;
+
+    protected virtual void Extract()
+    {
+        // Clear out last frames entities (except systems)
+        RenderWorld.BeginDeferred();
+        RenderWorld.QueryBuilder().Without<Defaults.DoNotDelete>().Build().Each((EntityView entity) => {
+            entity.Delete();
+        });
+        RenderWorld.EndDeferred();
+
+        foreach (var extractor in Extractors)
+        {
+            extractor.Extract(GameWorld, RenderWorld);
+        }
+
+        // There is now a render state in the render world
+        _hasRenderState = true;
+    }
+}
+
+public interface IExtractor
+{
+    public void Extract(World sourceWorld, World targetWorld);
+}
