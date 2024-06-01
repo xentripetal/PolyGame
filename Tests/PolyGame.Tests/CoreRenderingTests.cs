@@ -1,4 +1,6 @@
+using Flecs.NET.Core;
 using JetBrains.Annotations;
+using PolyGame.Components.Render.Extract;
 using Xunit;
 
 namespace PolyGame.Tests;
@@ -8,13 +10,12 @@ public class CoreRenderingTests
 {
     public record struct CurrentFrame(int Value);
 
-    /**
     class TestExtractor : IExtractor
     {
         public void Extract(World sourceWorld, World targetWorld)
         {
             sourceWorld.Each((ref CurrentFrame frame) => {
-                targetWorld.Entity<CurrentFrame>().Set(frame);
+                targetWorld.Entity<CurrentFrame>().Set(frame).Add<DeleteAfterRender>();
             });
         }
     }
@@ -22,12 +23,12 @@ public class CoreRenderingTests
     public void SetupFrameCounter(Core core)
     {
         core.GameWorld.Entity().Set(new CurrentFrame(0));
-        core.GameScheduler.AddSystem((Query<CurrentFrame> frameQuery) => {
-            frameQuery.Each((ref CurrentFrame frame) => frame.Value++);
+        core.GameWorld.Routine<CurrentFrame>().Each((ref CurrentFrame frame) => {
+            frame.Value++;
         });
 
-        core.RenderScheduler.AddSystem((Query<CurrentFrame> frameQuery) => {
-            frameQuery.Each((ref CurrentFrame frame) => RenderFrame = frame);
+        core.RenderWorld.Routine<CurrentFrame>().Each((ref CurrentFrame frame) => {
+            RenderFrame = frame;
         });
 
         core.Extractors.Add(new TestExtractor());
@@ -44,6 +45,10 @@ public class CoreRenderingTests
         core.Tick();
         Assert.Equal(1, getSingleton<CurrentFrame>(core.GameWorld).Value);
         Assert.Equal(1, RenderFrame.Value);
+        
+        core.Tick();
+        Assert.Equal(2, getSingleton<CurrentFrame>(core.GameWorld).Value);
+        Assert.Equal(2, RenderFrame.Value);
     }
 
     [Fact]
@@ -56,19 +61,15 @@ public class CoreRenderingTests
         // Output of render should be default
         Assert.Equal(0, RenderFrame.Value);
         Assert.Equal(1, getSingleton<CurrentFrame>(core.GameWorld).Value);
+        
         // We extracted after rendering, so the render world should have the new frame
-        Assert.Equal(1, getSingleton<CurrentFrame>(core.RenderWorld).Value);
-
-
         core.Tick();
         Assert.Equal(1, RenderFrame.Value);
         Assert.Equal(2, getSingleton<CurrentFrame>(core.GameWorld).Value);
-        Assert.Equal(2, getSingleton<CurrentFrame>(core.RenderWorld).Value);
     }
     
     public T getSingleton<T>(World world) where T : struct
     {
-        return world.Query<T>().Single<T>();
+        return world.Singleton<T>().Get<T>();
     }
-    **/
 }

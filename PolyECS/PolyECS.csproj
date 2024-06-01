@@ -16,4 +16,10 @@
       <PackageReference Include="QuikGraph" Version="2.5.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\lib\Flecs.NET\src\Flecs.NET\Flecs.NET.csproj" />
+    </ItemGroup>
+    
+    <Import Project="..\lib\Flecs.NET\src\Flecs.NET.Native\Flecs.NET.Native.targets"/> 
+
 </Project>

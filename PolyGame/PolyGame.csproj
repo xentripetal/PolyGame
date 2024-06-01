@@ -6,8 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\PolyECS.Generator\PolyECS.Generator.csproj" />
-        <ProjectReference Include="..\PolyECS\PolyECS.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -15,7 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Components\"/>
-        <Folder Include="Systems\Render\Extract\" />
+        <ProjectReference Include="..\PolyECS\PolyECS.csproj" />
     </ItemGroup>
+
+
 </Project>
