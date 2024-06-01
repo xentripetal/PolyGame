@@ -1,29 +1,29 @@
 using PolyECS.Scheduling.Executor;
 using PolyECS.Scheduling.Graph;
-using PolyFlecs.Systems.Configs;
-using PolyFlecs.Systems.Executor;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Configs;
+using PolyECS.Systems.Executor;
+using PolyECS.Systems.Graph;
 using QuikGraph;
 
-namespace PolyFlecs.Systems;
+namespace PolyECS.Systems;
 
 /// <summary>
 /// A collection of systems, and the metadata and executor needed to run them
 /// in a certain order under certain conditions.
 /// </summary>
-public class Schedule
+public class Schedule<TComponent>
 {
     protected string Label;
-    protected SystemGraph Graph;
-    protected SystemSchedule Executable;
+    protected SystemGraph<> Graph;
+    protected SystemSchedule<> Executable;
     protected IExecutor Executor;
     protected bool ExecutorInitialized;
 
     public Schedule(string label)
     {
         Label = label;
-        Graph = new SystemGraph();
-        Executable = new SystemSchedule();
+        Graph = new SystemGraph<>();
+        Executable = new SystemSchedule<>();
         Executor = new SimpleExecutor();
     }
     
@@ -37,7 +37,7 @@ public class Schedule
     /// </summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    public Schedule AddSystems(NodeConfigs<System> configs)
+    public Schedule<TComponent> AddSystems(NodeConfigs<System<TComponent>> configs)
     {
         Graph.ProcessConfigs(configs, false);
         return this;
@@ -50,7 +50,7 @@ public class Schedule
     /// <param name="b"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public Schedule IgnoreAmbiguity(SystemSet a, SystemSet b)
+    public Schedule<TComponent> IgnoreAmbiguity(SystemSet a, SystemSet b)
     {
         var hasA = Graph.SystemSetIds.TryGetValue(a, out var aNode);
         if (!hasA)
@@ -66,7 +66,7 @@ public class Schedule
         return this;
     }
     
-    public Schedule SetBuildSettings(ScheduleBuildSettings settings)
+    public Schedule<TComponent> SetBuildSettings(ScheduleBuildSettings settings)
     {
         Graph.Config = settings;
         return this;
@@ -77,15 +77,15 @@ public class Schedule
         return Graph.Config;
     }
     
-    public Schedule SetExecutor(IExecutor executor)
+    public Schedule<TComponent> SetExecutor(IExecutor executor)
     {
         Executor = executor;
         return this;
     }
     
-    public Schedule GetExecutor()
+    public IExecutor GetExecutor()
     {
-        return this;
+        return this.Executor;
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class Schedule
     /// </summary>
     /// <param name="apply"></param>
     /// <returns></returns>
-    public Schedule SetApplyFinalDeferred(bool apply)
+    public Schedule<TComponent> SetApplyFinalDeferred(bool apply)
     {
         Executor.SetApplyFinalDeferred(apply);
         return this;

@@ -1,11 +1,11 @@
-namespace PolyFlecs.Systems;
+namespace PolyECS.Systems;
 
 /// <summary>
 /// A special marker system that applies deferred buffers.
 /// </summary>
-public sealed class ApplyDeferredSystem : System
+public sealed class ApplyDeferredSystem<T> : System<T>
 {
-    private Access access = new Access().WriteAll();
+    private Access<T> access = new Access<T>().WriteAll();
 
     public override void Initialize(IScheduleWorld scheduleWorld) { }
 
@@ -13,7 +13,7 @@ public sealed class ApplyDeferredSystem : System
 
     public override void RunExclusive(IScheduleWorld world) { }
 
-    public override Access GetAccess()
+    public override Access<T> GetAccess()
     {
         return access;
     }

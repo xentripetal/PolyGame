@@ -1,6 +1,4 @@
-using Friflo.Json.Fliox.Transform.Project;
-
-namespace PolyFlecs.Systems;
+namespace PolyECS.Systems;
 
 /// <summary>
 /// Tracks read and write access to specific elements in a collection.
@@ -9,46 +7,46 @@ namespace PolyFlecs.Systems;
 /// </summary>
 /// <remarks>Port of bevy_ecs::query::access::Access. Does not used a <see cref="FixedBitSet"/> as I'm trying to avoid requiring a component registry</remarks>
 /// 
-public class Access
+public struct Access<T>
 {
     /// <summary>
     /// All accessed elements
     /// </summary>
-    protected HashSet<Type> ReadsAndWrites;
+    public HashSet<T> ReadsAndWrites;
     /// <summary>
     /// Exclusively accessed elements
     /// </summary>
-    protected HashSet<Type> Writes;
+    public HashSet<T> Writes;
     /// <summary>
     /// Is true if this has access to all elements in the collection.
     /// This field is a performance optimization for <see cref="IScheduleWorld"/> (also harder to mess up for soundness)
     /// </summary>
-    protected bool ReadsAll;
+    public bool ReadsAll;
     /// <summary>
     /// Is true if this has mutable access to all elements in the collection.
     /// If this is true, then <see cref="ReadsAll"/> must also be true.
     /// </summary>
-    protected bool WritesAll;
+    public bool WritesAll;
     /// <summary>
     /// Elements that are not accessed, but whose presence in an archetype affect query results
     /// </summary>
-    protected HashSet<Type> Archetypal;
+    public HashSet<T> Archetypal;
 
     /// <summary>
     /// Creates an empty [`Access`] collection.
     /// </summary>
     public Access()
     {
-        ReadsAndWrites = new HashSet<Type>();
-        Writes = new HashSet<Type>();
-        Archetypal = new HashSet<Type>();
+        ReadsAndWrites = new HashSet<T>();
+        Writes = new HashSet<T>();
+        Archetypal = new ();
     }
 
     /// <summary>
     /// Adds access to the given type.
     /// </summary>
     /// <param name="type"></param>
-    public Access AddRead(Type type)
+    public Access<T> AddRead(T type)
     {
         ReadsAndWrites.Add(type);
         return this;
@@ -58,7 +56,7 @@ public class Access
     /// Adds exclusive access to the given type.
     /// </summary>
     /// <param name="type"></param>
-    public Access AddWrite(Type type)
+    public Access<T> AddWrite(T type)
     {
         ReadsAndWrites.Add(type);
         Writes.Add(type);
@@ -72,7 +70,7 @@ public class Access
     /// but whose presence in an archetype may affect query results.
     /// </summary>
     /// <param name="type"></param>
-    public Access AddArchetypal(Type type)
+    public Access<T> AddArchetypal(T type)
     {
         Archetypal.Add(type);
         return this;
@@ -83,7 +81,7 @@ public class Access
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public bool HasRead(Type type)
+    public bool HasRead(T type)
     {
         return ReadsAll || ReadsAndWrites.Contains(type);
     }
@@ -102,7 +100,7 @@ public class Access
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public bool HasWrite(Type type)
+    public bool HasWrite(T type)
     {
         return WritesAll || Writes.Contains(type);
     }
@@ -125,7 +123,7 @@ public class Access
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
-    public bool HasArchetypal(Type type)
+    public bool HasArchetypal(T type)
     {
         return Archetypal.Contains(type);
     }
@@ -133,7 +131,7 @@ public class Access
     /// <summary>
     /// Sets this as having access to all types.
     /// </summary>
-    public Access ReadAll()
+    public Access<T> ReadAll()
     {
         ReadsAll = true;
         return this;
@@ -142,7 +140,7 @@ public class Access
     /// <summary>
     /// Sets this as having exclusive access to all types.
     /// </summary>
-    public Access WriteAll()
+    public Access<T> WriteAll()
     {
         WritesAll = true;
         ReadsAll = true;
@@ -153,7 +151,7 @@ public class Access
     /// Remove all writes
     /// </summary>
     /// <returns></returns>
-    public Access ClearWrites()
+    public Access<T> ClearWrites()
     {
         WritesAll = false;
         Writes.Clear();
@@ -164,7 +162,7 @@ public class Access
     /// Removes all accesses
     /// </summary>
     /// <returns></returns>
-    public Access Clear()
+    public Access<T> Clear()
     {
         ReadsAll = false;
         WritesAll = false;
@@ -179,7 +177,7 @@ public class Access
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public Access Extend(Access other)
+    public Access<T> Extend(Access<T> other)
     {
         ReadsAndWrites.UnionWith(other.ReadsAndWrites);
         Writes.UnionWith(other.Writes);
@@ -192,12 +190,12 @@ public class Access
     /// <summary>
     /// Returns `true` if the access and `other` can be active at the same time.
     ///
-    /// <see cref="Access"/> instances are incompatible if one can write
+    /// <see cref="Access{T}"/> instances are incompatible if one can write
     /// an element that the other can read or write.
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public bool IsCompatible(Access other)
+    public bool IsCompatible(Access<T> other)
     {
         if (WritesAll)
         {
@@ -223,9 +221,9 @@ public class Access
     /// </summary>
     /// <param name="other"></param>
     /// <returns></returns>
-    public Type[] GetConflicts(Access other)
+    public T[] GetConflicts(Access<T> other)
     {
-        var conflicts = new HashSet<Type>();
+        var conflicts = new HashSet<T>();
         if (ReadsAll)
         {
             // QUESTION: How to handle `other.writes_all`?
@@ -248,18 +246,18 @@ public class Access
         conflicts.UnionWith(ReadsAndWrites.Intersect(other.Writes));
         return conflicts.ToArray();
     }
-    
-    public IEnumerable<Type> GetReadsAndWrites()
+
+    public IEnumerable<T> GetReadsAndWrites()
     {
         return ReadsAndWrites;
     }
-    
-    public IEnumerable<Type> GetWrites()
+
+    public IEnumerable<T> GetWrites()
     {
         return Writes;
     }
-    
-    public IEnumerable<Type> GetArchetypal()
+
+    public IEnumerable<T> GetArchetypal()
     {
         return Archetypal;
     }

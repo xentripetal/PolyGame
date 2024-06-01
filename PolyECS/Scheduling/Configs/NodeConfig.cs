@@ -1,7 +1,7 @@
 using PolyECS.Scheduling.Graph;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Graph;
 
-namespace PolyFlecs.Systems.Configs;
+namespace PolyECS.Systems.Configs;
 
 /// <summary>
 /// Stores configuration for a single generic node (a system or a system set)
@@ -22,11 +22,11 @@ public abstract class NodeConfig<T>
     public SubgraphInfo Subgraph;
     public List<Condition> Conditions;
 
-    public abstract NodeId ProcessConfig(SystemGraph graph);
+    public abstract NodeId ProcessConfig(SystemGraph<> graph);
 }
 
 public class SystemConfig : NodeConfig<System>
 {
-    public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
+    public override NodeId ProcessConfig(SystemGraph<> graph) => throw new NotImplementedException();
 }
 

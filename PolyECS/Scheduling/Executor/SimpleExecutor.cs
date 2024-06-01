@@ -1,11 +1,11 @@
-using PolyFlecs;
-using PolyFlecs.Systems;
-using PolyFlecs.Systems.Executor;
-using PolyFlecs.Systems.Graph;
+using PolyECS;
+using PolyECS.Systems;
+using PolyECS.Systems.Executor;
+using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class SimpleExecutor : IExecutor
+public class SimpleExecutor<T> : IExecutor<T>
 {
     /// <summary>
     /// System sets whose conditions have been evaluated
@@ -18,7 +18,7 @@ public class SimpleExecutor : IExecutor
 
     public SimpleExecutor() { }
 
-    public void Init(SystemSchedule schedule)
+    public void Init(SystemSchedule<T> schedule)
     {
         int sysCount = schedule.SystemIds.Count;
         int setCount = schedule.SetIds.Count;
@@ -31,7 +31,7 @@ public class SimpleExecutor : IExecutor
         // do nothing. simple executor does not do a final sync
     }
 
-    public void Run(SystemSchedule schedule, IScheduleWorld scheduleWorld, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule<T> schedule, IScheduleWorld scheduleWorld, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
@@ -71,7 +71,7 @@ public class SimpleExecutor : IExecutor
 
             var system = schedule.Systems[systemIndex];
             // Simple executor always applys deferred after a system, so skip inserted deferred systems
-            if (system is ApplyDeferredSystem)
+            if (system is ApplyDeferredSystem<T>)
             {
                 continue;
             }

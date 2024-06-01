@@ -1,16 +1,15 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using PolyFlecs;
-using PolyFlecs.Systems.Configs;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Configs;
+using PolyECS.Systems.Graph;
 using QuikGraph;
 using QuikGraph.Algorithms;
-using AnonymousSet = PolyFlecs.Systems.AnonymousSet;
-using ApplyDeferredSystem = PolyFlecs.Systems.ApplyDeferredSystem;
-using Condition = PolyFlecs.Systems.Condition;
-using FixedBitSet = PolyFlecs.Systems.FixedBitSet;
-using ScheduleBuildException = PolyFlecs.Systems.ScheduleBuildException;
-using SystemSet = PolyFlecs.Systems.SystemSet;
+using AnonymousSet = PolyECS.Systems.AnonymousSet;
+using ApplyDeferredSystem = PolyECS.Systems.ApplyDeferredSystem;
+using Condition = PolyECS.Systems.Condition;
+using FixedBitSet = PolyECS.Systems.FixedBitSet;
+using ScheduleBuildException = PolyECS.Systems.ScheduleBuildException;
+using SystemSet = PolyECS.Systems.SystemSet;
 
 namespace PolyECS.Scheduling.Graph;
 
@@ -23,10 +22,10 @@ namespace PolyECS.Scheduling.Graph;
 /// Port of bevy_ecs::schedule::SystemGraph
 /// </remarks>
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-public class SystemGraph
+public class SystemGraph<T>
 {
     /// List of systems in the schedule
-    protected List<PolyFlecs.Systems.System> Systems = new ();
+    protected List<System<T>> Systems = new ();
     /// List of conditions for each system, in the same order as `systems`
     protected List<List<Condition>> SystemConditions = new ();
     /// List of system sets in the schedule
@@ -78,11 +77,11 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Returns the <see cref="PolyFlecs.Systems.System"/> at the given <see cref="NodeId"/>, if it exists
+    /// Returns the <see cref="PolyECS.Systems.System"/> at the given <see cref="NodeId"/>, if it exists
     /// </summary>
     /// <param name="id"></param>
     /// <returns>System for the given NodeId</returns>
-    public PolyFlecs.Systems.System? GetSystemAt(NodeId id)
+    public PolyECS.Systems.System? GetSystemAt(NodeId id)
     {
         if (id.Type != NodeType.System)
         {
@@ -98,10 +97,10 @@ public class SystemGraph
 
 
     /// <summary>
-    /// Provides an iterator over all <see cref="PolyFlecs.Systems.System"/>s in this schedule, along with their <see cref="Condition"/>s
+    /// Provides an iterator over all <see cref="PolyECS.Systems.System"/>s in this schedule, along with their <see cref="Condition"/>s
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<(NodeId, PolyFlecs.Systems.System, Condition[])> GetSystems()
+    public IEnumerable<(NodeId, PolyECS.Systems.System, Condition[])> GetSystems()
     {
         for (var i = 0; i < Systems.Count; i++)
         {
@@ -122,7 +121,7 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Returns the <see cref="PolyFlecs.Systems.Graph"/> of the hierarchy.
+    /// Returns the <see cref="PolyECS.Systems.Graph"/> of the hierarchy.
     ///
     /// The hierarchy is a directed acyclic graph of the systems and sets, where an edge denotes that a system or set is the child of another set.
     /// </summary>
@@ -132,7 +131,7 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Returns the <see cref="PolyFlecs.Systems.Graph"/> of the dependencies on the schedule.
+    /// Returns the <see cref="PolyECS.Systems.Graph"/> of the dependencies on the schedule.
     ///
     /// Nodes in this graph are systems and sets, and edges denote that a system or set has to run before another system or set.
     /// </summary>
@@ -581,7 +580,7 @@ public class SystemGraph
 
         return new SystemSchedule
         {
-            Systems = new List<PolyFlecs.Systems.System>(sysCount),
+            Systems = new List<PolyECS.Systems.System>(sysCount),
             SystemConditions = new List<List<Condition>>(sysCount),
             SetConditions = new List<List<Condition>>(setWithsConditionsCount),
             SystemIds = topsort.ToList(),

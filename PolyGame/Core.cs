@@ -1,13 +1,11 @@
-﻿using Friflo.Engine.ECS;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace PolyGame;
 
 public class Core : Game
 {
-    public EntityStore GameStore;
-    public EntityStore RenderStore;
+    public Wor
 
     public Core(
         int width = 1280,

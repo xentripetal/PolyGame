@@ -1,7 +1,7 @@
 using PolyECS.Scheduling.Graph;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Graph;
 
-namespace PolyFlecs.Systems.Configs;
+namespace PolyECS.Systems.Configs;
 
 
 /// <summary>

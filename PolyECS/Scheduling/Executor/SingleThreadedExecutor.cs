@@ -1,11 +1,11 @@
-using PolyFlecs;
-using PolyFlecs.Systems;
-using PolyFlecs.Systems.Executor;
-using PolyFlecs.Systems.Graph;
+using PolyECS;
+using PolyECS.Systems;
+using PolyECS.Systems.Executor;
+using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class SingleThreadedExecutor : IExecutor
+public class SingleThreadedExecutor<T> : IExecutor<T>
 {
     /// <summary>
     /// System sets whose conditions have been evaluated
@@ -26,7 +26,7 @@ public class SingleThreadedExecutor : IExecutor
 
     public SingleThreadedExecutor() { }
 
-    public void Init(SystemSchedule schedule)
+    public void Init(SystemSchedule<T> schedule)
     {
         int sysCount = schedule.SystemIds.Count;
         int setCount = schedule.SetIds.Count;
@@ -40,7 +40,7 @@ public class SingleThreadedExecutor : IExecutor
         ApplyFinalDeferred = apply;
     }
 
-    protected void ApplyDeferred(SystemSchedule schedule, IScheduleWorld world)
+    protected void ApplyDeferred(SystemSchedule<T> schedule, IScheduleWorld world)
     {
         foreach (var systemIndex in UnappliedSystems.Ones())
         {
@@ -50,7 +50,7 @@ public class SingleThreadedExecutor : IExecutor
         UnappliedSystems.Clear();
     }
 
-    public void Run(SystemSchedule schedule, IScheduleWorld world, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule<T> schedule, IScheduleWorld world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
@@ -90,7 +90,7 @@ public class SingleThreadedExecutor : IExecutor
             }
 
             var system = schedule.Systems[systemIndex];
-            if (system is ApplyDeferredSystem)
+            if (system is ApplyDeferredSystem<T>)
             {
                 ApplyDeferred(schedule, world);
                 continue;

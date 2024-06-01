@@ -1,8 +1,6 @@
-using Friflo.Json.Fliox.Transform.Query.Ops;
+namespace PolyECS.Systems;
 
-namespace PolyFlecs.Systems;
-
-public abstract class System
+public abstract class System<T>
 {
     public abstract void Initialize(IScheduleWorld world);
     public abstract void RunDeferred(IDeferredScheduleWorld world);
@@ -15,13 +13,13 @@ public abstract class System
 
     public bool IsExclusive { get; protected set; }
 
-    public abstract Access GetAccess();
+    public abstract Access<T> GetAccess();
 
     public abstract List<SystemSet> GetDefaultSystemSets();
 
     public virtual SystemSet ToSystemSet()
     {
-        return new SystemTypeSet<System>();
+        return new SystemTypeSet<System<T>, T>();
     }
 
     public abstract void ApplyDeferred(IScheduleWorld scheduleWorld);

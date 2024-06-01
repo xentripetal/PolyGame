@@ -1,5 +1,5 @@
-using PolyFlecs.Systems;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems;
+using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Graph;
 

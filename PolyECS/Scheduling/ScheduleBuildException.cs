@@ -1,4 +1,4 @@
-namespace PolyFlecs.Systems;
+namespace PolyECS.Systems;
 
 public class ScheduleBuildException : ArgumentException 
 {

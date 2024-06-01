@@ -1,6 +1,6 @@
 using QuikGraph;
 
-namespace PolyFlecs.Systems.Graph;
+namespace PolyECS.Systems.Graph;
 
 public class CheckGraphResults<V>
 {

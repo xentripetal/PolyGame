@@ -1,12 +1,56 @@
-using PolyFlecs;
-using PolyFlecs.Systems;
-using PolyFlecs.Systems.Executor;
-using PolyFlecs.Systems.Graph;
+using PolyECS;
+using PolyECS.Systems;
+using PolyECS.Systems.Executor;
+using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class MultiThreadedExecutor : IExecutor
+public class MultiThreadedExecutor<T> : IExecutor<T>
 {
+    public struct State
+    {
+        /// Metadata for scheduling and running system tasks.
+        system_task_metadata: Vec<SystemTaskMetadata>,
+
+        /// Union of the accesses of all currently running systems.
+        active_access: Access<ArchetypeComponentId>,
+
+        /// Returns `true` if a system with non-`Send` access is running.
+        local_thread_running: bool,
+
+        /// Returns `true` if an exclusive system is running.
+        exclusive_running: bool,
+
+        /// The number of systems that are running.
+        num_running_systems: usize,
+
+        /// The number of dependencies each system has that have not completed.
+        num_dependencies_remaining: Vec<usize>,
+
+        /// System sets whose conditions have been evaluated.
+        evaluated_sets: FixedBitSet,
+
+        /// Systems that have no remaining dependencies and are waiting to run.
+        ready_systems: FixedBitSet,
+
+        /// copy of `ready_systems`
+        ready_systems_copy: FixedBitSet,
+
+        /// Systems that are running.
+        running_systems: FixedBitSet,
+
+        /// Systems that got skipped.
+        skipped_systems: FixedBitSet,
+
+        /// Systems whose conditions have been evaluated and were run or skipped.
+        completed_systems: FixedBitSet,
+
+        /// Systems that have run but have not had their buffers applied.
+        unapplied_systems: FixedBitSet,
+    }
+
+
+
     /// <summary>
     /// System sets whose conditions have been evaluated
     /// </summary>
@@ -56,7 +100,7 @@ public class MultiThreadedExecutor : IExecutor
         {
             CompletedSystems.Or(skipSystems.Value);
         }
-        
+
         for (int systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
         {
             var shouldRun = !CompletedSystems.Contains(systemIndex);
@@ -95,7 +139,7 @@ public class MultiThreadedExecutor : IExecutor
                 ApplyDeferred(schedule, world);
                 continue;
             }
-            
+
             try
             {
                 if (system.IsExclusive)
@@ -113,7 +157,7 @@ public class MultiThreadedExecutor : IExecutor
             }
             UnappliedSystems.Set(systemIndex);
         }
-        
+
         if (ApplyFinalDeferred)
         {
             ApplyDeferred(schedule, world);

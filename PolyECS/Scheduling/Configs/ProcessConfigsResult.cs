@@ -1,7 +1,7 @@
 using Friflo.Json.Fliox.Mapper.Diff;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Graph;
 
-namespace PolyFlecs.Systems.Configs;
+namespace PolyECS.Systems.Configs;
 
 public struct ProcessConfigsResult
 {

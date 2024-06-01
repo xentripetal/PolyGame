@@ -1,4 +1,4 @@
-namespace PolyFlecs;
+namespace PolyECS;
 
 public interface IScheduleWorld : IDeferredScheduleWorld
 {

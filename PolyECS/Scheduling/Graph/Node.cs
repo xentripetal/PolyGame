@@ -1,4 +1,4 @@
-namespace PolyFlecs.Systems.Graph;
+namespace PolyECS.Systems.Graph;
 
 public enum NodeType
 {

@@ -1,7 +1,7 @@
 using PolyECS.Scheduling.Graph;
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Graph;
 
-namespace PolyFlecs.Systems.Configs;
+namespace PolyECS.Systems.Configs;
 
 public class SystemSetConfig : NodeConfig<SystemSet>
 {
@@ -11,5 +11,5 @@ public class SystemSetConfig : NodeConfig<SystemSet>
         Set = set;
     }
     
-    public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
+    public override NodeId ProcessConfig(SystemGraph<> graph) => throw new NotImplementedException();
 }

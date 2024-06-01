@@ -1,4 +1,4 @@
-namespace PolyFlecs.Systems.Configs;
+namespace PolyECS.Systems.Configs;
 
 /// <summary>
 /// Types that can convert into a <see cref="SystemConfig"/>

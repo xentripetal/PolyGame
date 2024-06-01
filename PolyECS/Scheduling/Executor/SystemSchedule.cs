@@ -1,4 +1,4 @@
-namespace PolyFlecs.Systems.Graph;
+namespace PolyECS.Systems.Graph;
 
 
 /// <summary>
@@ -8,12 +8,12 @@ namespace PolyFlecs.Systems.Graph;
 /// Since the arrays are sorted in the same order, elements are referenced by their index.
 /// [`FixedBitSet`] is used as a smaller, more efficient substitute of `HashSet`.
 /// </summary>
-public class SystemSchedule
+public class SystemSchedule<T>
 {
     /// <summary>
     /// Indexed by system node id
     /// </summary>
-    public List<System> Systems;
+    public List<System<T>> Systems;
 
     /// <summary>
     /// List of system node ids.

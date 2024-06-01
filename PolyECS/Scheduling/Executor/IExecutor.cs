@@ -1,10 +1,10 @@
-using PolyFlecs.Systems.Graph;
+using PolyECS.Systems.Graph;
 
-namespace PolyFlecs.Systems.Executor;
+namespace PolyECS.Systems.Executor;
 
-public interface IExecutor
+public interface IExecutor<T>
 {
-    void Init(SystemSchedule schedule);
+    void Init(SystemSchedule<T> schedule);
     void SetApplyFinalDeferred(bool apply);
-    void Run(SystemSchedule executable, IScheduleWorld world, FixedBitSet? skipSystems);
+    void Run(SystemSchedule<T> executable, IScheduleWorld world, FixedBitSet? skipSystems);
 }

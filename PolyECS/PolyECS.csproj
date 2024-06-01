@@ -13,10 +13,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\lib\Friflo.Json.Fliox\Engine\src\ECS\Engine.ECS.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="QuikGraph" Version="2.5.0" />
     </ItemGroup>
 

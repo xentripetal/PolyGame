@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace PolyFlecs.Systems;
+namespace PolyECS.Systems;
 
 public struct FixedBitSet
 {

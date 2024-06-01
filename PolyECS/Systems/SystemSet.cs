@@ -1,4 +1,4 @@
-namespace PolyFlecs.Systems;
+namespace PolyECS.Systems;
 
 public interface SystemSet : IEquatable<SystemSet>
 {
@@ -42,11 +42,11 @@ public struct AnonymousSet : SystemSet
 /// <item>You cannot order something relative to one if it has more than one member</item>
 /// </list>
 /// </summary>
-struct SystemTypeSet<T> : SystemSet where T : System
+struct SystemTypeSet<TSystem, TComponent> : SystemSet where TSystem : System<TComponent>
 {
     public bool Equals(SystemSet? other)
     {
-        if (other is SystemTypeSet<T> otherType)
+        if (other is SystemTypeSet<TSystem, TComponent> otherType)
         {
             return true;
         }
@@ -58,5 +58,5 @@ struct SystemTypeSet<T> : SystemSet where T : System
         return false;
     }
 
-    public Type? SystemType() => typeof(T);
+    public Type? SystemType() => typeof(TSystem);
 }
