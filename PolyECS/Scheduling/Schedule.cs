@@ -14,17 +14,17 @@ namespace PolyECS.Systems;
 public class Schedule<TComponent>
 {
     protected string Label;
-    protected SystemGraph<> Graph;
-    protected SystemSchedule<> Executable;
-    protected IExecutor Executor;
+    protected SystemGraph<TComponent> Graph;
+    protected SystemSchedule<TComponent> Executable;
+    protected IExecutor<TComponent> Executor;
     protected bool ExecutorInitialized;
 
     public Schedule(string label)
     {
         Label = label;
-        Graph = new SystemGraph<>();
-        Executable = new SystemSchedule<>();
-        Executor = new SimpleExecutor();
+        Graph = new SystemGraph<TComponent>();
+        Executable = new SystemSchedule<TComponent>();
+        Executor = new SimpleExecutor<TComponent>();
     }
     
     public string GetLabel()
@@ -77,13 +77,13 @@ public class Schedule<TComponent>
         return Graph.Config;
     }
     
-    public Schedule<TComponent> SetExecutor(IExecutor executor)
+    public Schedule<TComponent> SetExecutor(IExecutor<TComponent> executor)
     {
         Executor = executor;
         return this;
     }
     
-    public IExecutor GetExecutor()
+    public IExecutor<TComponent> GetExecutor()
     {
         return this.Executor;
     }

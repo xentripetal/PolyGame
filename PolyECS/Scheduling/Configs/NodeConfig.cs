@@ -13,7 +13,7 @@ namespace PolyECS.Systems.Configs;
 ///
 /// Port of bevy_ecs::schedule::config::NodeConfig
 /// </summary>
-public abstract class NodeConfig<T>
+public abstract class NodeConfig<T, TC>
 {
     public T Node;
     /// <summary>
@@ -22,11 +22,11 @@ public abstract class NodeConfig<T>
     public SubgraphInfo Subgraph;
     public List<Condition> Conditions;
 
-    public abstract NodeId ProcessConfig(SystemGraph<> graph);
+    public abstract NodeId ProcessConfig(SystemGraph<TC> graph);
 }
 
-public class SystemConfig : NodeConfig<System>
+public class SystemConfig<T> : NodeConfig<System<T>, T>
 {
-    public override NodeId ProcessConfig(SystemGraph<> graph) => throw new NotImplementedException();
+    public override NodeId ProcessConfig(SystemGraph<T> graph) => throw new NotImplementedException();
 }
 

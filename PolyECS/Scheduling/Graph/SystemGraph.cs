@@ -2,14 +2,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using PolyECS.Systems.Configs;
 using PolyECS.Systems.Graph;
+using PolyECS.Systems;
 using QuikGraph;
 using QuikGraph.Algorithms;
-using AnonymousSet = PolyECS.Systems.AnonymousSet;
-using ApplyDeferredSystem = PolyECS.Systems.ApplyDeferredSystem;
-using Condition = PolyECS.Systems.Condition;
-using FixedBitSet = PolyECS.Systems.FixedBitSet;
-using ScheduleBuildException = PolyECS.Systems.ScheduleBuildException;
-using SystemSet = PolyECS.Systems.SystemSet;
 
 namespace PolyECS.Scheduling.Graph;
 
@@ -81,7 +76,7 @@ public class SystemGraph<T>
     /// </summary>
     /// <param name="id"></param>
     /// <returns>System for the given NodeId</returns>
-    public PolyECS.Systems.System? GetSystemAt(NodeId id)
+    public System<T>? GetSystemAt(NodeId id)
     {
         if (id.Type != NodeType.System)
         {
@@ -100,7 +95,7 @@ public class SystemGraph<T>
     /// Provides an iterator over all <see cref="PolyECS.Systems.System"/>s in this schedule, along with their <see cref="Condition"/>s
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<(NodeId, PolyECS.Systems.System, Condition[])> GetSystems()
+    public IEnumerable<(NodeId, System<T>, Condition[])> GetSystems()
     {
         for (var i = 0; i < Systems.Count; i++)
         {
@@ -153,7 +148,7 @@ public class SystemGraph<T>
         return ConflictingSystems.AsReadOnly();
     }
 
-    protected ProcessConfigsResult ProcessConfig<T>(NodeConfig<T> config, bool collectNodes)
+    protected ProcessConfigsResult ProcessConfig<TNode>(NodeConfig<TNode, T> config, bool collectNodes)
     {
         List<NodeId> nodes = new ();
         var id = config.ProcessConfig(this);
@@ -164,7 +159,7 @@ public class SystemGraph<T>
         return new ProcessConfigsResult(nodes, true);
     }
 
-    protected void ApplyCollectiveConditions<T>(List<NodeConfigs<T>> configs, List<Condition> collectiveConditions)
+    protected void ApplyCollectiveConditions<TNode>(List<NodeConfigs<TNode>> configs, List<Condition> collectiveConditions)
     {
         if (collectiveConditions.Count == 0)
         {
@@ -184,15 +179,15 @@ public class SystemGraph<T>
             {
                 cfg.InSet(set);
             }
-            var setCfg = new SystemSetConfig(set);
+            var setCfg = new SystemSetConfig<T>(set);
             setCfg.Conditions.AddRange(collectiveConditions);
             ConfigureSet(setCfg);
         }
     }
 
-    public ProcessConfigsResult ProcessConfigs<T>(NodeConfigs<T> configs, bool collectNodes)
+    public ProcessConfigsResult ProcessConfigs<TNode>(NodeConfigs<TNode> configs, bool collectNodes)
     {
-        if (configs is NodeConfigs<T>.Node nodeConfig)
+        if (configs is NodeConfigs<TNode>.Node nodeConfig)
         {
             return ProcessConfig(nodeConfig.Config, collectNodes);
         }
@@ -265,7 +260,7 @@ public class SystemGraph<T>
 
 
     /// Add a single `SystemSetConfig` to the graph, including its dependencies and conditions.
-    protected NodeId ConfigureSet(SystemSetConfig set)
+    protected NodeId ConfigureSet(SystemSetConfig<T> set)
     {
         var ok = SystemSetIds.TryGetValue(set.Set, out var id);
         if (!ok)
@@ -592,7 +587,7 @@ public class SystemGraph<T>
         };
     }
 
-    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<Type> ignoredAmbiguities, string label)
+    public SystemSchedule<T> UpdateSchedule(SystemSchedule<T> schedule, HashSet<Type> ignoredAmbiguities, string label)
     {
         if (Uninit.Count != 0)
         {
