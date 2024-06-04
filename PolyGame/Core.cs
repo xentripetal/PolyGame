@@ -40,9 +40,6 @@ public class Core : Game
         IsFixedTimeStep = false;
 
         RenderWorld = World.Create();
-        RenderWorld.Routine().With<DeleteAfterRender>().Write().Each(en => {
-            en.Destruct();
-        });
         GameWorld = World.Create();
     }
 
@@ -93,6 +90,7 @@ public class Core : Game
             // and the render before prepping the rendering for the future frame.
             if (_hasRenderState)
             {
+                
                 RenderWorldProgress = ProgressWorld(RenderWorld, previousFrameElapsedTime);
             }
             Task.WaitAll(GameWorldProgress, RenderWorldProgress);
@@ -106,6 +104,9 @@ public class Core : Game
 
     protected virtual void Extract()
     {
+        RenderWorld.QueryBuilder().With<DeleteAfterRender>().Write().Build().Each(en => {
+            en.Destruct();
+        });
         // Clear out last frames entities (except systems)
         foreach (var extractor in Extractors)
         {

@@ -1,0 +1,19 @@
+using Microsoft.Xna.Framework;
+
+namespace PolyGame.Components.Transform;
+
+/// <summary>
+/// Describes the position of an entity relative to the reference frame.
+///
+/// To place or move an entity, you should modify its <see cref="Transform"/>
+/// Global transform is fully managed by bevy, you cannot mutate it.
+/// </summary>
+public class GlobalTransform
+{
+    public Matrix Matrix;
+
+    public Transform ComputeTransform()
+    {
+        return new Transform(Matrix);
+    }
+}

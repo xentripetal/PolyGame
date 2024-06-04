@@ -1,7 +1,6 @@
 using Flecs.NET.Core;
 using JetBrains.Annotations;
 using PolyGame.Components.Render.Extract;
-using Xunit;
 
 namespace PolyGame.Tests;
 
@@ -22,7 +21,7 @@ public class CoreRenderingTests
 
     public void SetupFrameCounter(Core core)
     {
-        core.GameWorld.Entity().Set(new CurrentFrame(0));
+        GameRenderEntity = core.GameWorld.Entity().Set(new CurrentFrame(0));
         core.GameWorld.Routine<CurrentFrame>().Each((ref CurrentFrame frame) => {
             frame.Value++;
         });
@@ -35,6 +34,7 @@ public class CoreRenderingTests
     }
 
     protected CurrentFrame RenderFrame = new CurrentFrame();
+    protected Entity GameRenderEntity = Entity.Null();
 
     [Fact]
     public void TestSynchronousRendering()
@@ -57,19 +57,17 @@ public class CoreRenderingTests
         var core = new Core();
         core.SynchronousRendering = false;
         SetupFrameCounter(core);
-        core.Tick();
-        // Output of render should be default
-        Assert.Equal(0, RenderFrame.Value);
-        Assert.Equal(1, getSingleton<CurrentFrame>(core.GameWorld).Value);
-        
-        // We extracted after rendering, so the render world should have the new frame
-        core.Tick();
-        Assert.Equal(1, RenderFrame.Value);
-        Assert.Equal(2, getSingleton<CurrentFrame>(core.GameWorld).Value);
+        for (int i = 0; i < 100; i++)
+        {
+            core.Tick();
+            Assert.Equal(i, RenderFrame.Value);
+            Assert.Equal(i + 1, getSingleton<CurrentFrame>(core.GameWorld).Value);
+        }
     }
     
     public T getSingleton<T>(World world) where T : struct
     {
-        return world.Singleton<T>().Get<T>();
+
+        return world.Query<T>().First().Get<T>();
     }
 }
