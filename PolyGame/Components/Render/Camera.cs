@@ -1,10 +1,24 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Math;
 
 namespace PolyGame.Components.Render;
 
 public struct Camera
 {
+    public float PositionZ3D = 2000f;
+
+    /// <summary>
+    /// near clip plane of the 3D camera projection
+    /// </summary>
+    public float NearClipPlane3D = 0.0001f;
+
+    /// <summary>
+    /// far clip plane of the 3D camera projection
+    /// </summary>
+    public float FarClipPlane3D = 5000f;
+
+    public Camera() { }
 }
 
 /// <summary>
@@ -32,4 +46,3 @@ public struct ViewPort
     /// </summary>
     public Range<float> Depth;
 }
-

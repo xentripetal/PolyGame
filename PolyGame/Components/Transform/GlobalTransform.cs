@@ -16,4 +16,7 @@ public class GlobalTransform
     {
         return new Transform(Matrix);
     }
+    
+    public Vector3 Position => Matrix.Translation;
+    public Vector3 Scale => new Vector3(Matrix.M11, Matrix.M22, Matrix.M33);
 }

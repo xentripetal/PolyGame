@@ -19,8 +19,6 @@ public class Core : Game
         bool hardwareModeSwitch = true
     ) : base()
     {
-        Console.WriteLine(Environment.ProcessorCount);
-
         var graphicsManager = new GraphicsDeviceManager(this)
         {
             PreferredBackBufferWidth = width,
@@ -90,7 +88,7 @@ public class Core : Game
             // and the render before prepping the rendering for the future frame.
             if (_hasRenderState)
             {
-                
+
                 RenderWorldProgress = ProgressWorld(RenderWorld, previousFrameElapsedTime);
             }
             Task.WaitAll(GameWorldProgress, RenderWorldProgress);
