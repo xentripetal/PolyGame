@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Microsoft.Xna.Framework;
 
-namespace PolyGame.Math;
+namespace PolyGame;
 
 #nullable disable
 [DataContract]

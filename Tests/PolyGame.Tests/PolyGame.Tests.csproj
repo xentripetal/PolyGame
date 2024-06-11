@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\lib\TinyEcs\src\TinyEcs.csproj" />
     <ProjectReference Include="..\..\PolyGame\PolyGame.csproj" />
   </ItemGroup>
 

@@ -2,6 +2,16 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace PolyGame.Components.Render;
 
+public struct CurrentMaterial
+{
+    public Material Material;
+}
+
+public struct PreviousMaterial
+{
+    public Material Material;
+}
+
 public class Material : IComparable<Material>, IDisposable
 {
     /// <summary>
@@ -221,9 +231,7 @@ public class Material : IComparable<Material>, IDisposable
 
     #endregion
 
-    public Material()
-    {
-    }
+    public Material() { }
 
     public Material(Effect effect)
     {

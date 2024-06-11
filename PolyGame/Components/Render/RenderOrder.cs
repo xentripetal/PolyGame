@@ -1,5 +1,3 @@
-using Flecs.NET.Utilities;
-
 namespace PolyGame.Components.Render;
 
 public struct RenderOrder : IComparable<RenderOrder>

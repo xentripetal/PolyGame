@@ -1,4 +1,4 @@
-namespace PolyGame.Math;
+namespace PolyGame;
 
 public struct Range<T> where T : struct, IComparable<T>, IEquatable<T>
 {

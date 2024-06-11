@@ -8,7 +8,7 @@ namespace PolyGame.Components.Transform;
 /// To place or move an entity, you should modify its <see cref="Transform"/>
 /// Global transform is fully managed by bevy, you cannot mutate it.
 /// </summary>
-public class GlobalTransform
+public struct GlobalTransform
 {
     public Matrix Matrix;
 

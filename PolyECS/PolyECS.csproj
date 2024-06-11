@@ -17,9 +17,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\lib\Flecs.NET\src\Flecs.NET\Flecs.NET.csproj" />
+      <!--<ProjectReference Include="..\lib\Flecs.NET\src\Flecs.NET\Flecs.NET.csproj" />-->
+        <ProjectReference Include="..\lib\TinyECS\src\TinyECS.csproj" />
     </ItemGroup>
     
-    <Import Project="..\lib\Flecs.NET\src\Flecs.NET.Native\Flecs.NET.Native.targets"/> 
+    <!--<Import Project="..\lib\Flecs.NET\src\Flecs.NET.Native\Flecs.NET.Native.targets"/> -->
 
 </Project>

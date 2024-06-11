@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render.Extract;
+using TinyEcs;
 
 namespace PolyGame;
 
@@ -37,8 +38,8 @@ public class Core : Game
         IsMouseVisible = false;
         IsFixedTimeStep = false;
 
-        RenderWorld = World.Create();
-        GameWorld = World.Create();
+        RenderWorld = new World();
+        GameWorld = new World();
     }
 
     /// <summary>
@@ -63,8 +64,8 @@ public class Core : Game
     protected virtual async Task ProgressWorld(World world, TimeSpan gameTime)
     {
         float delta = gameTime.Milliseconds;
+        // TODO - scheduler system with tinyecs
         await Task.Run(() => {
-            world.Progress(delta);
         });
     }
 

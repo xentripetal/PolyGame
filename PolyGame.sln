@@ -22,6 +22,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flecs.NET.Codegen", "lib\Fl
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{F66B30B7-D2F1-492A-9923-5BF91A27E52A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyEcs", "lib\TinyEcs\src\TinyEcs.csproj", "{2A44C1FB-749D-4DB2-8237-050AC079A2B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyEcs.Generator", "lib\TinyEcs\tools\TinyEcs.Generator\TinyEcs.Generator.csproj", "{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +68,14 @@ Global
 		{A6123E66-E195-4621-B757-49C30189528B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6123E66-E195-4621-B757-49C30189528B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6123E66-E195-4621-B757-49C30189528B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A44C1FB-749D-4DB2-8237-050AC079A2B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A44C1FB-749D-4DB2-8237-050AC079A2B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A44C1FB-749D-4DB2-8237-050AC079A2B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A44C1FB-749D-4DB2-8237-050AC079A2B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1F583726-2894-46B2-A1CE-5A99C832A43D} = {4CCA85E1-0BE6-4C0C-8E2E-C624E1E7D7B7}
