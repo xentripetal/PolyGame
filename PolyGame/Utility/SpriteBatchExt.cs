@@ -4,7 +4,7 @@ using PolyGame.Components.Render;
 
 namespace PolyGame;
 
-public static class SpriteBatchExtension
+public static class SpriteBatchExt
 {
     public static void Begin(
         this SpriteBatch spriteBatch,

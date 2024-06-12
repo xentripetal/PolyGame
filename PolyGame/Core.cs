@@ -1,5 +1,4 @@
-﻿using Flecs.NET.Core;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render.Extract;
 using TinyEcs;
@@ -65,8 +64,7 @@ public class Core : Game
     {
         float delta = gameTime.Milliseconds;
         // TODO - scheduler system with tinyecs
-        await Task.Run(() => {
-        });
+        await Task.Run(() => { });
     }
 
 
@@ -103,9 +101,7 @@ public class Core : Game
 
     protected virtual void Extract()
     {
-        RenderWorld.QueryBuilder().With<DeleteAfterRender>().Write().Build().Each(en => {
-            en.Destruct();
-        });
+        RenderWorld.QueryBuilder().With<DeleteAfterRender>().Build().Each(entity => entity.Delete());
         // Clear out last frames entities (except systems)
         foreach (var extractor in Extractors)
         {

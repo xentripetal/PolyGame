@@ -4,9 +4,26 @@ namespace PolyGame.Components.Render;
 
 public struct ComputedCamera
 {
+    /// <summary>
+    /// Used to convert from world coordinates to screen
+    /// </summary>
     public Matrix2D TransformMatrix;
+    /// <summary>
+    /// Used to convert from screen coordinates to world
+    /// </summary>
     public Matrix2D InverseTransformMatrix;
+    /// <summary>
+    /// the 2D Cameras projection matrix
+    /// </summary>
     public Matrix ProjectionMatrix;
+    /// <summary>
+    /// The view-projection matrix which is the transformMatrix * the projection matrix
+    /// </summary>
+    public Matrix ViewProjectionMatrix;
+    /// <summary>
+    /// A perspective projection for this camera for use when rendering 3D objects
+    /// </summary>
+    public Matrix ProjectionMatrix3D;
 
     public ComputedCamera(Camera cam, Transform.Transform transform, Point viewport)
     {
@@ -36,6 +53,7 @@ public struct ComputedCamera
         TransformMatrix = cam.TransformMatrix(translation, origin, radians);
         Matrix2D.Invert(ref TransformMatrix, out InverseTransformMatrix);
         ProjectionMatrix = cam.ProjectionMatrix(viewport.X, viewport.Y);
+        ViewProjectionMatrix = TransformMatrix * ProjectionMatrix;
     }
 }
 

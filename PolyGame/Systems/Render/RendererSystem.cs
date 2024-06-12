@@ -17,12 +17,13 @@ public class RendererSystem
     public RendererSystem(World world, GraphicsDevice graphicsDevice)
     {
         // TODO batch should be a shared resource
-        batch = new SpriteBatch(graphicsDevice);
+        batch = new SpriteBatch(graphicsDevice, 2048);
         GraphicsDevice = graphicsDevice;
         unsafe
         {
             RenderersQ = world.QueryBuilder()
                 .With<Camera>()
+                .With<ComputedCamera>()
                 .With<CurrentMaterial>()
                 .With<PreviousMaterial>()
                 .With<GlobalTransform>()
@@ -35,7 +36,14 @@ public class RendererSystem
 
     protected void Render()
     {
-        RenderersQ.Each((EntityView entity, ref Camera cam, ref CurrentMaterial curMat, ref PreviousMaterial prevMat, ref RenderTargetConfig renderTarget) => {
+        RenderersQ.Each((
+            EntityView entity,
+            ref Camera cam,
+            ref ComputedCamera cCam,
+            ref CurrentMaterial curMat,
+            ref PreviousMaterial prevMat,
+            ref RenderTargetConfig renderTarget
+        ) => {
             // TODO need a global/default render texture support like Nez does for scene textures to support "DesignResolution"
             var hasRenderTexture = !Unsafe.IsNullRef(renderTarget);
             if (hasRenderTexture)
@@ -43,7 +51,8 @@ public class RendererSystem
                 GraphicsDevice.SetRenderTarget(renderTarget.Texture);
                 GraphicsDevice.Clear(renderTarget.ClearColor);
             }
-            //batch.Begin(curMat, cam);
+            batch.Begin(curMat.Material, cCam.TransformMatrix);
+            batch.End();
         });
     }
 }
