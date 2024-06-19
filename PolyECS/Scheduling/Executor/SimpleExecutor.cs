@@ -2,10 +2,11 @@ using PolyECS;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
+using TinyEcs;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class SimpleExecutor<T> : IExecutor<T>
+public class SimpleExecutor : IExecutor
 {
     /// <summary>
     /// System sets whose conditions have been evaluated
@@ -18,7 +19,7 @@ public class SimpleExecutor<T> : IExecutor<T>
 
     public SimpleExecutor() { }
 
-    public void Init(SystemSchedule<T> schedule)
+    public void Init(SystemSchedule schedule)
     {
         int sysCount = schedule.SystemIds.Count;
         int setCount = schedule.SetIds.Count;
@@ -31,7 +32,7 @@ public class SimpleExecutor<T> : IExecutor<T>
         // do nothing. simple executor does not do a final sync
     }
 
-    public void Run(SystemSchedule<T> schedule, IScheduleWorld scheduleWorld, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule schedule, World scheduleWorld, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
@@ -71,7 +72,7 @@ public class SimpleExecutor<T> : IExecutor<T>
 
             var system = schedule.Systems[systemIndex];
             // Simple executor always applys deferred after a system, so skip inserted deferred systems
-            if (system is ApplyDeferredSystem<T>)
+            if (system is ApplyDeferredSystem)
             {
                 continue;
             }
@@ -88,7 +89,7 @@ public class SimpleExecutor<T> : IExecutor<T>
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, IScheduleWorld scheduleWorld)
+    protected bool EvaluateAndFoldConditions(List<Condition> conditions, World scheduleWorld)
     {
         // Not short-circuiting is intentional
         bool met = true;

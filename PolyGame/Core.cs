@@ -8,7 +8,9 @@ namespace PolyGame;
 public class Core : Game
 {
     public World RenderWorld;
+    public Scheduler RenderSchedule;
     public World GameWorld;
+    public Scheduler GameSchedule;
 
     public Core(
         int width = 1280,
@@ -38,7 +40,9 @@ public class Core : Game
         IsFixedTimeStep = false;
 
         RenderWorld = new World();
+        RenderSchedule = new Scheduler(RenderWorld);
         GameWorld = new World();
+        GameSchedule = new Scheduler(GameWorld);
     }
 
     /// <summary>
@@ -57,14 +61,13 @@ public class Core : Game
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        GameWorldProgress = ProgressWorld(GameWorld, gameTime.ElapsedGameTime);
+        GameWorldProgress = ProgressSchedule(GameSchedule, gameTime.ElapsedGameTime);
     }
 
-    protected virtual async Task ProgressWorld(World world, TimeSpan gameTime)
+    protected virtual async Task ProgressSchedule(Scheduler scheduler , TimeSpan gameTime)
     {
         float delta = gameTime.Milliseconds;
-        // TODO - scheduler system with tinyecs
-        await Task.Run(() => { });
+        await Task.Run(scheduler.Run);
     }
 
 
@@ -77,7 +80,7 @@ public class Core : Game
         {
             GameWorldProgress.Wait();
             Extract();
-            RenderWorldProgress = ProgressWorld(RenderWorld, gameTime.ElapsedGameTime);
+            RenderWorldProgress = ProgressSchedule(RenderSchedule, gameTime.ElapsedGameTime);
             RenderWorldProgress.Wait();
         }
         else
@@ -88,7 +91,7 @@ public class Core : Game
             if (_hasRenderState)
             {
 
-                RenderWorldProgress = ProgressWorld(RenderWorld, previousFrameElapsedTime);
+                RenderWorldProgress = ProgressSchedule(RenderSchedule, previousFrameElapsedTime);
             }
             Task.WaitAll(GameWorldProgress, RenderWorldProgress);
             previousFrameElapsedTime = gameTime.ElapsedGameTime;

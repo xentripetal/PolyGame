@@ -1,10 +1,10 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using PolyECS.Systems.Configs;
 using PolyECS.Systems.Graph;
 using PolyECS.Systems;
 using QuikGraph;
 using QuikGraph.Algorithms;
+using TinyEcs;
 
 namespace PolyECS.Scheduling.Graph;
 
@@ -16,11 +16,10 @@ namespace PolyECS.Scheduling.Graph;
 /// <remarks>
 /// Port of bevy_ecs::schedule::SystemGraph
 /// </remarks>
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-public class SystemGraph<T>
+public class SystemGraph
 {
     /// List of systems in the schedule
-    protected List<System<T>> Systems = new ();
+    protected List<ASystem> Systems = new ();
     /// List of conditions for each system, in the same order as `systems`
     protected List<List<Condition>> SystemConditions = new ();
     /// List of system sets in the schedule
@@ -44,7 +43,7 @@ public class SystemGraph<T>
 
     public UndirectedGraph<NodeId, Edge<NodeId>> AmbiguousWith = new ();
     protected HashSet<NodeId> AmbiguousWithAll = new ();
-    protected List<(NodeId, NodeId, Type[])> ConflictingSystems = new ();
+    protected List<(NodeId, NodeId, ComponentInfo[])> ConflictingSystems = new ();
     protected ulong AnonymousSets;
     public bool Changed;
     public ScheduleBuildSettings Config = new ();
@@ -72,11 +71,11 @@ public class SystemGraph<T>
     }
 
     /// <summary>
-    /// Returns the <see cref="PolyECS.Systems.System"/> at the given <see cref="NodeId"/>, if it exists
+    /// Returns the <see cref="ASystem"/> at the given <see cref="NodeId"/>, if it exists
     /// </summary>
     /// <param name="id"></param>
     /// <returns>System for the given NodeId</returns>
-    public System<T>? GetSystemAt(NodeId id)
+    public ASystem? GetSystemAt(NodeId id)
     {
         if (id.Type != NodeType.System)
         {
@@ -92,10 +91,10 @@ public class SystemGraph<T>
 
 
     /// <summary>
-    /// Provides an iterator over all <see cref="PolyECS.Systems.System"/>s in this schedule, along with their <see cref="Condition"/>s
+    /// Provides an iterator over all <see cref="ASystem"/>s in this schedule, along with their <see cref="Condition"/>s
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<(NodeId, System<T>, Condition[])> GetSystems()
+    public IEnumerable<(NodeId, ASystem, Condition[])> GetSystems()
     {
         for (var i = 0; i < Systems.Count; i++)
         {
@@ -143,12 +142,12 @@ public class SystemGraph<T>
     /// Must be called after <see cref="BuildSchedule"/> to be non-empty.
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyCollection<(NodeId, NodeId, Type[])> GetConflictingSystems()
+    public IReadOnlyCollection<(NodeId, NodeId, ComponentInfo[])> GetConflictingSystems()
     {
         return ConflictingSystems.AsReadOnly();
     }
 
-    protected ProcessConfigsResult ProcessConfig<TNode>(NodeConfig<TNode, T> config, bool collectNodes)
+    protected ProcessConfigsResult ProcessConfig<TNode>(NodeConfig<TNode> config, bool collectNodes)
     {
         List<NodeId> nodes = new ();
         var id = config.ProcessConfig(this);
@@ -179,7 +178,7 @@ public class SystemGraph<T>
             {
                 cfg.InSet(set);
             }
-            var setCfg = new SystemSetConfig<T>(set);
+            var setCfg = new SystemSetConfig(set);
             setCfg.Conditions.AddRange(collectiveConditions);
             ConfigureSet(setCfg);
         }
@@ -191,59 +190,58 @@ public class SystemGraph<T>
         {
             return ProcessConfig(nodeConfig.Config, collectNodes);
         }
-        if (configs is NodeConfigs<T>.Configs bundledConfigs)
+        if (configs is not NodeConfigs<TNode>.Configs bundledConfigs)
+            throw new ArgumentException("Invalid NodeConfigs type");
+
+        ApplyCollectiveConditions(bundledConfigs.NodeConfigs, bundledConfigs.CollectiveConditions);
+        var ignoreDeferred = bundledConfigs.Chained == Chain.YesIgnoreDeferred;
+        var chained = bundledConfigs.Chained == Chain.Yes || bundledConfigs.Chained == Chain.YesIgnoreDeferred;
+        var denselyChained = chained || bundledConfigs.NodeConfigs.Count == 1;
+        var nodes = new List<NodeId>();
+
+        if (bundledConfigs.NodeConfigs.Count() == 0)
         {
-            ApplyCollectiveConditions(bundledConfigs.NodeConfigs, bundledConfigs.CollectiveConditions);
-            var ignoreDeferred = bundledConfigs.Chained == Chain.YesIgnoreDeferred;
-            var chained = bundledConfigs.Chained == Chain.Yes || bundledConfigs.Chained == Chain.YesIgnoreDeferred;
-            var denselyChained = chained || bundledConfigs.NodeConfigs.Count == 1;
-            var nodes = new List<NodeId>();
+            return new ProcessConfigsResult(nodes, denselyChained);
+        }
+        var first = bundledConfigs.NodeConfigs.First();
+        var previousResult = ProcessConfigs(first, collectNodes || chained);
+        denselyChained &= previousResult.DenselyChained;
 
-            if (bundledConfigs.NodeConfigs.Count() == 0)
+        foreach (var cfg in bundledConfigs.NodeConfigs.Skip(1))
+        {
+            var result = ProcessConfigs(cfg, collectNodes || chained);
+            denselyChained &= result.DenselyChained;
+
+            if (chained)
             {
-                return new ProcessConfigsResult(nodes, denselyChained);
-            }
-            var first = bundledConfigs.NodeConfigs.First();
-            var previousResult = ProcessConfigs(first, collectNodes || chained);
-            denselyChained &= previousResult.DenselyChained;
-
-            foreach (var cfg in bundledConfigs.NodeConfigs.Skip(1))
-            {
-                var result = ProcessConfigs(cfg, collectNodes || chained);
-                denselyChained &= result.DenselyChained;
-
-                if (chained)
+                // if the current result is densely chained, we only need to chain the first node
+                var currentNodes = result.DenselyChained ? result.Nodes[..1] : result.Nodes;
+                // if the previous result was densely chained, we only need to chain the last node
+                var previousNodes = previousResult.DenselyChained ? previousResult.Nodes[^1..] : previousResult.Nodes;
+                foreach (var previousNode in previousNodes)
                 {
-                    // if the current result is densely chained, we only need to chain the first node
-                    var currentNodes = result.DenselyChained ? result.Nodes[..1] : result.Nodes;
-                    // if the previous result was densely chained, we only need to chain the last node
-                    var previousNodes = previousResult.DenselyChained ? previousResult.Nodes[^1..] : previousResult.Nodes;
-                    foreach (var previousNode in previousNodes)
+                    foreach (var currentNode in currentNodes)
                     {
-                        foreach (var currentNode in currentNodes)
+                        Dependency.AddEdge(new Edge<NodeId>(previousNode, currentNode));
+                        if (ignoreDeferred)
                         {
-                            Dependency.AddEdge(new Edge<NodeId>(previousNode, currentNode));
-                            if (ignoreDeferred)
-                            {
-                                NoSyncEdges.Add((previousNode, currentNode));
-                            }
+                            NoSyncEdges.Add((previousNode, currentNode));
                         }
                     }
                 }
-                if (collectNodes)
-                {
-                    nodes.AddRange(result.Nodes);
-                }
-                previousResult = result;
             }
-
             if (collectNodes)
             {
-                nodes.AddRange(previousResult.Nodes);
+                nodes.AddRange(result.Nodes);
             }
-            return new ProcessConfigsResult(nodes, denselyChained);
+            previousResult = result;
         }
-        throw new ArgumentException("Invalid NodeConfigs type");
+
+        if (collectNodes)
+        {
+            nodes.AddRange(previousResult.Nodes);
+        }
+        return new ProcessConfigsResult(nodes, denselyChained);
     }
 
     public NodeId AddSystem(SystemConfig config)
@@ -260,7 +258,7 @@ public class SystemGraph<T>
 
 
     /// Add a single `SystemSetConfig` to the graph, including its dependencies and conditions.
-    protected NodeId ConfigureSet(SystemSetConfig<T> set)
+    protected NodeId ConfigureSet(SystemSetConfig set)
     {
         var ok = SystemSetIds.TryGetValue(set.Set, out var id);
         if (!ok)
@@ -418,7 +416,7 @@ public class SystemGraph<T>
     }
 
     /// Initializes any newly-added systems and conditions by calling [`System::initialize`]
-    public void Initialize(IScheduleWorld scheduleWorld)
+    public void Initialize(World scheduleWorld)
     {
         foreach (var (id, i) in Uninit)
         {
@@ -440,7 +438,7 @@ public class SystemGraph<T>
         }
     }
 
-    public SystemSchedule BuildSchedule(string label, HashSet<Type> ignoredAmbiguities)
+    public SystemSchedule BuildSchedule(string label, HashSet<ComponentInfo> ignoredAmbiguities)
     {
         var hierarchySort = Hierarchy.TopologicalSort().ToArray();
         var hierResults = CheckGraph(Hierarchy, hierarchySort);
@@ -575,7 +573,7 @@ public class SystemGraph<T>
 
         return new SystemSchedule
         {
-            Systems = new List<PolyECS.Systems.System>(sysCount),
+            Systems = new List<ASystem>(sysCount),
             SystemConditions = new List<List<Condition>>(sysCount),
             SetConditions = new List<List<Condition>>(setWithsConditionsCount),
             SystemIds = topsort.ToList(),
@@ -587,7 +585,7 @@ public class SystemGraph<T>
         };
     }
 
-    public SystemSchedule<T> UpdateSchedule(SystemSchedule<T> schedule, HashSet<Type> ignoredAmbiguities, string label)
+    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ComponentInfo> ignoredAmbiguities, string label)
     {
         if (Uninit.Count != 0)
         {
@@ -630,13 +628,13 @@ public class SystemGraph<T>
         return newSchedule;
     }
 
-    private List<(NodeId, NodeId, Type[])> GetConflictingSystems(
+    private List<(NodeId, NodeId, ComponentInfo[])> GetConflictingSystems(
         List<(NodeId, NodeId)> flatResultsDisconnected,
         UndirectedGraph<NodeId, Edge<NodeId>> ambiguousWithFlattened,
-        HashSet<Type> ignoredAmbiguities
+        HashSet<ComponentInfo> ignoredAmbiguities
     )
     {
-        var conflictingSystems = new List<(NodeId, NodeId, Type[])>();
+        var conflictingSystems = new List<(NodeId, NodeId, ComponentInfo[])>();
         foreach (var (a, b) in flatResultsDisconnected)
         {
             if (ambiguousWithFlattened.ContainsEdge(a, b) || AmbiguousWithAll.Contains(a) || AmbiguousWithAll.Contains(b))
@@ -825,7 +823,7 @@ public class SystemGraph<T>
     }
 
     /// <summary>
-    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="System"/> <see cref="NodeId"/>'s that are included in the set.
+    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="ASystem"/> <see cref="NodeId"/>'s that are included in the set.
     /// Also return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a <see cref="FixedBitSet"/> of <see cref="SystemSet"/> <see cref="NodeId"/>'s
     /// that are included in the set, where the bitset order is the same as <see cref="SystemGraph.GetSystems()"/>
     /// </summary>
@@ -1089,7 +1087,7 @@ public class SystemGraph<T>
         }
     }
 
-    void OptionallyCheckConflicts(List<(NodeId, NodeId, Type[])> conflicts)
+    void OptionallyCheckConflicts(List<(NodeId, NodeId, ComponentInfo[])> conflicts)
     {
         if (Config.ThrowAmbiguousErrors)
         {
@@ -1100,8 +1098,9 @@ public class SystemGraph<T>
             }
         }
     }
+    
 
-    string GetConflictsErrorMessage(List<(NodeId, NodeId, Type[])> ambiguities)
+    string GetConflictsErrorMessage(List<(NodeId, NodeId, ComponentInfo[])> ambiguities)
     {
         var nAmbiguities = ambiguities.Count;
         var message = $"{nAmbiguities} pairs of systems with conflicting data access have indeterminate execution order.\n" +
@@ -1111,7 +1110,8 @@ public class SystemGraph<T>
             message += $" -- {nameA} and {nameB}\n";
             if (conflicts.Length != 0)
             {
-                message += $"    conflict on: {string.Join(", ", conflicts.Select(c => c.Name))}\n";
+                // TODO name
+                message += $"    conflict on: {string.Join(", ", conflicts.Select(c => c.ID))}\n";
             }
             else
             {

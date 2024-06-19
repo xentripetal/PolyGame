@@ -8,12 +8,12 @@ namespace PolyECS.Systems.Graph;
 /// Since the arrays are sorted in the same order, elements are referenced by their index.
 /// [`FixedBitSet`] is used as a smaller, more efficient substitute of `HashSet`.
 /// </summary>
-public class SystemSchedule<T>
+public class SystemSchedule
 {
     /// <summary>
     /// Indexed by system node id
     /// </summary>
-    public List<System<T>> Systems;
+    public List<ASystem> Systems;
 
     /// <summary>
     /// List of system node ids.

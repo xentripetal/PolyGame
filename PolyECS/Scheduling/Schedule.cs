@@ -4,6 +4,7 @@ using PolyECS.Systems.Configs;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
 using QuikGraph;
+using TinyEcs;
 
 namespace PolyECS.Systems;
 
@@ -11,20 +12,20 @@ namespace PolyECS.Systems;
 /// A collection of systems, and the metadata and executor needed to run them
 /// in a certain order under certain conditions.
 /// </summary>
-public class Schedule<TComponent>
+public class Schedule
 {
     protected string Label;
-    protected SystemGraph<TComponent> Graph;
-    protected SystemSchedule<TComponent> Executable;
-    protected IExecutor<TComponent> Executor;
+    protected SystemGraph Graph;
+    protected SystemSchedule Executable;
+    protected IExecutor Executor;
     protected bool ExecutorInitialized;
 
-    public Schedule(string label)
+    public Schedule(string label = "default")
     {
         Label = label;
-        Graph = new SystemGraph<TComponent>();
-        Executable = new SystemSchedule<TComponent>();
-        Executor = new SimpleExecutor<TComponent>();
+        Graph = new SystemGraph();
+        Executable = new SystemSchedule();
+        Executor = new SimpleExecutor();
     }
     
     public string GetLabel()
@@ -37,7 +38,7 @@ public class Schedule<TComponent>
     /// </summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    public Schedule<TComponent> AddSystems(NodeConfigs<System<TComponent>> configs)
+    public Schedule AddSystems(NodeConfigs<ASystem> configs)
     {
         Graph.ProcessConfigs(configs, false);
         return this;
@@ -50,7 +51,7 @@ public class Schedule<TComponent>
     /// <param name="b"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public Schedule<TComponent> IgnoreAmbiguity(SystemSet a, SystemSet b)
+    public Schedule IgnoreAmbiguity(SystemSet a, SystemSet b)
     {
         var hasA = Graph.SystemSetIds.TryGetValue(a, out var aNode);
         if (!hasA)
@@ -66,7 +67,7 @@ public class Schedule<TComponent>
         return this;
     }
     
-    public Schedule<TComponent> SetBuildSettings(ScheduleBuildSettings settings)
+    public Schedule SetBuildSettings(ScheduleBuildSettings settings)
     {
         Graph.Config = settings;
         return this;
@@ -77,13 +78,13 @@ public class Schedule<TComponent>
         return Graph.Config;
     }
     
-    public Schedule<TComponent> SetExecutor(IExecutor<TComponent> executor)
+    public Schedule SetExecutor(IExecutor executor)
     {
         Executor = executor;
         return this;
     }
     
-    public IExecutor<TComponent> GetExecutor()
+    public IExecutor GetExecutor()
     {
         return this.Executor;
     }
@@ -95,27 +96,27 @@ public class Schedule<TComponent>
     /// </summary>
     /// <param name="apply"></param>
     /// <returns></returns>
-    public Schedule<TComponent> SetApplyFinalDeferred(bool apply)
+    public Schedule SetApplyFinalDeferred(bool apply)
     {
         Executor.SetApplyFinalDeferred(apply);
         return this;
     }
 
-    public void Run(IScheduleWorld scheduleWorld)
+    public void Run(World scheduleWorld)
     {
-        scheduleWorld.BeforeRun();
+        //scheduleWorld.BeforeRun();
         // TODO resource system to get skip systems
         Executor.Run(Executable, scheduleWorld, null);
-        scheduleWorld.AfterRun();
+        //scheduleWorld.AfterRun();
     }
 
-    public void Initialize(IScheduleWorld scheduleWorld)
+    public void Initialize(World scheduleWorld)
     {
         if (Graph.Changed)
         {
             Graph.Initialize(scheduleWorld);
             // TODO - resource system to get Schedules ambiguitites
-            Graph.UpdateSchedule(Executable, new HashSet<Type>(), Label);
+            Graph.UpdateSchedule(Executable, new HashSet<ComponentInfo>(), Label);
             Graph.Changed = false;
             ExecutorInitialized = false;
         }
@@ -127,7 +128,7 @@ public class Schedule<TComponent>
         }
     }
     
-    public void ApplyDeferred(IScheduleWorld scheduleWorld)
+    public void ApplyDeferred(World scheduleWorld)
     {
         foreach (var sys in Executable.Systems)
         {

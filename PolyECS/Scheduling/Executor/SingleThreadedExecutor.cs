@@ -2,10 +2,11 @@ using PolyECS;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
+using TinyEcs;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class SingleThreadedExecutor<T> : IExecutor<T>
+public class SingleThreadedExecutor : IExecutor
 {
     /// <summary>
     /// System sets whose conditions have been evaluated
@@ -26,7 +27,7 @@ public class SingleThreadedExecutor<T> : IExecutor<T>
 
     public SingleThreadedExecutor() { }
 
-    public void Init(SystemSchedule<T> schedule)
+    public void Init(SystemSchedule schedule)
     {
         int sysCount = schedule.SystemIds.Count;
         int setCount = schedule.SetIds.Count;
@@ -40,7 +41,7 @@ public class SingleThreadedExecutor<T> : IExecutor<T>
         ApplyFinalDeferred = apply;
     }
 
-    protected void ApplyDeferred(SystemSchedule<T> schedule, IScheduleWorld world)
+    protected void ApplyDeferred(SystemSchedule schedule, World world)
     {
         foreach (var systemIndex in UnappliedSystems.Ones())
         {
@@ -50,13 +51,13 @@ public class SingleThreadedExecutor<T> : IExecutor<T>
         UnappliedSystems.Clear();
     }
 
-    public void Run(SystemSchedule<T> schedule, IScheduleWorld world, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule schedule, World world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
             CompletedSystems.Or(skipSystems.Value);
         }
-        
+
         for (int systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
         {
             var shouldRun = !CompletedSystems.Contains(systemIndex);
@@ -90,12 +91,12 @@ public class SingleThreadedExecutor<T> : IExecutor<T>
             }
 
             var system = schedule.Systems[systemIndex];
-            if (system is ApplyDeferredSystem<T>)
+            if (system is ApplyDeferredSystem)
             {
                 ApplyDeferred(schedule, world);
                 continue;
             }
-            
+
             try
             {
                 if (system.IsExclusive)
@@ -113,7 +114,7 @@ public class SingleThreadedExecutor<T> : IExecutor<T>
             }
             UnappliedSystems.Set(systemIndex);
         }
-        
+
         if (ApplyFinalDeferred)
         {
             ApplyDeferred(schedule, world);
@@ -122,7 +123,7 @@ public class SingleThreadedExecutor<T> : IExecutor<T>
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, IScheduleWorld scheduleWorld)
+    protected bool EvaluateAndFoldConditions(List<Condition> conditions, World scheduleWorld)
     {
         // Not short-circuiting is intentional
         bool met = true;

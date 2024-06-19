@@ -33,7 +33,7 @@ public struct AnonymousSet : SystemSet
 }
 
 /// <summary>
-/// A <see cref="SystemSet"/> grouping instances of the same <see cref="System"/>.
+/// A <see cref="SystemSet"/> grouping instances of the same <see cref="ASystem"/>.
 ///
 /// This kind of set is automatically populated and thus has some special rules:
 /// <list type="bullet">
@@ -42,11 +42,11 @@ public struct AnonymousSet : SystemSet
 /// <item>You cannot order something relative to one if it has more than one member</item>
 /// </list>
 /// </summary>
-struct SystemTypeSet<TSystem, TComponent> : SystemSet where TSystem : System<TComponent>
+struct SystemTypeSet<TSystem> : SystemSet where TSystem : ASystem
 {
     public bool Equals(SystemSet? other)
     {
-        if (other is SystemTypeSet<TSystem, TComponent> otherType)
+        if (other is SystemTypeSet<TSystem> otherType)
         {
             return true;
         }

@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyEcs", "lib\TinyEcs\src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyEcs.Generator", "lib\TinyEcs\tools\TinyEcs.Generator\TinyEcs.Generator.csproj", "{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyECS.Tests", "Tests\PolyECS.Tests\PolyECS.Tests.csproj", "{ECAACA30-3061-42AC-A979-937E11CDDE11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,8 +52,13 @@ Global
 		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE642D27-D4D2-4DE7-B81C-6E6DC000A932}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECAACA30-3061-42AC-A979-937E11CDDE11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECAACA30-3061-42AC-A979-937E11CDDE11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECAACA30-3061-42AC-A979-937E11CDDE11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECAACA30-3061-42AC-A979-937E11CDDE11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2B183769-047E-4A0C-BA52-F7F1095C0C8C} = {F66B30B7-D2F1-492A-9923-5BF91A27E52A}
+		{ECAACA30-3061-42AC-A979-937E11CDDE11} = {F66B30B7-D2F1-492A-9923-5BF91A27E52A}
 	EndGlobalSection
 EndGlobal

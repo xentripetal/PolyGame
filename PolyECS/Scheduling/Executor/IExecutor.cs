@@ -1,10 +1,11 @@
 using PolyECS.Systems.Graph;
+using TinyEcs;
 
 namespace PolyECS.Systems.Executor;
 
-public interface IExecutor<T>
+public interface IExecutor
 {
-    void Init(SystemSchedule<T> schedule);
+    void Init(SystemSchedule schedule);
     void SetApplyFinalDeferred(bool apply);
-    void Run(SystemSchedule<T> executable, IScheduleWorld world, FixedBitSet? skipSystems);
+    void Run(SystemSchedule executable, World world, FixedBitSet? skipSystems);
 }

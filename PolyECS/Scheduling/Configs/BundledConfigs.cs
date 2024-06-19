@@ -12,10 +12,10 @@ namespace PolyECS.Systems.Configs;
 /// <typeparam name="T"></typeparam>
 public abstract class NodeConfigs<T>
 {
-    public static NodeConfigs<System<TC>> NewSystem<TC>(System<TC> system)
+    public static NodeConfigs<ASystem> NewSystem(ASystem system)
     {
         var sets = system.GetDefaultSystemSets();
-        return new NodeConfigs<System<TC>>.Node<TC>(new SystemConfig<TC>
+        return new NodeConfigs<ASystem>.Node(new SystemConfig
         {
             Node = system,
             Subgraph = new SubgraphInfo
@@ -25,9 +25,9 @@ public abstract class NodeConfigs<T>
         });
     }
 
-    public class Node<TC>(NodeConfig<T, TC> config) : NodeConfigs<T>
+    public class Node(NodeConfig<T> config) : NodeConfigs<T>
     {
-        public NodeConfig<T, TC> Config = config;
+        public NodeConfig<T> Config = config;
 
         public override NodeConfigs<T> InSet(SystemSet set)
         {

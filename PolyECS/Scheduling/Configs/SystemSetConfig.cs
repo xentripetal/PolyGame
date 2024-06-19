@@ -3,7 +3,7 @@ using PolyECS.Systems.Graph;
 
 namespace PolyECS.Systems.Configs;
 
-public class SystemSetConfig<TC> : NodeConfig<SystemSet, TC>
+public class SystemSetConfig : NodeConfig<SystemSet>
 {
     public SystemSet Set;
     public SystemSetConfig(SystemSet set)
@@ -11,5 +11,5 @@ public class SystemSetConfig<TC> : NodeConfig<SystemSet, TC>
         Set = set;
     }
     
-    public override NodeId ProcessConfig(SystemGraph<TC> graph) => throw new NotImplementedException();
+    public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
 }

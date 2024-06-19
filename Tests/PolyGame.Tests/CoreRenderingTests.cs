@@ -1,6 +1,6 @@
-using Flecs.NET.Core;
 using JetBrains.Annotations;
 using PolyGame.Components.Render.Extract;
+using TinyEcs;
 
 namespace PolyGame.Tests;
 
@@ -14,27 +14,31 @@ public class CoreRenderingTests
         public void Extract(World sourceWorld, World targetWorld)
         {
             sourceWorld.Each((ref CurrentFrame frame) => {
-                targetWorld.Entity<CurrentFrame>().Set(frame).Add<DeleteAfterRender>();
+                targetWorld.Entity().Set(frame).Set<DeleteAfterRender>();
             });
         }
     }
 
     public void SetupFrameCounter(Core core)
     {
-        GameRenderEntity = core.GameWorld.Entity().Set(new CurrentFrame(0));
-        core.GameWorld.Routine<CurrentFrame>().Each((ref CurrentFrame frame) => {
-            frame.Value++;
+        core.GameWorld.Entity().Set(new CurrentFrame(0));
+        core.GameSchedule.AddSystem((Query<CurrentFrame> query) => {
+            query.Each((ref CurrentFrame frame) => {
+                frame.Value++;
+            });
         });
 
-        core.RenderWorld.Routine<CurrentFrame>().Each((ref CurrentFrame frame) => {
-            RenderFrame = frame;
+        core.RenderSchedule.AddSystem((Query<CurrentFrame> query) => {
+            query.Each((ref CurrentFrame frame) => {
+                RenderFrame = frame;
+            });
         });
 
         core.Extractors.Add(new TestExtractor());
     }
 
     protected CurrentFrame RenderFrame = new CurrentFrame();
-    protected Entity GameRenderEntity = Entity.Null();
+    protected EntityView GameRenderEntity = EntityView.Invalid;
 
     [Fact]
     public void TestSynchronousRendering()
@@ -45,7 +49,7 @@ public class CoreRenderingTests
         core.Tick();
         Assert.Equal(1, getSingleton<CurrentFrame>(core.GameWorld).Value);
         Assert.Equal(1, RenderFrame.Value);
-        
+
         core.Tick();
         Assert.Equal(2, getSingleton<CurrentFrame>(core.GameWorld).Value);
         Assert.Equal(2, RenderFrame.Value);
@@ -64,10 +68,13 @@ public class CoreRenderingTests
             Assert.Equal(i + 1, getSingleton<CurrentFrame>(core.GameWorld).Value);
         }
     }
-    
+
     public T getSingleton<T>(World world) where T : struct
     {
-
-        return world.Query<T>().First().Get<T>();
+        T value = new T();
+        world.Query<T>().Each((ref T t) => {
+            value = t;
+        });
+        return value;
     }
 }

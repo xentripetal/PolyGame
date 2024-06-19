@@ -1,10 +1,12 @@
+using TinyEcs;
+
 namespace PolyECS.Systems;
 
-public abstract class System<T>
+public abstract class ASystem
 {
-    public abstract void Initialize(IScheduleWorld world);
-    public abstract void RunDeferred(IDeferredScheduleWorld world);
-    public abstract void RunExclusive(IScheduleWorld world);
+    public abstract void Initialize(World world);
+    public abstract void RunDeferred(World world);
+    public abstract void RunExclusive(World world);
 
     /// <summary>
     /// Returns `true` if the system has deferred buffers
@@ -13,14 +15,14 @@ public abstract class System<T>
 
     public bool IsExclusive { get; protected set; }
 
-    public abstract Access<T> GetAccess();
+    public abstract Access<ComponentInfo> GetAccess();
 
     public abstract List<SystemSet> GetDefaultSystemSets();
 
     public virtual SystemSet ToSystemSet()
     {
-        return new SystemTypeSet<System<T>, T>();
+        return new SystemTypeSet<ASystem>();
     }
 
-    public abstract void ApplyDeferred(IScheduleWorld scheduleWorld);
+    public abstract void ApplyDeferred(World scheduleWorld);
 }
