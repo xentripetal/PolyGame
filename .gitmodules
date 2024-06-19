@@ -1,0 +1,3 @@
+[submodule "lib/TinyEcs"]
+	path = lib/TinyEcs
+	url = https://github.com/andreakarasho/TinyEcs
