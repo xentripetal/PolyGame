@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render.Extract;
+using PolyGame.Systems.Render;
 using TinyEcs;
 
 namespace PolyGame;
@@ -43,6 +44,10 @@ public class Core : Game
         RenderSchedule = new Scheduler(RenderWorld);
         GameWorld = new World();
         GameSchedule = new Scheduler(GameWorld);
+
+        var renderer = new RendererSystem(RenderWorld, GraphicsDevice);
+        var batch = new SpriteBatch(graphicsDevice: GraphicsDevice, capacity: 2048);
+        RenderSchedule.AddResource(batch);
     }
 
     /// <summary>
