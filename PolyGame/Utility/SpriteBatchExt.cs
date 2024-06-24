@@ -16,4 +16,10 @@ public static class SpriteBatchExt
     {
         spriteBatch.Begin(sortMode, material.BlendState, material.SamplerState, material.DepthStencilState, rasterizerState, material.Effect, matrix);
     }
+
+    public static void Begin(this SpriteBatch spriteBatch, Matrix transformMatrix)
+    {
+        spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, Globals.DefaultSamplerState, DepthStencilState.None,
+            RasterizerState.CullCounterClockwise, null, transformMatrix);
+    }
 }

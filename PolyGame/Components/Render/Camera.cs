@@ -1,6 +1,15 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace PolyGame.Components.Render;
+
+public struct CameraInset
+{
+    public float Left;
+    public float Right;
+    public float Top;
+    public float Bottom;
+}
 
 public struct ComputedCamera
 {
@@ -24,36 +33,78 @@ public struct ComputedCamera
     /// A perspective projection for this camera for use when rendering 3D objects
     /// </summary>
     public Matrix ProjectionMatrix3D;
+    public RectangleF Bounds;
 
-    public ComputedCamera(Camera cam, Transform.Transform transform, Point viewport)
+    /// <summary>
+    /// converts a point from screen coordinates to world
+    /// </summary>
+    /// <returns>The to world point.</returns>
+    /// <param name="screenPosition">Screen position.</param>
+    public Vector2 ScreenToWorldPoint(Vector2 screenPosition)
     {
-        Update(cam, transform, viewport);
+        Vector2Ext.Transform(ref screenPosition, ref InverseTransformMatrix, out screenPosition);
+        return screenPosition;
     }
 
-    public void Update(Camera cam, Transform.Transform transform, Point viewport)
+    public ComputedCamera(Camera cam, Transform.Transform transform, Viewport viewport, CameraInset inset)
+    {
+        Update(cam, transform, viewport, inset);
+    }
+
+    public void Update(Camera cam, Transform.Transform transform, Viewport viewport, CameraInset inset)
     {
         var origin = new Vector2(viewport.X / 2f, viewport.Y / 2f);
-        Update(cam, transform, viewport, origin);
+        Update(cam, transform, viewport, origin, inset);
     }
 
-    public void Update(Camera cam, Vector2 translation, float radians, Point viewport)
+    public void Update(Camera cam, Vector2 translation, float radians, Viewport viewport, CameraInset inset)
     {
         var origin = new Vector2(viewport.X / 2f, viewport.Y / 2f);
-        Update(cam, translation, radians, viewport, origin);
+        Update(cam, translation, radians, viewport, origin, inset);
     }
 
-    public void Update(Camera cam, Transform.Transform transform, Point viewport, Vector2 origin)
+    public void Update(Camera cam, Transform.Transform transform, Viewport viewport, Vector2 origin, CameraInset inset)
     {
         var euler = transform.Quat.ToEuler();
-        Update(cam, transform.Translation.XY(), euler.Z, viewport, origin);
+        Update(cam, transform.Translation.XY(), euler.Z, viewport, origin, inset);
     }
 
-    public void Update(Camera cam, Vector2 translation, float radians, Point viewport, Vector2 origin)
+    public void Update(Camera cam, Vector2 translation, float radians, Viewport viewport, Vector2 origin, CameraInset inset)
     {
         TransformMatrix = cam.TransformMatrix(translation, origin, radians);
         Matrix2D.Invert(ref TransformMatrix, out InverseTransformMatrix);
         ProjectionMatrix = cam.ProjectionMatrix(viewport.X, viewport.Y);
         ViewProjectionMatrix = TransformMatrix * ProjectionMatrix;
+        ComputeBounds(translation, radians, viewport, inset);
+    }
+
+    private void ComputeBounds(Vector2 translation, float radians, Viewport viewport, CameraInset inset)
+    {
+        // top-left and bottom-right are needed by either rotated or non-rotated bounds
+        var topLeft = ScreenToWorldPoint(new Vector2(viewport.X + inset.Left, viewport.Y + inset.Top));
+        var bottomRight = ScreenToWorldPoint(new Vector2(viewport.X + viewport.Width - inset.Right, viewport.Y + viewport.Height - inset.Bottom));
+
+        if (radians != 0)
+        {
+            // special care for rotated bounds. we need to find our absolute min/max values and create the bounds from that
+            var topRight = ScreenToWorldPoint(new Vector2(viewport.X + viewport.Width - inset.Right, viewport.Y + inset.Top));
+            var bottomLeft = ScreenToWorldPoint(new Vector2(viewport.X + inset.Left, viewport.Y + viewport.Height - inset.Bottom));
+
+            var minX = Mathf.MinOf(topLeft.X, bottomRight.X, topRight.X, bottomLeft.X);
+            var maxX = Mathf.MaxOf(topLeft.X, bottomRight.X, topRight.X, bottomLeft.X);
+            var minY = Mathf.MinOf(topLeft.Y, bottomRight.Y, topRight.Y, bottomLeft.Y);
+            var maxY = Mathf.MaxOf(topLeft.Y, bottomRight.Y, topRight.Y, bottomLeft.Y);
+
+            Bounds.Location = new Vector2(minX, minY);
+            Bounds.Width = maxX - minX;
+            Bounds.Height = maxY - minY;
+        }
+        else
+        {
+            Bounds.Location = topLeft;
+            Bounds.Width = bottomRight.X - topLeft.X;
+            Bounds.Height = bottomRight.Y - topLeft.Y;
+        }
     }
 }
 

@@ -289,7 +289,7 @@ public class Material : IComparable<Material>, IDisposable
     /// only be called if there is a non-null Effect.
     /// </summary>
     /// <param name="camera">Camera.</param>
-    public virtual void OnPreRender(Camera camera) { }
+    public virtual void OnPreRender(ComputedCamera camera) { }
 
     /// <summary>
     /// very basic here. We only check if the pointers are the same

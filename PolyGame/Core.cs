@@ -45,9 +45,14 @@ public class Core : Game
         GameWorld = new World();
         GameSchedule = new Scheduler(GameWorld);
 
-        var renderer = new RendererSystem(RenderWorld, GraphicsDevice);
+    }
+
+    protected override void Initialize() 
+    {
+        base.Initialize();
         var batch = new SpriteBatch(graphicsDevice: GraphicsDevice, capacity: 2048);
-        RenderSchedule.AddResource(batch);
+        RenderSchedule.AddResource(batch); 
+        //var renderer = new RendererSystem(RenderWorld, GraphicsDevice, batch);
     }
 
     /// <summary>

@@ -11,4 +11,5 @@ public static class Globals
     {
         Filter = TextureFilter.Point
     };
+    public static bool DebugRenderEnabled = false;
 }
