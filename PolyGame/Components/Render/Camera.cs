@@ -46,27 +46,15 @@ public struct ComputedCamera
         return screenPosition;
     }
 
-    public ComputedCamera(Camera cam, Transform.Transform transform, Viewport viewport, CameraInset inset)
+    public ComputedCamera(Camera cam, Vector2 pos, float rot, Viewport viewport, CameraInset inset)
     {
-        Update(cam, transform, viewport, inset);
+        Update(cam, pos, rot, viewport, inset);
     }
 
-    public void Update(Camera cam, Transform.Transform transform, Viewport viewport, CameraInset inset)
+    public void Update(Camera cam, Vector2 pos, float rot, Viewport viewport, CameraInset inset)
     {
         var origin = new Vector2(viewport.X / 2f, viewport.Y / 2f);
-        Update(cam, transform, viewport, origin, inset);
-    }
-
-    public void Update(Camera cam, Vector2 translation, float radians, Viewport viewport, CameraInset inset)
-    {
-        var origin = new Vector2(viewport.X / 2f, viewport.Y / 2f);
-        Update(cam, translation, radians, viewport, origin, inset);
-    }
-
-    public void Update(Camera cam, Transform.Transform transform, Viewport viewport, Vector2 origin, CameraInset inset)
-    {
-        var euler = transform.Quat.ToEuler();
-        Update(cam, transform.Translation.XY(), euler.Z, viewport, origin, inset);
+        Update(cam, pos, rot, viewport, origin, inset);
     }
 
     public void Update(Camera cam, Vector2 translation, float radians, Viewport viewport, Vector2 origin, CameraInset inset)

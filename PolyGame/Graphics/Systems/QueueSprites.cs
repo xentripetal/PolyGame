@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components;
 using PolyGame.Components.Render;
+using PolyGame.Components.Transform;
+using PolyGame.Graphics;
 using PolyGame.Graphics.Renderable;
 using TinyEcs;
 
@@ -14,16 +16,14 @@ public class QueueSprites
     public QueueSprites(Scheduler scheduler)
     {
         var registry = scheduler.GetResource<DrawFuncRegistry>().UnwrappedValue;
-        //DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
+        DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
 
         scheduler.AddSystem((Query<(ComputedCamera, Managed<RenderableList>)> cameras, Query<Sprite> sprites) => {
             Queue(cameras, sprites);
         }, Stages.AfterUpdate);
-        tempTexture = scheduler.GetResource<ContentManager>().UnwrappedValue.Load<Texture2D>("MissingTexture");
     }
 
     protected int DrawSpriteIndex;
-    protected Texture2D tempTexture;
 
     public void Queue(Query<(ComputedCamera, Managed<RenderableList> renderables)> cameras, Query<Sprite> sprites)
     {
@@ -43,10 +43,15 @@ public class QueueSprites
         });
     }
 
-    public void DrawSprite(RenderableReference renderable, SpriteBatch batch)
+    public void DrawSprite(RenderableReference renderable, Batcher batch)
     {
         var sprite = renderable.Entity.Get<Sprite>();
-        batch.Draw(tempTexture, Vector2.Zero, Color.White);
+        var pos = renderable.Entity.Get<GlobalPosition2D>().Value;
+        var rot = renderable.Entity.Get<GlobalRotation2D>().Value;
+        var scale = renderable.Entity.Get<GlobalScale2D>().Value;
+        
+        var texture = renderable.Entity.Get<Managed<Texture2D>>();
+        batch.Draw(texture.Value, pos, null, Color.White, rot, Vector2.Zero, scale, SpriteEffects.None, 0);
     }
 }
 

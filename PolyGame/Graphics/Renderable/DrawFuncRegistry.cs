@@ -5,7 +5,7 @@ namespace PolyGame.Graphics.Renderable;
 
 public class DrawFuncRegistry
 {
-    public delegate void DrawFunc(RenderableReference renderable, SpriteBatch batch, ref ComputedCamera camera, Material material);
+    public delegate void DrawFunc(RenderableReference renderable, Batcher batch);
     protected FastList<DrawFunc> drawFuncs = new ();
     protected Dictionary<DrawFunc, int> drawFuncIndices = new ();
 
