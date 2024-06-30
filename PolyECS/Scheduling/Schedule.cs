@@ -27,7 +27,7 @@ public class Schedule
         Executable = new SystemSchedule();
         Executor = new SimpleExecutor();
     }
-    
+
     public string GetLabel()
     {
         return Label;
@@ -44,6 +44,16 @@ public class Schedule
         return this;
     }
 
+    public Schedule AddSystems(ASystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        return AddSystems(SystemConfigs.Of(systems, collectiveConditions: collectiveConditions, chained: chained));
+    }
+
+    public Schedule AddSystems(NodeConfigs<ASystem>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        return AddSystems(SystemConfigs.Of(configs, collectiveConditions: collectiveConditions, chained: chained));
+    }
+
     /// <summary>
     /// Suppress warnings and errors that would result from systems in these sets having ambiguities (Conflicting access but indeterminate order) with systems in set.
     /// </summary>
@@ -56,34 +66,36 @@ public class Schedule
         var hasA = Graph.SystemSetIds.TryGetValue(a, out var aNode);
         if (!hasA)
         {
-            throw new ArgumentException($"Could not mark system as ambiguous, {a} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
+            throw new ArgumentException(
+                $"Could not mark system as ambiguous, {a} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
         }
         var hasB = Graph.SystemSetIds.TryGetValue(b, out var bNode);
         if (!hasB)
         {
-            throw new ArgumentException($"Could not mark system as ambiguous, {b} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
+            throw new ArgumentException(
+                $"Could not mark system as ambiguous, {b} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
         }
         Graph.AmbiguousWith.AddEdge(new Edge<NodeId>(aNode, bNode));
         return this;
     }
-    
+
     public Schedule SetBuildSettings(ScheduleBuildSettings settings)
     {
         Graph.Config = settings;
         return this;
     }
-    
+
     public ScheduleBuildSettings GetBuildSettings()
     {
         return Graph.Config;
     }
-    
+
     public Schedule SetExecutor(IExecutor executor)
     {
         Executor = executor;
         return this;
     }
-    
+
     public IExecutor GetExecutor()
     {
         return this.Executor;
@@ -126,7 +138,7 @@ public class Schedule
             ExecutorInitialized = true;
         }
     }
-    
+
     public void ApplyDeferred(World scheduleWorld)
     {
         foreach (var sys in Executable.Systems)

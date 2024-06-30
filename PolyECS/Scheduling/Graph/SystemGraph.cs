@@ -158,9 +158,9 @@ public class SystemGraph
         return new ProcessConfigsResult(nodes, true);
     }
 
-    protected void ApplyCollectiveConditions<TNode>(List<NodeConfigs<TNode>> configs, List<Condition> collectiveConditions)
+    protected void ApplyCollectiveConditions<TNode>(NodeConfigs<TNode>[] configs, List<Condition>? collectiveConditions)
     {
-        if (collectiveConditions.Count == 0)
+        if (collectiveConditions == null || collectiveConditions.Count == 0)
         {
             return;
         }
@@ -196,7 +196,7 @@ public class SystemGraph
         ApplyCollectiveConditions(bundledConfigs.NodeConfigs, bundledConfigs.CollectiveConditions);
         var ignoreDeferred = bundledConfigs.Chained == Chain.YesIgnoreDeferred;
         var chained = bundledConfigs.Chained == Chain.Yes || bundledConfigs.Chained == Chain.YesIgnoreDeferred;
-        var denselyChained = chained || bundledConfigs.NodeConfigs.Count == 1;
+        var denselyChained = chained || bundledConfigs.NodeConfigs.Length == 1;
         var nodes = new List<NodeId>();
 
         if (bundledConfigs.NodeConfigs.Count() == 0)

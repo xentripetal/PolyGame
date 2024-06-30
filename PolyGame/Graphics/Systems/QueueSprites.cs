@@ -7,7 +7,6 @@ using PolyGame.Components.Render;
 using PolyGame.Components.Transform;
 using PolyGame.Graphics;
 using PolyGame.Graphics.Renderable;
-using TinyEcs;
 
 namespace PolyGame.Systems.Render;
 

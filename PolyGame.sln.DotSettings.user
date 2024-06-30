@@ -9,6 +9,7 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=14e02f69_002Dfa80_002D475f_002D94c4_002Dcd9e41485b19/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="InsertsASyncPoint" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;xUnit::ECAACA30-3061-42AC-A979-937E11CDDE11::net8.0::PolyECS.Tests.Scheduling.ScheduleTest.InsertsASyncPoint&lt;/TestId&gt;
+    &lt;TestId&gt;xUnit::ECAACA30-3061-42AC-A979-937E11CDDE11::net8.0::PolyECS.Tests.Scheduling.ScheduleTest.DoesntInsertASyncPoint&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6dad3207_002D4198_002D481e_002Da080_002Da8ba4b288db1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestSynchronousRendering" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;

@@ -1,4 +1,5 @@
 using System.Collections;
+using Flecs.NET.Core;
 using Microsoft.Xna.Framework.Graphics;
 using TinyEcs;
 
@@ -8,7 +9,7 @@ public struct RenderableReference : IComparable<RenderableReference>
 {
     public float SortKey;
     public int DrawFuncIndex;
-    public EntityView Entity;
+    public Entity Entity;
 
     public int CompareTo(RenderableReference other) => SortKey.CompareTo(other.SortKey);
 }

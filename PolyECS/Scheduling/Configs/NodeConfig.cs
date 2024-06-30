@@ -23,12 +23,24 @@ public abstract class NodeConfig<T>
     public List<Condition> Conditions = new ();
 
     public abstract NodeId ProcessConfig(SystemGraph graph);
+    
+    public static implicit operator NodeConfigs<T>(NodeConfig<T> config)
+    {
+        return new NodeConfigs<T>.Node(config);
+    }
 }
 
 public class SystemConfig : NodeConfig<ASystem>
 {
+    public SystemConfig(ASystem system)
+    {
+        Node = system;
+        Subgraph.Hierarchy = system.GetDefaultSystemSets();
+        Conditions = new List<Condition>();
+    }
     public override NodeId ProcessConfig(SystemGraph graph)
     {
         return graph.AddSystem(this);
     }
+
 }
