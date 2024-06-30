@@ -1,5 +1,5 @@
+using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
-using TinyEcs;
 
 namespace PolyGame.Components.Transform;
 
@@ -11,7 +11,7 @@ public struct TransformBundle
 
     public TransformBundle() { }
 
-    public void Apply(EntityView entity)
+    public void Apply(Entity entity)
     {
         entity.Set(new Position(Position))
             .Set(new Rotation(Rotation))
@@ -27,7 +27,7 @@ public struct TransformBundle2D
 
     public TransformBundle2D() { }
 
-    public void Apply(EntityView entity)
+    public void Apply(Entity entity)
     {
         entity.Set(new Position2D(Position))
             .Set(new Rotation2D(Rotation))

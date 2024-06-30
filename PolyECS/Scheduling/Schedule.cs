@@ -1,10 +1,10 @@
+using Flecs.NET.Core;
 using PolyECS.Scheduling.Executor;
 using PolyECS.Scheduling.Graph;
 using PolyECS.Systems.Configs;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
 using QuikGraph;
-using TinyEcs;
 
 namespace PolyECS.Systems;
 
@@ -14,10 +14,10 @@ namespace PolyECS.Systems;
 /// </summary>
 public class Schedule
 {
-    protected string Label;
-    protected SystemGraph Graph;
-    protected SystemSchedule Executable;
-    protected IExecutor Executor;
+    public string Label { get; protected set; }
+    internal SystemGraph Graph;
+    internal SystemSchedule Executable;
+    internal IExecutor Executor;
     protected bool ExecutorInitialized;
 
     public Schedule(string label = "default")
@@ -104,10 +104,9 @@ public class Schedule
 
     public void Run(World scheduleWorld)
     {
-        //scheduleWorld.BeforeRun();
+        Initialize(scheduleWorld);
         // TODO resource system to get skip systems
         Executor.Run(Executable, scheduleWorld, null);
-        //scheduleWorld.AfterRun();
     }
 
     public void Initialize(World scheduleWorld)
@@ -115,8 +114,8 @@ public class Schedule
         if (Graph.Changed)
         {
             Graph.Initialize(scheduleWorld);
-            // TODO - resource system to get Schedules ambiguitites
-            Graph.UpdateSchedule(Executable, new HashSet<ComponentInfo>(), Label);
+            // TODO - resource system to get Schedules ambiguities
+            Executable = Graph.UpdateSchedule(Executable, new HashSet<UntypedComponent>(), Label);
             Graph.Changed = false;
             ExecutorInitialized = false;
         }

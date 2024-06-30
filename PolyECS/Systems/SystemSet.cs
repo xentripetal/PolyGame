@@ -6,10 +6,33 @@ public interface SystemSet : IEquatable<SystemSet>
     public Type? SystemType();
 }
 
+public struct NamedSet : SystemSet
+{
+    public NamedSet(string name)
+    {
+        Name = name;
+    }
+    
+    public string Name;
+
+    public bool Equals(SystemSet? other)
+    {
+        if (other is NamedSet otherNamed)
+        {
+            return Name == otherNamed.Name;
+        }
+        return false;
+    }
+
+    public bool IsAnonymous() => false;
+
+    public Type? SystemType() => null;
+}
+
 public struct AnonymousSet : SystemSet
 {
     public ulong Id;
-    
+
     public AnonymousSet(ulong id)
     {
         Id = id;
@@ -42,13 +65,18 @@ public struct AnonymousSet : SystemSet
 /// <item>You cannot order something relative to one if it has more than one member</item>
 /// </list>
 /// </summary>
-struct SystemTypeSet<TSystem> : SystemSet where TSystem : ASystem
+public class SystemTypeSet : SystemSet
 {
+    public ASystem System;
+    public SystemTypeSet(ASystem sys)
+    {
+        System = sys;
+    }
     public bool Equals(SystemSet? other)
     {
-        if (other is SystemTypeSet<TSystem> otherType)
+        if (other is SystemTypeSet otherType)
         {
-            return true;
+            return System == otherType.System;
         }
         return false;
     }
@@ -58,5 +86,8 @@ struct SystemTypeSet<TSystem> : SystemSet where TSystem : ASystem
         return false;
     }
 
-    public Type? SystemType() => typeof(TSystem);
+    public Type? SystemType()
+    {
+        return System.GetType();
+    }
 }

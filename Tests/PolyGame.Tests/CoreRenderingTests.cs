@@ -1,6 +1,7 @@
+using Flecs.NET.Core;
 using JetBrains.Annotations;
 using PolyGame.Components.Render.Extract;
-using TinyEcs;
+using World = Flecs.NET.Core.World;
 
 namespace PolyGame.Tests;
 
@@ -22,7 +23,7 @@ public class CoreRenderingTests
     public void SetupFrameCounter(Core core)
     {
         core.GameWorld.Entity().Set(new CurrentFrame(0));
-        core.GameSchedule.AddSystem((Query<CurrentFrame> query) => {
+        core.GameSchedule.AddSystem((Query query) => {
             query.Each((ref CurrentFrame frame) => {
                 frame.Value++;
             });
@@ -38,7 +39,7 @@ public class CoreRenderingTests
     }
 
     protected CurrentFrame RenderFrame = new CurrentFrame();
-    protected EntityView GameRenderEntity = EntityView.Invalid;
+    protected Entity GameRenderEntity = Entity.Null();
 
     [Fact]
     public void TestSynchronousRendering()

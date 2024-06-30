@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Flecs.NET.Core;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render.Extract;
 using PolyGame.Systems.Render;
@@ -9,9 +10,9 @@ namespace PolyGame;
 public class Core : Game
 {
     public World RenderWorld;
-    public Scheduler RenderSchedule;
+    public Schedule RenderSchedule;
     public World GameWorld;
-    public Scheduler GameSchedule;
+    public Schedule GameSchedule;
 
     public Core(
         int width = 1280,

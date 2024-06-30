@@ -6,7 +6,12 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=571759AC_002DBE78_002D463A_002D8C85_002D6B080938B3B3/@EntryIndexedValue">PolyECS.Tests</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestProjectMapping/=D56833F2_002D0529_002D47F8_002DABE6_002DEF26513A70A6/@EntryIndexedValue">PolyGame.Tests</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/CreateUnitTestDialog/TestTemplateMapping/=xUnit/@EntryIndexedValue">33ff99d8-b1ad-4ed5-a4fd-376b97c2c841</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6dad3207_002D4198_002D481e_002Da080_002Da8ba4b288db1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="TestSynchronousRendering" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=14e02f69_002Dfa80_002D475f_002D94c4_002Dcd9e41485b19/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="InsertsASyncPoint" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;xUnit::ECAACA30-3061-42AC-A979-937E11CDDE11::net8.0::PolyECS.Tests.Scheduling.ScheduleTest.InsertsASyncPoint&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6dad3207_002D4198_002D481e_002Da080_002Da8ba4b288db1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestSynchronousRendering" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Solution /&gt;
 &lt;/SessionState&gt;</s:String>
 	</wpf:ResourceDictionary>

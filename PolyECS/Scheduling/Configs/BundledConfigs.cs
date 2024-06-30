@@ -3,7 +3,6 @@ using PolyECS.Systems.Graph;
 
 namespace PolyECS.Systems.Configs;
 
-
 /// <summary>
 /// A collection of generic <see cref="NodeConfig{T}"/>s
 ///
@@ -18,6 +17,7 @@ public abstract class NodeConfigs<T>
         return new NodeConfigs<ASystem>.Node(new SystemConfig
         {
             Node = system,
+            Conditions = new List<Condition>(),
             Subgraph = new SubgraphInfo
             {
                 Hierarchy = sets
@@ -101,18 +101,22 @@ public abstract class NodeConfigs<T>
         /// <summary>
         /// Configurations for each element of the tuple
         /// </summary>
-        public List<NodeConfigs<T>> NodeConfigs;
+        public List<NodeConfigs<T>> NodeConfigs = new ();
         /// <summary>
         /// Run conditions applied to everything in the tuple.
         /// </summary>
-        public List<Condition> CollectiveConditions;
+        public List<Condition> CollectiveConditions = new ();
         /// <summary>
         /// See <see cref="Chained"/> for usage.
         /// </summary>
         public Chain Chained;
 
-        public Configs(List<NodeConfigs<T>> nodeConfigs, List<Condition> collectiveConditions, Chain chained)
+        public Configs(List<NodeConfigs<T>> nodeConfigs, List<Condition> collectiveConditions, Chain chained = Chain.No)
         {
+            if (collectiveConditions == null)
+            {
+                collectiveConditions = new List<Condition>();
+            }
             NodeConfigs = nodeConfigs;
             CollectiveConditions = collectiveConditions;
             Chained = chained;

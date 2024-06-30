@@ -19,13 +19,16 @@ public abstract class NodeConfig<T>
     /// <summary>
     /// Hierarchy and depdendency metadata for this node
     /// </summary>
-    public SubgraphInfo Subgraph;
-    public List<Condition> Conditions;
+    public SubgraphInfo Subgraph = new ();
+    public List<Condition> Conditions = new ();
 
     public abstract NodeId ProcessConfig(SystemGraph graph);
 }
 
 public class SystemConfig : NodeConfig<ASystem>
 {
-    public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
+    public override NodeId ProcessConfig(SystemGraph graph)
+    {
+        return graph.AddSystem(this);
+    }
 }

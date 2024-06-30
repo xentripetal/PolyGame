@@ -1,8 +1,8 @@
+using Flecs.NET.Core;
 using PolyECS;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
-using TinyEcs;
 
 namespace PolyECS.Scheduling.Executor;
 
@@ -78,7 +78,7 @@ public class SimpleExecutor : IExecutor
             }
             try
             {
-                system.RunExclusive(scheduleWorld);
+                system.Run(scheduleWorld);
             }
             catch (Exception e)
             {

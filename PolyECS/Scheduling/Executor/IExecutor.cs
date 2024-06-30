@@ -1,5 +1,5 @@
+using Flecs.NET.Core;
 using PolyECS.Systems.Graph;
-using TinyEcs;
 
 namespace PolyECS.Systems.Executor;
 

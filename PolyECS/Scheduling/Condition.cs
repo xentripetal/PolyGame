@@ -1,4 +1,4 @@
-using TinyEcs;
+using Flecs.NET.Core;
 
 namespace PolyECS.Systems;
 

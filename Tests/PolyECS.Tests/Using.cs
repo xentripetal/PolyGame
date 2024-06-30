@@ -1,3 +1,3 @@
 global using Xunit;
-global using TinyEcs;
+global using Flecs.NET;
 global using PolyECS;

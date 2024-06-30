@@ -1,4 +1,4 @@
-using TinyEcs;
+using Flecs.NET.Core;
 
 namespace PolyECS.Systems;
 
@@ -7,15 +7,23 @@ namespace PolyECS.Systems;
 /// </summary>
 public sealed class ApplyDeferredSystem : ASystem
 {
-    private Access<ComponentInfo> access = new Access<ComponentInfo>().WriteAll();
+
+    public ApplyDeferredSystem()
+    {
+        IsExclusive = true;
+        HasDeferred = false;
+    }
+    private Access<UntypedComponent> access = new Access<UntypedComponent>().WriteAll();
 
     public override void Initialize(World scheduleWorld) { }
+    
+    public override void Run(World scheduleWorld)
+    {
+        scheduleWorld.DeferEnd();
+        scheduleWorld.DeferBegin();
+    }
 
-    public override void RunDeferred(World scheduleWorld) { }
-
-    public override void RunExclusive(World world) { }
-
-    public override Access<ComponentInfo> GetAccess()
+    public override Access<UntypedComponent> GetAccess()
     {
         return access;
     }

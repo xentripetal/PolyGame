@@ -1,8 +1,7 @@
-using PolyECS;
+using Flecs.NET.Core;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
-using TinyEcs;
 
 namespace PolyECS.Scheduling.Executor;
 
@@ -99,14 +98,7 @@ public class SingleThreadedExecutor : IExecutor
 
             try
             {
-                if (system.IsExclusive)
-                {
-                    system.RunExclusive(world);
-                }
-                else
-                {
-                    system.RunDeferred(world);
-                }
+                system.Run(world);
             }
             catch (Exception e)
             {
