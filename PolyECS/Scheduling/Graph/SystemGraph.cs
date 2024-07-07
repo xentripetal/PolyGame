@@ -45,7 +45,7 @@ public class SystemGraph
 
     public UndirectedGraph<NodeId, Edge<NodeId>> AmbiguousWith = new ();
     protected HashSet<NodeId> AmbiguousWithAll = new ();
-    protected List<(NodeId, NodeId, UntypedComponent[])> ConflictingSystems = new ();
+    protected List<(NodeId, NodeId, ulong[])> ConflictingSystems = new ();
     protected ulong AnonymousSets;
     public bool Changed;
     public ScheduleBuildSettings Config = new ScheduleBuildSettings(autoInsertApplyDeferred: true);
@@ -140,11 +140,11 @@ public class SystemGraph
     /// <summary>
     /// Returns the list of systems that conflict with each other, i.e. have ambiguities in their data access.
     ///
-    /// If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="IScheduleWorld"/> access.
+    /// If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="PolyWorld"/> access.
     /// Must be called after <see cref="BuildSchedule"/> to be non-empty.
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyCollection<(NodeId, NodeId, UntypedComponent[])> GetConflictingSystems()
+    public IReadOnlyCollection<(NodeId, NodeId, ulong[])> GetConflictingSystems()
     {
         return ConflictingSystems.AsReadOnly();
     }
@@ -420,30 +420,30 @@ public class SystemGraph
     }
 
     /// Initializes any newly-added systems and conditions by calling [`System::initialize`]
-    public void Initialize(World scheduleWorld)
+    public void Initialize(PolyWorld world)
     {
         foreach (var (id, i) in Uninit)
         {
             if (id.IsSystem)
             {
-                Systems[id.Id].Initialize(scheduleWorld);
+                Systems[id.Id].Initialize(world);
                 foreach (var condition in SystemConditions[id.Id])
                 {
-                    condition.Initialize(scheduleWorld);
+                    condition.Initialize(world);
                 }
             }
             else
             {
                 foreach (var condition in SystemSetConditions[id.Id].Skip(i))
                 {
-                    condition.Initialize(scheduleWorld);
+                    condition.Initialize(world);
                 }
             }
         }
         Uninit.Clear();
     }
 
-    public SystemSchedule BuildSchedule(string label, HashSet<UntypedComponent> ignoredAmbiguities)
+    public SystemSchedule BuildSchedule(string label, HashSet<ulong> ignoredAmbiguities)
     {
         var hierarchySort = Hierarchy.TopologicalSort().ToArray();
         var hierResults = CheckGraph(Hierarchy, hierarchySort);
@@ -590,7 +590,7 @@ public class SystemGraph
         };
     }
 
-    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<UntypedComponent> ignoredAmbiguities, string label)
+    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ulong> ignoredAmbiguities, string label)
     {
         if (Uninit.Count != 0)
         {
@@ -633,13 +633,13 @@ public class SystemGraph
         return newSchedule;
     }
 
-    private List<(NodeId, NodeId, UntypedComponent[])> GetConflictingSystems(
+    private List<(NodeId, NodeId, ulong[])> GetConflictingSystems(
         List<(NodeId, NodeId)> flatResultsDisconnected,
         UndirectedGraph<NodeId, Edge<NodeId>> ambiguousWithFlattened,
-        HashSet<UntypedComponent> ignoredAmbiguities
+        HashSet<ulong> ignoredAmbiguities
     )
     {
-        var conflictingSystems = new List<(NodeId, NodeId, UntypedComponent[])>();
+        var conflictingSystems = new List<(NodeId, NodeId, ulong[])>();
         foreach (var (a, b) in flatResultsDisconnected)
         {
             if (ambiguousWithFlattened.ContainsEdge(a, b) || AmbiguousWithAll.Contains(a) || AmbiguousWithAll.Contains(b))
@@ -1095,7 +1095,7 @@ public class SystemGraph
         }
     }
 
-    void OptionallyCheckConflicts(List<(NodeId, NodeId, UntypedComponent[])> conflicts)
+    void OptionallyCheckConflicts(List<(NodeId, NodeId, ulong[])> conflicts)
     {
         if (Config.ThrowAmbiguousErrors)
         {
@@ -1108,7 +1108,7 @@ public class SystemGraph
     }
     
 
-    string GetConflictsErrorMessage(List<(NodeId, NodeId, UntypedComponent[])> ambiguities)
+    string GetConflictsErrorMessage(List<(NodeId, NodeId, ulong[])> ambiguities)
     {
         var nAmbiguities = ambiguities.Count;
         var message = $"{nAmbiguities} pairs of systems with conflicting data access have indeterminate execution order.\n" +

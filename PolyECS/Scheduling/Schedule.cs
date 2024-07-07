@@ -114,20 +114,20 @@ public class Schedule
         return this;
     }
 
-    public void Run(World scheduleWorld)
+    public void Run(PolyWorld scheduleWorld)
     {
         Initialize(scheduleWorld);
         // TODO resource system to get skip systems
         Executor.Run(Executable, scheduleWorld, null);
     }
 
-    public void Initialize(World scheduleWorld)
+    public void Initialize(PolyWorld scheduleWorld)
     {
         if (Graph.Changed)
         {
             Graph.Initialize(scheduleWorld);
             // TODO - resource system to get Schedules ambiguities
-            Executable = Graph.UpdateSchedule(Executable, new HashSet<UntypedComponent>(), Label);
+            Executable = Graph.UpdateSchedule(Executable, new HashSet<ulong>(), Label);
             Graph.Changed = false;
             ExecutorInitialized = false;
         }

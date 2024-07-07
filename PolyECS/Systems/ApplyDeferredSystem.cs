@@ -8,13 +8,13 @@ namespace PolyECS.Systems;
 /// </summary>
 public sealed class ApplyDeferredSystem : RunSystem
 {
-    private Access<UntypedComponent> access = new Access<UntypedComponent>().WriteAll();
+    private Access<ulong> access = new Access<ulong>().WriteAll();
     private Access<TableComponentId> tableAccess = new Access<TableComponentId>().WriteAll();
 
 
-    public override void Initialize(World world) { }
+    public override void Initialize(PolyWorld world) { }
 
-    public override object? Run(object? i, World world)
+    public override object? Run(object? i, PolyWorld world)
     {
         return null;
     }
@@ -28,7 +28,7 @@ public sealed class ApplyDeferredSystem : RunSystem
         get => true;
     }
 
-    public override Access<UntypedComponent> GetAccess() => access;
+    public override Access<ulong> GetAccess() => access;
 
     public override Access<TableComponentId> GetTableAccess() => tableAccess;
 

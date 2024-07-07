@@ -3,23 +3,23 @@ using PolyECS.Scheduling.Graph;
 
 namespace PolyECS.Systems;
 
-public abstract class ClassSystem : RunSystem
+public abstract class ClassSystem<T> : RunSystem
 {
-    public ClassSystem(ISystemParam[] parameters, string name)
+    public ClassSystem(ISystemParam<T> param, string name)
     {
         Meta = new SystemMeta(name);
-        Parameters = parameters;
+        Param = param;
         set = new SystemTypeSet(this);
     }
 
     protected SystemSet set;
 
-    private World? _world;
+    private PolyWorld? _world;
     protected SystemMeta Meta;
-    protected ISystemParam[] Parameters;
-    protected int tableGeneration;
+    protected ISystemParam<T> Param;
+    protected int tableGeneration = 0;
 
-    public override void Initialize(World world)
+    public override void Initialize(PolyWorld world)
     {
         if (_world != null)
         {
@@ -31,26 +31,24 @@ public abstract class ClassSystem : RunSystem
         else
         {
             _world = world;
-            foreach (var param in Parameters)
-            {
-                param.Initialize(world);
-            }
+            Param.Initialize(world, Meta);
         }
     }
 
-    public override object? Run(object? i, World world)
+    public override object? Run(object? i, PolyWorld world)
     {
-        Run(world);
+        var p = Param.Get(world, Meta);
+        Run(p);
         return i;
     }
 
-    public abstract void Run(World world);
+    public abstract void Run(T param);
 
     public override bool HasDeferred => Meta.HasDeferred;
 
-    public bool IsExclusive => false;
+    public override bool IsExclusive => false;
 
-    public override Access<UntypedComponent> GetAccess()
+    public override Access<ulong> GetAccess()
     {
         return Meta.ComponentAccessSet.CombinedAccess;
     }
@@ -67,15 +65,10 @@ public abstract class ClassSystem : RunSystem
 
     public override void UpdateTableComponentAccess(TableCache cache)
     {
-        var oldGeneration = tableGeneration;
-        tableGeneration = cache.Generation;
-
-        foreach (var newTable in cache.GetRange(oldGeneration, tableGeneration - oldGeneration))
+        (var oldGeneration, tableGeneration) = (tableGeneration, cache.Generation);
+        for (int i = oldGeneration; i < tableGeneration; i++)
         {
-            foreach (var param in Parameters)
-            {
-                param.EvaluateNewTable(Meta, newTable);
-            }
+            Param.EvaluateNewTable(Meta, cache[i], i);
         }
     }
 }

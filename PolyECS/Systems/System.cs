@@ -6,8 +6,8 @@ namespace PolyECS.Systems;
 
 public abstract class BaseSystem<TIn, TOut>
 {
-    public abstract void Initialize(World world);
-    public abstract TOut Run(TIn i, World world);
+    public abstract void Initialize(PolyWorld world);
+    public abstract TOut Run(TIn i, PolyWorld world);
 
     /// <summary>
     /// Returns `true` if the system performs any deferrable operations
@@ -16,7 +16,7 @@ public abstract class BaseSystem<TIn, TOut>
 
     public virtual bool IsExclusive { get; }
 
-    public abstract Access<UntypedComponent> GetAccess();
+    public abstract Access<ulong> GetAccess();
 
     public abstract Access<TableComponentId> GetTableAccess();
 

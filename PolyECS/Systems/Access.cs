@@ -1,3 +1,5 @@
+using Flecs.NET.Core;
+
 namespace PolyECS.Systems;
 
 /// <summary>
@@ -290,8 +292,9 @@ public class Access<T> : IEquatable<Access<T>>
 
     public bool Equals(Access<T> other)
     {
-      return ReadsAndWrites.SetEquals(other.ReadsAndWrites) && Writes.SetEquals(other.Writes) && ReadsAll == other.ReadsAll && WritesAll == other.WritesAll && Archetypal.SetEquals(other.Archetypal);  
-    } 
+        return ReadsAndWrites.SetEquals(other.ReadsAndWrites) && Writes.SetEquals(other.Writes) && ReadsAll == other.ReadsAll && WritesAll == other.WritesAll &&
+               Archetypal.SetEquals(other.Archetypal);
+    }
 
     public override bool Equals(object? obj) => obj is Access<T> other && Equals(other);
 
@@ -542,7 +545,8 @@ public struct FilteredAccess<T> : IEquatable<FilteredAccess<T>>
         return FilterSets.SelectMany(x => x.Without);
     }
 
-    public bool Equals(FilteredAccess<T> other) => Access.Equals(other.Access) && Required.SetEquals(other.Required) && FilterSets.SequenceEqual(other.FilterSets);
+    public bool Equals(FilteredAccess<T> other)
+        => Access.Equals(other.Access) && Required.SetEquals(other.Required) && FilterSets.SequenceEqual(other.FilterSets);
 
     public override bool Equals(object? obj) => obj is FilteredAccess<T> other && Equals(other);
 
@@ -569,6 +573,29 @@ public struct FilteredAccessSet<T>
     {
         CombinedAccess = new ();
         FilteredAccesses = new ();
+    }
+
+    /// <summary>
+    /// If the type is already read, this will upgrade it to a write for each subaccess that reads it
+    /// </summary>
+    /// <param name="type"></param>
+    /// <returns>true if there was a read to turn into a write</returns>
+    public bool UpgradeReadToWrite(T type)
+    {
+        if (!CombinedAccess.ReadsAll && CombinedAccess.HasRead(type))
+        {
+            return false;
+        }
+        foreach (var filter in FilteredAccesses)
+        {
+            // If the access includes a read of the write, we want to add the write to the access.
+            if (filter.Access.ReadsAll || filter.Required.Contains(type))
+            {
+                filter.AddWrite(type);
+            }
+        }
+        CombinedAccess.AddWrite(type);
+        return true;
     }
 
     /// <summary>

@@ -23,7 +23,7 @@ public class TableCache
 
     public TableCache(World world)
     {
-        tableQuery = world.QueryBuilder().With(Ecs.Any).Cached().Build();
+        tableQuery = world.QueryBuilder().With(Ecs.Any).Build();
         this.world = world;
     }
 

@@ -35,12 +35,12 @@ public class SingleThreadedExecutor : IExecutor
         ApplyFinalDeferred = apply;
     }
 
-    protected void ApplyDeferred(SystemSchedule schedule, World world)
+    protected void ApplyDeferred(SystemSchedule schedule, PolyWorld world)
     {
         world.DeferEnd();
     }
 
-    public void Run(SystemSchedule schedule, World world, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule schedule, PolyWorld world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
@@ -88,7 +88,7 @@ public class SingleThreadedExecutor : IExecutor
 
             try
             {
-                system.Run(null, world);
+                world.RunSystem(system);
             }
             catch (Exception e)
             {
@@ -104,13 +104,13 @@ public class SingleThreadedExecutor : IExecutor
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, World scheduleWorld)
+    protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
         bool met = true;
         foreach (var condition in conditions)
         {
-            if (!condition.Evaluate(scheduleWorld))
+            if (!condition.Evaluate(world))
             {
                 met = false;
             }

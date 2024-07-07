@@ -4,6 +4,6 @@ namespace PolyECS.Systems;
 
 public interface Condition
 {
-    public void Initialize(World world);
-    public bool Evaluate(World world);
+    public void Initialize(PolyWorld world);
+    public bool Evaluate(PolyWorld world);
 }

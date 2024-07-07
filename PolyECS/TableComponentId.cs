@@ -4,6 +4,12 @@ namespace PolyECS;
 
 public struct TableComponentId : IEquatable<TableComponentId>
 {
+    public TableComponentId(int tableGeneration, ulong id)
+    {
+        TableGeneration = tableGeneration;
+        Id = id;
+    }
+    
     public int TableGeneration;
     public ulong Id;
 

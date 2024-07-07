@@ -6,7 +6,7 @@ namespace PolyECS.Systems;
 public class SystemMeta
 {
     public string Name;
-    public FilteredAccessSet<UntypedComponent> ComponentAccessSet;
+    public FilteredAccessSet<ulong> ComponentAccessSet;
     public Access<TableComponentId> TableComponentAccess;
 
     // TODO - do we need this? Deferred is handled by the runner and the world
@@ -15,7 +15,7 @@ public class SystemMeta
     public SystemMeta(string name)
     {
         Name = name;
-        ComponentAccessSet = new FilteredAccessSet<UntypedComponent>();
+        ComponentAccessSet = new FilteredAccessSet<ulong>();
         TableComponentAccess = new Access<TableComponentId>();
         HasDeferred = false;
     }
