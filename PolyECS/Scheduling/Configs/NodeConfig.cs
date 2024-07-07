@@ -30,9 +30,9 @@ public abstract class NodeConfig<T>
     }
 }
 
-public class SystemConfig : NodeConfig<ASystem>
+public class SystemConfig : NodeConfig<RunSystem>
 {
-    public SystemConfig(ASystem system)
+    public SystemConfig(RunSystem system)
     {
         Node = system;
         Subgraph.Hierarchy = system.GetDefaultSystemSets();

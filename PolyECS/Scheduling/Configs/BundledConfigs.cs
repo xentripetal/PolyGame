@@ -3,11 +3,11 @@ using PolyECS.Systems.Graph;
 
 namespace PolyECS.Systems.Configs;
 
-public abstract class SystemConfigs : NodeConfigs<ASystem>
+public abstract class SystemConfigs : NodeConfigs<RunSystem>
 {
-    public static NodeConfigs<ASystem> Of(ASystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    public static NodeConfigs<RunSystem> Of(RunSystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
-        var configs = new NodeConfigs<ASystem>[systems.Length];
+        var configs = new NodeConfigs<RunSystem>[systems.Length];
         for (var i = 0; i < systems.Length; i++)
         {
             configs[i] = systems[i];

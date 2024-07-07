@@ -1,8 +1,10 @@
+using PolyECS.Scheduling.Graph;
+
 namespace PolyECS.Systems;
 
 public interface SystemSet : IEquatable<SystemSet>
 {
-    public bool IsAnonymous();
+    public string Name();
     public Type? SystemType();
 }
 
@@ -10,21 +12,21 @@ public struct NamedSet : SystemSet
 {
     public NamedSet(string name)
     {
-        Name = name;
+        _name = name;
     }
-    
-    public string Name;
+
+    private string _name;
 
     public bool Equals(SystemSet? other)
     {
         if (other is NamedSet otherNamed)
         {
-            return Name == otherNamed.Name;
+            return _name == otherNamed._name;
         }
         return false;
     }
 
-    public bool IsAnonymous() => false;
+    public string Name() => _name;
 
     public Type? SystemType() => null;
 }
@@ -47,16 +49,14 @@ public struct AnonymousSet : SystemSet
         return false;
     }
 
-    public bool IsAnonymous()
-    {
-        return true;
-    }
 
     public Type? SystemType() => null;
+
+    public string Name() => $"AnonymousSet {Id}";
 }
 
 /// <summary>
-/// A <see cref="SystemSet"/> grouping instances of the same <see cref="ASystem"/>.
+/// A <see cref="SystemSet"/> grouping instances of the same <see cref="BaseSystem{TIn,TOut}"/>.
 ///
 /// This kind of set is automatically populated and thus has some special rules:
 /// <list type="bullet">
@@ -67,11 +67,13 @@ public struct AnonymousSet : SystemSet
 /// </summary>
 public class SystemTypeSet : SystemSet
 {
-    public ASystem System;
-    public SystemTypeSet(ASystem sys)
+    public RunSystem System;
+
+    public SystemTypeSet(RunSystem sys)
     {
         System = sys;
     }
+
     public bool Equals(SystemSet? other)
     {
         if (other is SystemTypeSet otherType)
@@ -81,10 +83,7 @@ public class SystemTypeSet : SystemSet
         return false;
     }
 
-    public bool IsAnonymous()
-    {
-        return false;
-    }
+    public string Name() => $"SystemTypeSet {System.GetType().Name}";
 
     public Type? SystemType()
     {

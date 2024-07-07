@@ -4,41 +4,26 @@ using PolyECS.Systems.Configs;
 
 namespace PolyECS.Systems;
 
-public abstract class ASystem
+public abstract class BaseSystem<TIn, TOut>
 {
     public abstract void Initialize(World world);
-    public abstract void Run(World world);
+    public abstract TOut Run(TIn i, World world);
 
     /// <summary>
-    /// Returns `true` if the system has deferred buffers
+    /// Returns `true` if the system performs any deferrable operations
     /// </summary>
-    public bool HasDeferred { get; protected set; } = true;
+    public virtual bool HasDeferred { get; }
 
-    public bool IsExclusive { get; protected set; } = false;
+    public virtual bool IsExclusive { get; }
 
     public abstract Access<UntypedComponent> GetAccess();
 
+    public abstract Access<TableComponentId> GetTableAccess();
+
     public abstract List<SystemSet> GetDefaultSystemSets();
 
-    public virtual SystemSet ToSystemSet()
-    {
-        return new SystemTypeSet(this);
-    }
+    public abstract void UpdateTableComponentAccess(TableCache cache);
 
-    public abstract void ApplyDeferred(World scheduleWorld);
 
-    public static implicit operator SystemConfig(ASystem sys)
-    {
-        return new SystemConfig(sys);
-    }
-
-    public static implicit operator NodeConfigs<ASystem>(ASystem sys)
-    {
-        return (SystemConfig)sys;
-    }
-    
-    public static implicit operator SystemConfigs(ASystem sys)
-    {
-        return (SystemConfigs)SystemConfigs.Of((SystemConfig)sys);
-    }
 }
+

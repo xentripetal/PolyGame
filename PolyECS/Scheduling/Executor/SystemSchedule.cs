@@ -1,3 +1,5 @@
+using PolyECS.Scheduling.Graph;
+
 namespace PolyECS.Systems.Graph;
 
 
@@ -13,7 +15,7 @@ public class SystemSchedule
     /// <summary>
     /// Indexed by system node id
     /// </summary>
-    public List<ASystem> Systems = new ();
+    public List<RunSystem> Systems = new ();
 
     /// <summary>
     /// List of system node ids.

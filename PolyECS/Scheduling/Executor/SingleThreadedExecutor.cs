@@ -16,10 +16,6 @@ public class SingleThreadedExecutor : IExecutor
     /// </summary>
     protected FixedBitSet CompletedSystems;
     /// <summary>
-    /// Systems that have run but not had their buffers applied
-    /// </summary>
-    protected FixedBitSet UnappliedSystems;
-    /// <summary>
     /// Applies deferred system buffers after all systems have ran
     /// </summary>
     protected bool ApplyFinalDeferred = true;
@@ -32,7 +28,6 @@ public class SingleThreadedExecutor : IExecutor
         int setCount = schedule.SetIds.Count;
         EvaluatedSets = new FixedBitSet(setCount);
         CompletedSystems = new FixedBitSet(sysCount);
-        UnappliedSystems = new FixedBitSet(sysCount);
     }
 
     public void SetApplyFinalDeferred(bool apply)
@@ -42,12 +37,7 @@ public class SingleThreadedExecutor : IExecutor
 
     protected void ApplyDeferred(SystemSchedule schedule, World world)
     {
-        foreach (var systemIndex in UnappliedSystems.Ones())
-        {
-            var system = schedule.Systems[systemIndex];
-            system.ApplyDeferred(world);
-        }
-        UnappliedSystems.Clear();
+        world.DeferEnd();
     }
 
     public void Run(SystemSchedule schedule, World world, FixedBitSet? skipSystems)
@@ -98,13 +88,12 @@ public class SingleThreadedExecutor : IExecutor
 
             try
             {
-                system.Run(world);
+                system.Run(null, world);
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Error in system {system.GetType().Name}: {e.Message}");
             }
-            UnappliedSystems.Set(systemIndex);
         }
 
         if (ApplyFinalDeferred)

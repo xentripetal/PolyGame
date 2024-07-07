@@ -78,7 +78,7 @@ public class SimpleExecutor : IExecutor
             }
             try
             {
-                system.Run(scheduleWorld);
+                system.Run(null, scheduleWorld);
             }
             catch (Exception e)
             {

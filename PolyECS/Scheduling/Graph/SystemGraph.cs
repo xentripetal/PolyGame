@@ -8,6 +8,8 @@ using QuikGraph.Algorithms;
 
 namespace PolyECS.Scheduling.Graph;
 
+
+
 /// <summary>
 /// Metadata for a Schedule.
 ///
@@ -19,7 +21,7 @@ namespace PolyECS.Scheduling.Graph;
 public class SystemGraph
 {
     /// List of systems in the schedule
-    protected List<ASystem> Systems = new ();
+    protected List<RunSystem> Systems = new ();
     /// List of conditions for each system, in the same order as `systems`
     protected List<List<Condition>> SystemConditions = new ();
     /// List of system sets in the schedule
@@ -71,11 +73,11 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Returns the <see cref="ASystem"/> at the given <see cref="NodeId"/>, if it exists
+    /// Returns the <see cref="RunSystem"/> at the given <see cref="NodeId"/>, if it exists
     /// </summary>
     /// <param name="id"></param>
     /// <returns>System for the given NodeId</returns>
-    public ASystem? GetSystemAt(NodeId id)
+    public RunSystem? GetSystemAt(NodeId id)
     {
         if (id.Type != NodeType.System)
         {
@@ -91,10 +93,10 @@ public class SystemGraph
 
 
     /// <summary>
-    /// Provides an iterator over all <see cref="ASystem"/>s in this schedule, along with their <see cref="Condition"/>s
+    /// Provides an iterator over all <see cref="RunSystem"/>s in this schedule, along with their <see cref="Condition"/>s
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<(NodeId, ASystem, Condition[])> GetSystems()
+    public IEnumerable<(NodeId, RunSystem, Condition[])> GetSystems()
     {
         for (var i = 0; i < Systems.Count; i++)
         {
@@ -576,7 +578,7 @@ public class SystemGraph
 
         return new SystemSchedule
         {
-            Systems = new List<ASystem>(sysCount),
+            Systems = new List<RunSystem>(sysCount),
             SystemConditions = new List<List<Condition>>(sysCount),
             SetConditions = new List<List<Condition>>(setWithsConditionsCount),
             SystemIds = topsort.ToList(),
@@ -829,7 +831,7 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="ASystem"/> <see cref="NodeId"/>'s that are included in the set.
+    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="RunSystem"/> <see cref="NodeId"/>'s that are included in the set.
     /// Also return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a <see cref="FixedBitSet"/> of <see cref="SystemSet"/> <see cref="NodeId"/>'s
     /// that are included in the set, where the bitset order is the same as <see cref="SystemGraph.GetSystems()"/>
     /// </summary>

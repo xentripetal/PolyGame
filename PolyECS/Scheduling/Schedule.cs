@@ -38,18 +38,18 @@ public class Schedule
     /// </summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    public Schedule AddSystems(NodeConfigs<ASystem> configs)
+    public Schedule AddSystems(NodeConfigs<RunSystem> configs)
     {
         Graph.ProcessConfigs(configs, false);
         return this;
     }
 
-    public Schedule AddSystems(ASystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    public Schedule AddSystems(RunSystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
         return AddSystems(SystemConfigs.Of(systems, collectiveConditions: collectiveConditions, chained: chained));
     }
 
-    public Schedule AddSystems(NodeConfigs<ASystem>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    public Schedule AddSystems(NodeConfigs<RunSystem>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
         return AddSystems(SystemConfigs.Of(configs, collectiveConditions: collectiveConditions, chained: chained));
     }
@@ -136,14 +136,6 @@ public class Schedule
         {
             Executor.Init(Executable);
             ExecutorInitialized = true;
-        }
-    }
-
-    public void ApplyDeferred(World scheduleWorld)
-    {
-        foreach (var sys in Executable.Systems)
-        {
-            sys.ApplyDeferred(scheduleWorld);
         }
     }
 }

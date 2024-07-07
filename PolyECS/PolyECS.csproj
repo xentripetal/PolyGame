@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <AssemblyName>PolyECS</AssemblyName>
         <RootNamespace>PolyECS</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup>
