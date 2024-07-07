@@ -1,10 +1,10 @@
-using TinyEcs;
+using PolyECS.Systems;
 
 namespace PolyGame.Components.Transform;
 
 public class TransformPropagation
 {
-    public TransformPropagation(Scheduler scheduler)
+    public TransformPropagation(Schedule scheduler)
     {
     }
 }

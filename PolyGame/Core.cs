@@ -1,17 +1,17 @@
 ﻿using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PolyECS;
+using PolyECS.Systems;
 using PolyGame.Components.Render.Extract;
-using PolyGame.Systems.Render;
-using TinyEcs;
 
 namespace PolyGame;
 
 public class Core : Game
 {
-    public World RenderWorld;
+    public PolyWorld RenderWorld;
     public Schedule RenderSchedule;
-    public World GameWorld;
+    public PolyWorld GameWorld;
     public Schedule GameSchedule;
 
     public Core(
@@ -41,18 +41,17 @@ public class Core : Game
         IsMouseVisible = false;
         IsFixedTimeStep = false;
 
-        RenderWorld = new World();
-        RenderSchedule = new Scheduler(RenderWorld);
-        GameWorld = new World();
-        GameSchedule = new Scheduler(GameWorld);
-
+        RenderWorld = new PolyWorld();
+        RenderSchedule = new Schedule("render");
+        GameWorld = new PolyWorld();
+        GameSchedule = new Schedule("game");
     }
 
-    protected override void Initialize() 
+    protected override void Initialize()
     {
         base.Initialize();
         var batch = new SpriteBatch(graphicsDevice: GraphicsDevice, capacity: 2048);
-        RenderSchedule.AddResource(batch); 
+        RenderWorld.World.Set(batch);
         //var renderer = new RendererSystem(RenderWorld, GraphicsDevice, batch);
     }
 
@@ -72,13 +71,12 @@ public class Core : Game
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        GameWorldProgress = ProgressSchedule(GameSchedule, gameTime.ElapsedGameTime);
+        GameWorldProgress = ProgressSchedule(GameSchedule, GameWorld, gameTime.ElapsedGameTime);
     }
 
-    protected virtual async Task ProgressSchedule(Scheduler scheduler , TimeSpan gameTime)
+    protected virtual async Task ProgressSchedule(Schedule schedule, PolyWorld world, TimeSpan gameTime)
     {
-        float delta = gameTime.Milliseconds;
-        await Task.Run(scheduler.Run);
+        await Task.Run(() => schedule.Run(world));
     }
 
 
@@ -91,7 +89,7 @@ public class Core : Game
         {
             GameWorldProgress.Wait();
             Extract();
-            RenderWorldProgress = ProgressSchedule(RenderSchedule, gameTime.ElapsedGameTime);
+            RenderWorldProgress = ProgressSchedule(RenderSchedule, RenderWorld, gameTime.ElapsedGameTime);
             RenderWorldProgress.Wait();
         }
         else
@@ -102,7 +100,7 @@ public class Core : Game
             if (_hasRenderState)
             {
 
-                RenderWorldProgress = ProgressSchedule(RenderSchedule, previousFrameElapsedTime);
+                RenderWorldProgress = ProgressSchedule(RenderSchedule, RenderWorld, previousFrameElapsedTime);
             }
             Task.WaitAll(GameWorldProgress, RenderWorldProgress);
             previousFrameElapsedTime = gameTime.ElapsedGameTime;
@@ -115,11 +113,11 @@ public class Core : Game
 
     protected virtual void Extract()
     {
-        RenderWorld.QueryBuilder().With<DeleteAfterRender>().Build().Each(entity => entity.Delete());
+        RenderWorld.World.DeleteWith<DeleteAfterRender>();
         // Clear out last frames entities (except systems)
         foreach (var extractor in Extractors)
         {
-            extractor.Extract(GameWorld, RenderWorld);
+            extractor.Extract(GameWorld.World, RenderWorld.World);
         }
 
         // There is now a render state in the render world

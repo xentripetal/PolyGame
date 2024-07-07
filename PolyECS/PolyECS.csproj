@@ -23,4 +23,8 @@
 
     <Import Project="..\lib\Flecs.NET\src\Flecs.NET.Native\Flecs.NET.Native.targets"/>
 
+    <ItemGroup>
+        <ProjectReference Include="..\PolyECS.Generator\PolyECS.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
 </Project>

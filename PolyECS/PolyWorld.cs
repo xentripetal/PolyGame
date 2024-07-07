@@ -37,7 +37,7 @@ public partial class PolyWorld : IDisposable
 
     public World World { get; private set; }
     public TableCache TableCache { get; private set; }
-    
+
     public void RunSystemOnce<T>(T system) where T : RunSystem
     {
         if (!World.IsDeferred())
@@ -53,6 +53,11 @@ public partial class PolyWorld : IDisposable
     {
         system.UpdateTableComponentAccess(TableCache);
         system.Run(null, this);
+    }
+
+    public void AddResource<T>(T resource)
+    {
+        World.Set<T>(resource);
     }
 
     public void Dispose()

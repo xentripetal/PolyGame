@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+        <PackageReference Include="AvantiPoint.CodeGenHelpers" Version="1.6.20"/>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1"/>
+    </ItemGroup>
+
 </Project>

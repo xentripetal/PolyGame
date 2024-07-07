@@ -1,6 +1,9 @@
 using System.Runtime.CompilerServices;
+using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PolyECS;
+using PolyECS.Systems;
 using PolyGame.Components.Render;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
@@ -14,7 +17,7 @@ public class RendererSystem
     protected GraphicsDevice GraphicsDevice;
     protected SpriteBatch Batch;
 
-    public RendererSystem(Scheduler scheduler)
+    public RendererSystem(PolyWorld world, Schedule scheduler)
     {
         scheduler.AddSystem((Query<(ComputedCamera, CameraRenderGraph, Optional<RenderTargetConfig>)> q, Res<ClearColor> clearColor, Res<RenderableList> renderables, Res<GraphicsDevice> device, Res<SpriteBatch> batch) => {
             Render(q, clearColor, renderables, device, batch);
