@@ -1,7 +1,6 @@
 using PolyECS;
 using PolyECS.Systems;
 using PolyGame.Graphics.Renderable;
-using TinyEcs;
 
 namespace PolyGame.Systems.Render;
 
@@ -11,6 +10,6 @@ public class RenderPlugin
     {
         world.AddResource(new RenderableList());
         world.AddResource(new ClearColor(Microsoft.Xna.Framework.Color.CornflowerBlue));
-        RendererSystem renderer = new (schedule);
+        RendererSystem renderer = new (world, schedule);
     }
 }

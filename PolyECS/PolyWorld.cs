@@ -64,4 +64,14 @@ public partial class PolyWorld : IDisposable
     {
         World.Dispose();
     }
+
+    public Entity Entity() => World.Entity();
+
+    public Entity Entity(string name) => World.Entity(name);
+
+    public Entity Entity(ulong id) => World.Entity(id);
+
+    public Entity Entity<T>() => World.Entity<T>();
+
+    public Entity Entity<T>(string name) => World.Entity<T>(name);
 }

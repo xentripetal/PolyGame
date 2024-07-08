@@ -23,6 +23,9 @@
   &lt;Solution /&gt;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=73dee2a4_002D1884_002D426d_002D8ec2_002D73bb63d94273/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="SimpleQueryTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyECS.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyECS.Tests&amp;gt;" /&gt;
+  &lt;Or&gt;
+    &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyECS.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyECS.Tests&amp;gt;" /&gt;
+    &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyGame.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyGame.Tests&amp;gt;" /&gt;
+  &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
 	</wpf:ResourceDictionary>

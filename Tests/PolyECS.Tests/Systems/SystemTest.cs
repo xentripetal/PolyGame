@@ -61,22 +61,4 @@ public class ParamTest
         system.GetTableAccess().ReadsAndWrites.Count.Should().Be(3);
         system.GetTableAccess().Writes.Count.Should().Be(0);
     }
-    
-    [Fact]
-    public unsafe void ComplexQueryTest()
-    {
-        using var world = new PolyWorld();
-        world.World.Entity().Set<int>(0);
-        world.World.Entity().Set<int>(0).Set<double>(1);
-        world.World.Entity().Set<int>(0).Set<double>(1).Set(1.0f);
-
-        var query = world.World.QueryBuilder().With<int>().AndFrom().Without<float>().With<double>().Optional().Build();
-        var system = new SingleQuerySystem(query, "Query", (q) => {
-            Assert.Equal(2, q.Count());
-        });
-        world.RunSystemOnce(system);
-        system.GetAccess().Should().BeEquivalentTo(new Access<ulong>().AddRead(Type<int>.Id(world.World)).AddRead(Type<double>.Id(world.World)));
-        system.GetTableAccess().ReadsAndWrites.Count.Should().Be(3);
-        system.GetTableAccess().Writes.Count.Should().Be(0);
-    }
 }

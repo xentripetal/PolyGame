@@ -7,7 +7,6 @@ using PolyECS.Systems;
 using PolyGame.Components.Render;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
-using TinyEcs;
 
 namespace PolyGame.Systems.Render;
 
@@ -19,12 +18,14 @@ public class RendererSystem
 
     public RendererSystem(PolyWorld world, Schedule scheduler)
     {
+        /**
         scheduler.AddSystem((Query<(ComputedCamera, CameraRenderGraph, Optional<RenderTargetConfig>)> q, Res<ClearColor> clearColor, Res<RenderableList> renderables, Res<GraphicsDevice> device, Res<SpriteBatch> batch) => {
             Render(q, clearColor, renderables, device, batch);
         }, Stages.AfterUpdate);
+        **/
     }
 
-    protected void Render(Query<(ComputedCamera, CameraRenderGraph, Optional<RenderTargetConfig>)> Cameras, Res<ClearColor> clearColor, Res<RenderableList> renderables, Res<GraphicsDevice> device, Res<SpriteBatch> batch)
+    protected void Render(Query Cameras, Res<ClearColor> clearColor, Res<RenderableList> renderables, Res<GraphicsDevice> device, Res<SpriteBatch> batch)
     {
 
         Cameras.Each((

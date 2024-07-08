@@ -4,7 +4,6 @@ using PolyGame.Components.Render;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
 using Serilog;
-using TinyEcs;
 
 namespace PolyGame.Systems.Render;
 

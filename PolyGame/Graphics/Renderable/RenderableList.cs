@@ -1,7 +1,4 @@
-using System.Collections;
 using Flecs.NET.Core;
-using Microsoft.Xna.Framework.Graphics;
-using TinyEcs;
 
 namespace PolyGame.Graphics.Renderable;
 

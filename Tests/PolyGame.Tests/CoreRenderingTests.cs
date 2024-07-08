@@ -1,5 +1,7 @@
 using Flecs.NET.Core;
 using JetBrains.Annotations;
+using PolyECS;
+using PolyECS.Systems;
 using PolyGame.Components.Render.Extract;
 using World = Flecs.NET.Core.World;
 
@@ -15,45 +17,58 @@ public class CoreRenderingTests
         public void Extract(World sourceWorld, World targetWorld)
         {
             sourceWorld.Each((ref CurrentFrame frame) => {
-                targetWorld.Entity().Set(frame).Set<DeleteAfterRender>();
+                targetWorld.Entity().Set(frame).Add<DeleteAfterRender>();
+            });
+        }
+    }
+    
+    protected class FrameIncSystem : ClassSystem<Query>
+    {
+        public FrameIncSystem(Query query) : base(new QueryParam(query), "FrameIncSystem") { }
+
+        public override void Run(Query param)
+        {
+            param.Each((ref CurrentFrame frame) => {
+                frame.Value++;
             });
         }
     }
 
-    public void SetupFrameCounter(Core core)
+    public class FrameTracker: ClassSystem<Query>
     {
-        core.GameWorld.Entity().Set(new CurrentFrame(0));
-        core.GameSchedule.AddSystem((Query query) => {
-            query.Each((ref CurrentFrame frame) => {
-                frame.Value++;
-            });
-        });
-
-        core.RenderSchedule.AddSystem((Query<CurrentFrame> query) => {
-            query.Each((ref CurrentFrame frame) => {
+        public CurrentFrame RenderFrame = new CurrentFrame(0);
+        public FrameTracker(Query query) : base(new QueryParam(query), "FrameTracker") { }
+        public override void Run(Query param)
+        {
+            param.Each((ref CurrentFrame frame) => {
                 RenderFrame = frame;
             });
-        });
-
-        core.Extractors.Add(new TestExtractor());
+        }
     }
 
-    protected CurrentFrame RenderFrame = new CurrentFrame();
-    protected Entity GameRenderEntity = Entity.Null();
+    public FrameTracker SetupFrameCounter(Core core)
+    {
+        core.GameWorld.Entity().Set(new CurrentFrame(0));
+        core.GameSchedule.AddSystems(new FrameIncSystem(core.GameWorld.World.Query<CurrentFrame>()));
+        var tracker = new FrameTracker(core.RenderWorld.World.Query<CurrentFrame>());
+        core.RenderSchedule.AddSystems(tracker);
+        core.Extractors.Add(new TestExtractor());
+        return tracker;
+    }
 
     [Fact]
     public void TestSynchronousRendering()
     {
         var core = new Core();
         core.SynchronousRendering = true;
-        SetupFrameCounter(core);
+        var tracker = SetupFrameCounter(core);
         core.Tick();
         Assert.Equal(1, getSingleton<CurrentFrame>(core.GameWorld).Value);
-        Assert.Equal(1, RenderFrame.Value);
+        Assert.Equal(1, tracker.RenderFrame.Value);
 
         core.Tick();
         Assert.Equal(2, getSingleton<CurrentFrame>(core.GameWorld).Value);
-        Assert.Equal(2, RenderFrame.Value);
+        Assert.Equal(2, tracker.RenderFrame.Value);
     }
 
     [Fact]
@@ -61,19 +76,19 @@ public class CoreRenderingTests
     {
         var core = new Core();
         core.SynchronousRendering = false;
-        SetupFrameCounter(core);
+        var tracker = SetupFrameCounter(core);
         for (int i = 0; i < 100; i++)
         {
             core.Tick();
-            Assert.Equal(i, RenderFrame.Value);
+            Assert.Equal(i, tracker.RenderFrame.Value);
             Assert.Equal(i + 1, getSingleton<CurrentFrame>(core.GameWorld).Value);
         }
     }
 
-    public T getSingleton<T>(World world) where T : struct
+    public T getSingleton<T>(PolyWorld world) where T : struct
     {
         T value = new T();
-        world.Query<T>().Each((ref T t) => {
+        world.World.Query<T>().Each((ref T t) => {
             value = t;
         });
         return value;
