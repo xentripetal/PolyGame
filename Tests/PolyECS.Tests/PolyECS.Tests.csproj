@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\PolyECS\PolyECS.csproj" />
+    <ProjectReference Include="..\..\Src\PolyECS\PolyECS.csproj" />
   </ItemGroup>
   
 </Project>

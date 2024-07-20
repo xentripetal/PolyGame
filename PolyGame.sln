@@ -1,12 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyGame", "PolyGame\PolyGame.csproj", "{D56833F2-0529-47F8-ABE6-EF26513A70A6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyGame", "Src\PolyGame\PolyGame.csproj", "{D56833F2-0529-47F8-ABE6-EF26513A70A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyECS", "PolyECS\PolyECS.csproj", "{571759AC-BE78-463A-8C85-6B080938B3B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyECS", "Src\PolyECS\PolyECS.csproj", "{571759AC-BE78-463A-8C85-6B080938B3B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyECS.Generator", "PolyECS.Generator\PolyECS.Generator.csproj", "{4126E021-77DD-4283-B75E-5183B3DD9C31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyECS.Generator", "Src\PolyECS.Generator\PolyECS.Generator.csproj", "{4126E021-77DD-4283-B75E-5183B3DD9C31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse", "Verse\Verse.csproj", "{CD5D6289-A153-4A91-899C-8AA62D6B8673}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Verse", "Src\Verse\Verse.csproj", "{CD5D6289-A153-4A91-899C-8AA62D6B8673}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyGame.Tests", "Tests\PolyGame.Tests\PolyGame.Tests.csproj", "{2B183769-047E-4A0C-BA52-F7F1095C0C8C}"
 EndProject

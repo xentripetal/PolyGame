@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\PolyGame\PolyGame.csproj" />
+    <ProjectReference Include="..\..\Src\PolyGame\PolyGame.csproj" />
   </ItemGroup>
 
   

@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using PolyECS;
 using PolyECS.Systems;
 using PolyGame.Components.Render.Extract;
-using World = Flecs.NET.Core.World;
 
 namespace PolyGame.Tests;
 
