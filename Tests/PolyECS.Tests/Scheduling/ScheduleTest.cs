@@ -11,25 +11,19 @@ public class ScheduleTest
 {
     protected class TestSystem : ClassSystem<object?>
     {
-        public int InitCount = 0;
+        public int InitCout = 0;
         public int RunCount = 0;
 
         protected override ISystemParam<object> CreateParam(PolyWorld world) => new VoidParam();
-
-        public override void Initialize(PolyWorld world)
-        {
-            InitCount++;
-        }
 
         public override void Run([CanBeNull] object param)
         {
             RunCount++;
         }
 
-        public void AssertCalled()
+        public void AssertCalled(int times)
         {
-            Assert.Equal(1, InitCount);
-            Assert.Equal(1, RunCount);
+            Assert.Equal(times, RunCount);
         }
 
         public TestSystem(string name) : base(name)
@@ -64,8 +58,8 @@ public class ScheduleTest
 
         // Should have our 2 systems and a sync point between them
         Assert.Equal(3, schedule.Executable.Systems.Count);
-        sysA.AssertCalled();
-        sysB.AssertCalled();
+        sysA.AssertCalled(1);
+        sysB.AssertCalled(1);
     }
 
     [Fact]

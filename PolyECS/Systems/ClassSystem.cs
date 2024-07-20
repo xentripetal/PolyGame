@@ -45,12 +45,13 @@ public abstract class ClassSystem<T> : RunSystem
         else
         {
             _world = world;
-            if (Parameter == null)
-            {
-                Parameter = CreateParam(world);
-            }
-            Parameter.Initialize(world, Meta);
         }
+
+        if (Parameter == null)
+        {
+            Parameter = CreateParam(world);
+        }
+        Parameter.Initialize(world, Meta);
     }
 
     public override object? Run(object? i, PolyWorld world)

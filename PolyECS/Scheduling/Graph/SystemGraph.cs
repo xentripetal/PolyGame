@@ -47,7 +47,7 @@ public class SystemGraph
     protected HashSet<NodeId> AmbiguousWithAll = new ();
     protected List<(NodeId, NodeId, ulong[])> ConflictingSystems = new ();
     protected ulong AnonymousSets;
-    public bool Changed;
+    public bool Changed = true;
     public ScheduleBuildSettings Config = new ScheduleBuildSettings(autoInsertApplyDeferred: true);
 
     /// Dependency edges that will **not** automatically insert an instance of `apply_deferred` on the edge.

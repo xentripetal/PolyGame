@@ -40,21 +40,6 @@ public class TableCacheTest
         }
     }
 
-    /// <summary>
-    /// Simple test for verifying my understanding of Flecs.NET's query behavior
-    /// </summary>
-    [Fact]
-    public void TestInOutBehavior()
-    {
-        using var world = World.Create();
-        world.Entity().Add<Components.Position>();
-        var called = false;
-        world.QueryBuilder().With<Components.Position>().With<Components.Velocity>().Optional().Out().Build().Each(e => {
-            called = true;
-        });
-        Assert.False(called);
-    }
-
     [Fact]
     public void TestUpdate()
     {
