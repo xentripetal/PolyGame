@@ -5,18 +5,32 @@ namespace PolyECS.Systems;
 
 public abstract class ClassSystem<T> : RunSystem
 {
-    public ClassSystem(ISystemParam<T> param, string name)
+    protected ClassSystem(string name)
     {
         Meta = new SystemMeta(name);
-        Param = param;
         set = new SystemTypeSet(this);
+        Parameter = null;
     }
+
+    protected ClassSystem()
+    {
+        Meta = new SystemMeta(GetType().Name);
+        set = new SystemTypeSet(this);
+        Parameter = null;
+    }
+
+    /// <summary>
+    /// Lets the system declare its parameter after constructor
+    /// </summary>
+    /// <param name="world"></param>
+    /// <returns></returns>
+    protected abstract ISystemParam<T> CreateParam(PolyWorld world);
 
     protected SystemSet set;
 
     private PolyWorld? _world;
     protected SystemMeta Meta;
-    protected ISystemParam<T> Param;
+    protected ISystemParam<T>? Parameter;
     protected int tableGeneration = 0;
 
     public override void Initialize(PolyWorld world)
@@ -31,13 +45,17 @@ public abstract class ClassSystem<T> : RunSystem
         else
         {
             _world = world;
-            Param.Initialize(world, Meta);
+            if (Parameter == null)
+            {
+                Parameter = CreateParam(world);
+            }
+            Parameter.Initialize(world, Meta);
         }
     }
 
     public override object? Run(object? i, PolyWorld world)
     {
-        var p = Param.Get(world, Meta);
+        var p = Parameter.Get(world, Meta);
         Run(p);
         return i;
     }
@@ -68,7 +86,7 @@ public abstract class ClassSystem<T> : RunSystem
         (var oldGeneration, tableGeneration) = (tableGeneration, cache.Generation);
         for (int i = oldGeneration; i < tableGeneration; i++)
         {
-            Param.EvaluateNewTable(Meta, cache[i], i);
+            Parameter.EvaluateNewTable(Meta, cache[i], i);
         }
     }
 }

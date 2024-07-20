@@ -10,24 +10,32 @@ using PolyGame.Graphics.Renderers;
 
 namespace PolyGame.Systems.Render;
 
-public class RendererSystem
+public class RendererSystem : ClassSystem<Query, Res<ClearColor>, Res<RenderableList>, ResMut<GraphicsDevice>, ResMut<SpriteBatch>>
 {
     protected Query Cameras;
     protected GraphicsDevice GraphicsDevice;
     protected SpriteBatch Batch;
 
-    public RendererSystem(PolyWorld world, Schedule scheduler)
+    protected override (ISystemParam<Query>, ISystemParam<Res<ClearColor>>, ISystemParam<Res<RenderableList>>, ISystemParam<ResMut<GraphicsDevice>>,
+        ISystemParam<ResMut<SpriteBatch>>) CreateParams(PolyWorld world)
     {
-        /**
-        scheduler.AddSystem((Query<(ComputedCamera, CameraRenderGraph, Optional<RenderTargetConfig>)> q, Res<ClearColor> clearColor, Res<RenderableList> renderables, Res<GraphicsDevice> device, Res<SpriteBatch> batch) => {
-            Render(q, clearColor, renderables, device, batch);
-        }, Stages.AfterUpdate);
-        **/
+        return (
+            world.World.Query<ComputedCamera, CameraRenderGraph, RenderTargetConfig>().AsParam(),
+            new ResParam<ClearColor>(),
+            new ResParam<RenderableList>(),
+            new ResMutParam<GraphicsDevice>(),
+            new ResMutParam<SpriteBatch>()
+        );
     }
 
-    protected void Render(Query Cameras, Res<ClearColor> clearColor, Res<RenderableList> renderables, Res<GraphicsDevice> device, Res<SpriteBatch> batch)
+    public override void Run(
+        Query Cameras,
+        Res<ClearColor> clearColor,
+        Res<RenderableList> renderables,
+        ResMut<GraphicsDevice> graphicsDevice,
+        ResMut<SpriteBatch> batch
+    )
     {
-
         Cameras.Each((
             ref ComputedCamera cCam,
             ref CameraRenderGraph renderGraph,
@@ -35,11 +43,11 @@ public class RendererSystem
         ) => {
             var hasRenderTexture = !Unsafe.IsNullRef(renderTarget);
             var renderTexture = hasRenderTexture ? renderTarget.Texture : null;
-            if (renderables.Value == null)
+            if (renderables.IsEmpty)
             {
                 return;
             }
-            renderGraph.Graph.Render(ref cCam, Batch, GraphicsDevice, clearColor.Value.Color, renderTexture, renderables.Value);
+            renderGraph.Graph.Render(ref cCam, Batch, GraphicsDevice, clearColor.Get().Color, renderTexture, renderables.Get());
         });
     }
 }

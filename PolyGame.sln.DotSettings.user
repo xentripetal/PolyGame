@@ -17,7 +17,10 @@
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=583e1af6_002D0659_002D44bb_002Dbe52_002Da4108c41b269/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="FilteredAccessExtend" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
-  &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyECS.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyECS.Tests&amp;gt;" /&gt;
+  &lt;Or&gt;
+    &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyECS.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyECS.Tests&amp;gt;" /&gt;
+    &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyGame.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyGame.Tests&amp;gt;" /&gt;
+  &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6dad3207_002D4198_002D481e_002Da080_002Da8ba4b288db1/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TestSynchronousRendering" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;Solution /&gt;
@@ -28,4 +31,8 @@
     &lt;Project Location="/Users/corbinmartin/Dev/PolyGame/Tests/PolyGame.Tests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;PolyGame.Tests&amp;gt;" /&gt;
   &lt;/Or&gt;
 &lt;/SessionState&gt;</s:String>
+	
+	
+	
+	
 	</wpf:ResourceDictionary>

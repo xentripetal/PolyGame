@@ -14,6 +14,8 @@ public class ScheduleTest
         public int InitCount = 0;
         public int RunCount = 0;
 
+        protected override ISystemParam<object> CreateParam(PolyWorld world) => new VoidParam();
+
         public override void Initialize(PolyWorld world)
         {
             InitCount++;
@@ -30,7 +32,7 @@ public class ScheduleTest
             Assert.Equal(1, RunCount);
         }
 
-        public TestSystem(string name) : base(new VoidParam(), name)
+        public TestSystem(string name) : base(name)
         {
             Meta.HasDeferred = true;
         }

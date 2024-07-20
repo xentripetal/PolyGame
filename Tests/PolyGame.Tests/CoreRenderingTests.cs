@@ -24,7 +24,9 @@ public class CoreRenderingTests
     
     protected class FrameIncSystem : ClassSystem<Query>
     {
-        public FrameIncSystem(Query query) : base(new QueryParam(query), "FrameIncSystem") { }
+        protected override ISystemParam<Query> CreateParam(PolyWorld world) {
+            return Param.Of(world.World.Query<CurrentFrame>());
+        }
 
         public override void Run(Query param)
         {
@@ -37,7 +39,12 @@ public class CoreRenderingTests
     public class FrameTracker: ClassSystem<Query>
     {
         public CurrentFrame RenderFrame = new CurrentFrame(0);
-        public FrameTracker(Query query) : base(new QueryParam(query), "FrameTracker") { }
+
+        protected override ISystemParam<Query> CreateParam(PolyWorld world)
+        {
+            return Param.Of(world.World.Query<CurrentFrame>());
+        }
+
         public override void Run(Query param)
         {
             param.Each((ref CurrentFrame frame) => {
@@ -49,8 +56,8 @@ public class CoreRenderingTests
     public FrameTracker SetupFrameCounter(Core core)
     {
         core.GameWorld.Entity().Set(new CurrentFrame(0));
-        core.GameSchedule.AddSystems(new FrameIncSystem(core.GameWorld.World.Query<CurrentFrame>()));
-        var tracker = new FrameTracker(core.RenderWorld.World.Query<CurrentFrame>());
+        core.GameSchedule.AddSystems(new FrameIncSystem());
+        var tracker = new FrameTracker();
         core.RenderSchedule.AddSystems(tracker);
         core.Extractors.Add(new TestExtractor());
         return tracker;

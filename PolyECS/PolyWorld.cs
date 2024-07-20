@@ -55,15 +55,24 @@ public partial class PolyWorld : IDisposable
         system.Run(null, this);
     }
 
-    public void AddResource<T>(T resource)
+    public void SetResource<T>(T resource)
     {
         World.Set<T>(resource);
+    }
+
+    public void RegisterResource<T>()
+    {
+        World.Add<T>();
     }
 
     public void Dispose()
     {
         World.Dispose();
     }
+
+    public Res<T> GetResource<T>() => new Res<T>(World);
+    public ResMut<T> GetResourceMut<T>() => new ResMut<T>(World);
+
 
     public Entity Entity() => World.Entity();
 

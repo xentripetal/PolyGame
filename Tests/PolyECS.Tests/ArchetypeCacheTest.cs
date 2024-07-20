@@ -32,12 +32,27 @@ public class TableCacheTest
             using var world = World.Create();
             world.Entity().Add<Components.Relationship, Components.Position>();
             var posId = Type<Components.Position>.Id(world);
-            
+
             Assert.NotEqual(0, world.QueryBuilder().With<Components.Relationship, Components.Position>().Build().Count());
             Assert.NotEqual(0, world.QueryBuilder().With(Ecs.Wildcard, posId).Build().Count());
             Assert.Equal(0, world.QueryBuilder().With(posId, Ecs.Wildcard).Build().Count());
             Assert.Equal(0, world.Query<Components.Position>().Count());
         }
+    }
+
+    /// <summary>
+    /// Simple test for verifying my understanding of Flecs.NET's query behavior
+    /// </summary>
+    [Fact]
+    public void TestInOutBehavior()
+    {
+        using var world = World.Create();
+        world.Entity().Add<Components.Position>();
+        var called = false;
+        world.QueryBuilder().With<Components.Position>().With<Components.Velocity>().Optional().Out().Build().Each(e => {
+            called = true;
+        });
+        Assert.False(called);
     }
 
     [Fact]
@@ -47,16 +62,16 @@ public class TableCacheTest
         {
             var world = World.Create();
             var cache = new TableCache(world);
-            
+
             var pos = world.Component<Components.Position>();
             var vel = world.Component<Components.Velocity>();
             var rel = world.Component<Components.Relationship>();
             var relPos = new Id(world.Handle, rel, pos);
-        
+
             world.Entity().Add<Components.Position>().Add<Components.Velocity>();
             world.Entity().Add<Components.Relationship, Components.Position>();
             cache.Update();
-            
+
             Assert.Single(cache.TablesForType(vel.Id));
             Assert.Single(cache.TablesForType(pos.Id));
             Assert.Single(cache.TablesForType(relPos));

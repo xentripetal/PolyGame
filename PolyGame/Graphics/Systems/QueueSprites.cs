@@ -1,8 +1,7 @@
-using System.Net.Mime;
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using PolyECS;
 using PolyECS.Systems;
 using PolyGame.Components;
 using PolyGame.Components.Render;
@@ -12,24 +11,28 @@ using PolyGame.Graphics.Renderable;
 
 namespace PolyGame.Systems.Render;
 
-public class QueueSprites : ClassSystem<(Query, Query)>
+/**
+ * Example class for what I want a system to look like
+ */
+public class QueueSprites : ClassSystem<Query, Query>
 {
-    // TODO this is ugly. Need an abstraction to generate the queries in the constructor block not the header
-    public QueueSprites(World world) : base(
-        new BiParam<Query, Query>(new QueryParam(world.Query<ComputedCamera, Managed<RenderableList>>()), new QueryParam(world.Query<Sprite>())), "QueueSprites")
+    public QueueSprites(PolyWorld world)
     {
-        // TODO GetResource on World
-        var registry = world.Get<DrawFuncRegistry>();
+        var registry = world.World.Get<DrawFuncRegistry>();
         DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
+    }
+
+    protected override (ISystemParam<Query>, ISystemParam<Query>) CreateParams(PolyWorld world)
+    {
+        var cameraQuery = world.World.Query<ComputedCamera, Managed<RenderableList>>();
+        var renderableQuery = world.World.Query<Sprite>();
+        return (Param.Of(cameraQuery), Param.Of(renderableQuery));
     }
 
     protected int DrawSpriteIndex;
 
-    public override void Run((Query, Query) param)
+    public override void Run(Query cameras, Query sprites)
     {
-        // TODO this is ugly. Should be able to destructure the tuple in the Run method
-        var (cameras, sprites) = param;
-
         cameras.Each((ref ComputedCamera cCam, ref Managed<RenderableList> renderables) => {
             var rendValue = renderables.Value;
             sprites.Each((Entity en, ref Sprite sprite) => {
@@ -43,7 +46,6 @@ public class QueueSprites : ClassSystem<(Query, Query)>
         });
     }
 
-
     public void DrawSprite(RenderableReference renderable, Batcher batch)
     {
         var sprite = renderable.Entity.Get<Sprite>();
@@ -56,5 +58,10 @@ public class QueueSprites : ClassSystem<(Query, Query)>
     }
 }
 
-// TODO placeholder
-public struct Sprite { }
+/// <summary>
+/// Placeholder sprite 
+/// </summary>
+public struct Sprite
+{
+    
+}

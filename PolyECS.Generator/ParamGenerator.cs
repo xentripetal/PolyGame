@@ -35,7 +35,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
             Class.AddGeneric($"T{i}");
         }
         var typeString = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"T{i}"));
-        Class.AddInterface($"ISystemParam<({typeString})>");
+        Class.SetBaseClass($"SystemParam<({typeString})>");
         var ctor = Class.AddConstructor();
         for (int i = 1; i <= numParams; i++)
         {
@@ -49,7 +49,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
         var paramType = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"ISystemParam<T{i}>"));
         Class.AddProperty("_params", Accessibility.Private).SetType($"({paramType})");
 
-        Class.AddMethod("Initialize", Accessibility.Public)
+        Class.AddMethod("Initialize", Accessibility.Public).Override()
             .AddParameter("PolyWorld", "world")
             .AddParameter("SystemMeta", "meta")
             .WithBody(b => {
@@ -59,7 +59,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
                 }
             });
 
-        Class.AddMethod("EvaluateNewTable", Accessibility.Public)
+        Class.AddMethod("EvaluateNewTable", Accessibility.Public).Override()
             .AddParameter("SystemMeta", "meta")
             .AddParameter("Table", "table")
             .AddParameter("int", "tableGen")
@@ -70,7 +70,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
                 }
             });
 
-        Class.AddMethod("Get", Accessibility.Public)
+        Class.AddMethod("Get", Accessibility.Public).Override()
             .WithReturnType($"({typeString})")
             .AddParameter("PolyWorld", "world")
             .AddParameter("SystemMeta", "meta")

@@ -18,7 +18,6 @@
     <ItemGroup>
       <Folder Include="Content\" />
       <Folder Include="Graphics\Components\" />
-      <Folder Include="Systems\" />
     </ItemGroup>
 
 
