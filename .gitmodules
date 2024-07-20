@@ -1,3 +1,6 @@
 [submodule "lib/TinyEcs"]
 	path = lib/TinyEcs
 	url = https://github.com/andreakarasho/TinyEcs
+[submodule "lib/Flecs.NET"]
+	path = lib/Flecs.NET
+	url = https://github.com/BeanCheeseBurrito/Flecs.NET/

@@ -1,12 +1,14 @@
 using System.Diagnostics;
+using Flecs.NET.Core;
 using PolyECS.Systems.Configs;
 using PolyECS.Systems.Graph;
 using PolyECS.Systems;
 using QuikGraph;
 using QuikGraph.Algorithms;
-using TinyEcs;
 
 namespace PolyECS.Scheduling.Graph;
+
+
 
 /// <summary>
 /// Metadata for a Schedule.
@@ -19,7 +21,7 @@ namespace PolyECS.Scheduling.Graph;
 public class SystemGraph
 {
     /// List of systems in the schedule
-    protected List<ASystem> Systems = new ();
+    protected List<RunSystem> Systems = new ();
     /// List of conditions for each system, in the same order as `systems`
     protected List<List<Condition>> SystemConditions = new ();
     /// List of system sets in the schedule
@@ -43,10 +45,10 @@ public class SystemGraph
 
     public UndirectedGraph<NodeId, Edge<NodeId>> AmbiguousWith = new ();
     protected HashSet<NodeId> AmbiguousWithAll = new ();
-    protected List<(NodeId, NodeId, ComponentInfo[])> ConflictingSystems = new ();
+    protected List<(NodeId, NodeId, ulong[])> ConflictingSystems = new ();
     protected ulong AnonymousSets;
-    public bool Changed;
-    public ScheduleBuildSettings Config = new ();
+    public bool Changed = true;
+    public ScheduleBuildSettings Config = new ScheduleBuildSettings(autoInsertApplyDeferred: true);
 
     /// Dependency edges that will **not** automatically insert an instance of `apply_deferred` on the edge.
     protected HashSet<(NodeId, NodeId)> NoSyncEdges = new ();
@@ -71,11 +73,11 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Returns the <see cref="ASystem"/> at the given <see cref="NodeId"/>, if it exists
+    /// Returns the <see cref="RunSystem"/> at the given <see cref="NodeId"/>, if it exists
     /// </summary>
     /// <param name="id"></param>
     /// <returns>System for the given NodeId</returns>
-    public ASystem? GetSystemAt(NodeId id)
+    public RunSystem? GetSystemAt(NodeId id)
     {
         if (id.Type != NodeType.System)
         {
@@ -91,10 +93,10 @@ public class SystemGraph
 
 
     /// <summary>
-    /// Provides an iterator over all <see cref="ASystem"/>s in this schedule, along with their <see cref="Condition"/>s
+    /// Provides an iterator over all <see cref="RunSystem"/>s in this schedule, along with their <see cref="Condition"/>s
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<(NodeId, ASystem, Condition[])> GetSystems()
+    public IEnumerable<(NodeId, RunSystem, Condition[])> GetSystems()
     {
         for (var i = 0; i < Systems.Count; i++)
         {
@@ -138,11 +140,11 @@ public class SystemGraph
     /// <summary>
     /// Returns the list of systems that conflict with each other, i.e. have ambiguities in their data access.
     ///
-    /// If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="IScheduleWorld"/> access.
+    /// If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="PolyWorld"/> access.
     /// Must be called after <see cref="BuildSchedule"/> to be non-empty.
     /// </summary>
     /// <returns></returns>
-    public IReadOnlyCollection<(NodeId, NodeId, ComponentInfo[])> GetConflictingSystems()
+    public IReadOnlyCollection<(NodeId, NodeId, ulong[])> GetConflictingSystems()
     {
         return ConflictingSystems.AsReadOnly();
     }
@@ -158,9 +160,9 @@ public class SystemGraph
         return new ProcessConfigsResult(nodes, true);
     }
 
-    protected void ApplyCollectiveConditions<TNode>(List<NodeConfigs<TNode>> configs, List<Condition> collectiveConditions)
+    protected void ApplyCollectiveConditions<TNode>(NodeConfigs<TNode>[] configs, List<Condition>? collectiveConditions)
     {
-        if (collectiveConditions.Count == 0)
+        if (collectiveConditions == null || collectiveConditions.Count == 0)
         {
             return;
         }
@@ -196,7 +198,7 @@ public class SystemGraph
         ApplyCollectiveConditions(bundledConfigs.NodeConfigs, bundledConfigs.CollectiveConditions);
         var ignoreDeferred = bundledConfigs.Chained == Chain.YesIgnoreDeferred;
         var chained = bundledConfigs.Chained == Chain.Yes || bundledConfigs.Chained == Chain.YesIgnoreDeferred;
-        var denselyChained = chained || bundledConfigs.NodeConfigs.Count == 1;
+        var denselyChained = chained || bundledConfigs.NodeConfigs.Length == 1;
         var nodes = new List<NodeId>();
 
         if (bundledConfigs.NodeConfigs.Count() == 0)
@@ -280,6 +282,8 @@ public class SystemGraph
         SystemSets.Add(set);
         SystemSetIds[set] = id;
         SystemSetConditions.Add(new List<Condition>());
+        Hierarchy.AddVertex(id);
+        AmbiguousWith.AddVertex(id); // Make sure to register it in all the graphs even if it has no edges
         return id;
     }
 
@@ -416,29 +420,30 @@ public class SystemGraph
     }
 
     /// Initializes any newly-added systems and conditions by calling [`System::initialize`]
-    public void Initialize(World scheduleWorld)
+    public void Initialize(PolyWorld world)
     {
         foreach (var (id, i) in Uninit)
         {
             if (id.IsSystem)
             {
-                Systems[id.Id].Initialize(scheduleWorld);
-                foreach (var condition in SystemConditions)
+                Systems[id.Id].Initialize(world);
+                foreach (var condition in SystemConditions[id.Id])
                 {
-                    condition[id.Id].Initialize(scheduleWorld);
+                    condition.Initialize(world);
                 }
             }
             else
             {
                 foreach (var condition in SystemSetConditions[id.Id].Skip(i))
                 {
-                    condition.Initialize(scheduleWorld);
+                    condition.Initialize(world);
                 }
             }
         }
+        Uninit.Clear();
     }
 
-    public SystemSchedule BuildSchedule(string label, HashSet<ComponentInfo> ignoredAmbiguities)
+    public SystemSchedule BuildSchedule(string label, HashSet<ulong> ignoredAmbiguities)
     {
         var hierarchySort = Hierarchy.TopologicalSort().ToArray();
         var hierResults = CheckGraph(Hierarchy, hierarchySort);
@@ -573,7 +578,7 @@ public class SystemGraph
 
         return new SystemSchedule
         {
-            Systems = new List<ASystem>(sysCount),
+            Systems = new List<RunSystem>(sysCount),
             SystemConditions = new List<List<Condition>>(sysCount),
             SetConditions = new List<List<Condition>>(setWithsConditionsCount),
             SystemIds = topsort.ToList(),
@@ -585,7 +590,7 @@ public class SystemGraph
         };
     }
 
-    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ComponentInfo> ignoredAmbiguities, string label)
+    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ulong> ignoredAmbiguities, string label)
     {
         if (Uninit.Count != 0)
         {
@@ -613,14 +618,14 @@ public class SystemGraph
         var newSchedule = BuildSchedule(label, ignoredAmbiguities);
 
         // move systems into new schedule
-        foreach (var id in schedule.SystemIds)
+        foreach (var id in newSchedule.SystemIds)
         {
             var system = Systems[id.Id];
             var conditions = SystemConditions[id.Id];
             newSchedule.Systems.Add(system);
             newSchedule.SystemConditions.Add(conditions);
         }
-        foreach (var id in schedule.SetIds)
+        foreach (var id in newSchedule.SetIds)
         {
             var conditions = SystemSetConditions[id.Id];
             newSchedule.SetConditions.Add(conditions);
@@ -628,13 +633,13 @@ public class SystemGraph
         return newSchedule;
     }
 
-    private List<(NodeId, NodeId, ComponentInfo[])> GetConflictingSystems(
+    private List<(NodeId, NodeId, ulong[])> GetConflictingSystems(
         List<(NodeId, NodeId)> flatResultsDisconnected,
         UndirectedGraph<NodeId, Edge<NodeId>> ambiguousWithFlattened,
-        HashSet<ComponentInfo> ignoredAmbiguities
+        HashSet<ulong> ignoredAmbiguities
     )
     {
-        var conflictingSystems = new List<(NodeId, NodeId, ComponentInfo[])>();
+        var conflictingSystems = new List<(NodeId, NodeId, ulong[])>();
         foreach (var (a, b) in flatResultsDisconnected)
         {
             if (ambiguousWithFlattened.ContainsEdge(a, b) || AmbiguousWithAll.Contains(a) || AmbiguousWithAll.Contains(b))
@@ -723,6 +728,7 @@ public class SystemGraph
                 if (addSyncOnEdge)
                 {
                     var syncPoint = GetSyncPoint(distances[edge.Target.Id]);
+                    syncGraph.AddVertex(syncPoint);
                     syncGraph.AddEdge(new Edge<NodeId>(node, syncPoint));
                     syncGraph.AddEdge(new Edge<NodeId>(syncPoint, edge.Target));
 
@@ -752,9 +758,11 @@ public class SystemGraph
     /// <returns>Id of sync system</returns>
     protected NodeId AddAutoSync()
     {
-        var id = new NodeId(AutoSyncNodeIds.Count, NodeType.System);
+        var id = new NodeId(Systems.Count, NodeType.System);
         Systems.Add(new ApplyDeferredSystem());
         SystemConditions.Add(new List<Condition>());
+        Hierarchy.AddVertex(id);
+        Dependency.AddVertex(id);
         // ignore ambiguities with auto sync points
         // They aren't under user control, so no one should know or care.
         AmbiguousWithAll.Add(id);
@@ -823,7 +831,7 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="ASystem"/> <see cref="NodeId"/>'s that are included in the set.
+    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="RunSystem"/> <see cref="NodeId"/>'s that are included in the set.
     /// Also return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a <see cref="FixedBitSet"/> of <see cref="SystemSet"/> <see cref="NodeId"/>'s
     /// that are included in the set, where the bitset order is the same as <see cref="SystemGraph.GetSystems()"/>
     /// </summary>
@@ -1087,7 +1095,7 @@ public class SystemGraph
         }
     }
 
-    void OptionallyCheckConflicts(List<(NodeId, NodeId, ComponentInfo[])> conflicts)
+    void OptionallyCheckConflicts(List<(NodeId, NodeId, ulong[])> conflicts)
     {
         if (Config.ThrowAmbiguousErrors)
         {
@@ -1100,7 +1108,7 @@ public class SystemGraph
     }
     
 
-    string GetConflictsErrorMessage(List<(NodeId, NodeId, ComponentInfo[])> ambiguities)
+    string GetConflictsErrorMessage(List<(NodeId, NodeId, ulong[])> ambiguities)
     {
         var nAmbiguities = ambiguities.Count;
         var message = $"{nAmbiguities} pairs of systems with conflicting data access have indeterminate execution order.\n" +
@@ -1111,7 +1119,7 @@ public class SystemGraph
             if (conflicts.Length != 0)
             {
                 // TODO name
-                message += $"    conflict on: {string.Join(", ", conflicts.Select(c => c.ID))}\n";
+                message += $"    conflict on: {string.Join(", ", conflicts.Select(c => c.ToString()))}\n";
             }
             else
             {

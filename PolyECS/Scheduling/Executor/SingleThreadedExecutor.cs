@@ -1,8 +1,7 @@
-using PolyECS;
+using Flecs.NET.Core;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
-using TinyEcs;
 
 namespace PolyECS.Scheduling.Executor;
 
@@ -17,10 +16,6 @@ public class SingleThreadedExecutor : IExecutor
     /// </summary>
     protected FixedBitSet CompletedSystems;
     /// <summary>
-    /// Systems that have run but not had their buffers applied
-    /// </summary>
-    protected FixedBitSet UnappliedSystems;
-    /// <summary>
     /// Applies deferred system buffers after all systems have ran
     /// </summary>
     protected bool ApplyFinalDeferred = true;
@@ -33,7 +28,6 @@ public class SingleThreadedExecutor : IExecutor
         int setCount = schedule.SetIds.Count;
         EvaluatedSets = new FixedBitSet(setCount);
         CompletedSystems = new FixedBitSet(sysCount);
-        UnappliedSystems = new FixedBitSet(sysCount);
     }
 
     public void SetApplyFinalDeferred(bool apply)
@@ -41,17 +35,12 @@ public class SingleThreadedExecutor : IExecutor
         ApplyFinalDeferred = apply;
     }
 
-    protected void ApplyDeferred(SystemSchedule schedule, World world)
+    protected void ApplyDeferred(SystemSchedule schedule, PolyWorld world)
     {
-        foreach (var systemIndex in UnappliedSystems.Ones())
-        {
-            var system = schedule.Systems[systemIndex];
-            system.ApplyDeferred(world);
-        }
-        UnappliedSystems.Clear();
+        world.DeferEnd();
     }
 
-    public void Run(SystemSchedule schedule, World world, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule schedule, PolyWorld world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
@@ -99,20 +88,12 @@ public class SingleThreadedExecutor : IExecutor
 
             try
             {
-                if (system.IsExclusive)
-                {
-                    system.RunExclusive(world);
-                }
-                else
-                {
-                    system.RunDeferred(world);
-                }
+                world.RunSystem(system);
             }
             catch (Exception e)
             {
                 Console.WriteLine($"Error in system {system.GetType().Name}: {e.Message}");
             }
-            UnappliedSystems.Set(systemIndex);
         }
 
         if (ApplyFinalDeferred)
@@ -123,13 +104,13 @@ public class SingleThreadedExecutor : IExecutor
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, World scheduleWorld)
+    protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
         bool met = true;
         foreach (var condition in conditions)
         {
-            if (!condition.Evaluate(scheduleWorld))
+            if (!condition.Evaluate(world))
             {
                 met = false;
             }

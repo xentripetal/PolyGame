@@ -1,28 +1,29 @@
-using TinyEcs;
+using Flecs.NET.Core;
+using PolyECS.Scheduling.Graph;
+using PolyECS.Systems.Configs;
 
 namespace PolyECS.Systems;
 
-public abstract class ASystem
+public abstract class BaseSystem<TIn, TOut>
 {
-    public abstract void Initialize(World world);
-    public abstract void RunDeferred(World world);
-    public abstract void RunExclusive(World world);
+    public abstract void Initialize(PolyWorld world);
+    public abstract TOut Run(TIn i, PolyWorld world);
 
     /// <summary>
-    /// Returns `true` if the system has deferred buffers
+    /// Returns `true` if the system performs any deferrable operations
     /// </summary>
-    public bool HasDeferred { get; protected set; }
+    public virtual bool HasDeferred { get; }
 
-    public bool IsExclusive { get; protected set; }
+    public virtual bool IsExclusive { get; }
 
-    public abstract Access<ComponentInfo> GetAccess();
+    public abstract Access<ulong> GetAccess();
+
+    public abstract Access<TableComponentId> GetTableAccess();
 
     public abstract List<SystemSet> GetDefaultSystemSets();
 
-    public virtual SystemSet ToSystemSet()
-    {
-        return new SystemTypeSet<ASystem>();
-    }
+    public abstract void UpdateTableComponentAccess(TableCache cache);
 
-    public abstract void ApplyDeferred(World scheduleWorld);
+
 }
+

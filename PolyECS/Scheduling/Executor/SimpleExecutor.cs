@@ -1,8 +1,8 @@
+using Flecs.NET.Core;
 using PolyECS;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
-using TinyEcs;
 
 namespace PolyECS.Scheduling.Executor;
 
@@ -32,7 +32,7 @@ public class SimpleExecutor : IExecutor
         // do nothing. simple executor does not do a final sync
     }
 
-    public void Run(SystemSchedule schedule, World scheduleWorld, FixedBitSet? skipSystems)
+    public void Run(SystemSchedule schedule, PolyWorld world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
         {
@@ -48,7 +48,7 @@ public class SimpleExecutor : IExecutor
                     continue;
                 }
                 // Evaluate system set's conditions
-                var setConditionsMet = EvaluateAndFoldConditions(schedule.SetConditions[setIdx], scheduleWorld);
+                var setConditionsMet = EvaluateAndFoldConditions(schedule.SetConditions[setIdx], world);
 
                 // Skip all systems that belong to this set, not just the current one
                 if (!setConditionsMet)
@@ -61,7 +61,7 @@ public class SimpleExecutor : IExecutor
             }
 
             // Evaluate System's conditions
-            var systemConditionsMet = EvaluateAndFoldConditions(schedule.SystemConditions[systemIndex], scheduleWorld);
+            var systemConditionsMet = EvaluateAndFoldConditions(schedule.SystemConditions[systemIndex], world);
             shouldRun &= systemConditionsMet;
 
             CompletedSystems.Set(systemIndex);
@@ -78,7 +78,7 @@ public class SimpleExecutor : IExecutor
             }
             try
             {
-                system.RunExclusive(scheduleWorld);
+                world.RunSystem(system);
             }
             catch (Exception e)
             {
@@ -89,13 +89,14 @@ public class SimpleExecutor : IExecutor
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, World scheduleWorld)
+    protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
         bool met = true;
         foreach (var condition in conditions)
         {
-            if (!condition.Evaluate(scheduleWorld))
+            // TODO refactor conditions
+            if (!condition.Evaluate(world))
             {
                 met = false;
             }

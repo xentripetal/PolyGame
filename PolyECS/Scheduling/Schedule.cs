@@ -1,10 +1,10 @@
+using Flecs.NET.Core;
 using PolyECS.Scheduling.Executor;
 using PolyECS.Scheduling.Graph;
 using PolyECS.Systems.Configs;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
 using QuikGraph;
-using TinyEcs;
 
 namespace PolyECS.Systems;
 
@@ -14,10 +14,10 @@ namespace PolyECS.Systems;
 /// </summary>
 public class Schedule
 {
-    protected string Label;
-    protected SystemGraph Graph;
-    protected SystemSchedule Executable;
-    protected IExecutor Executor;
+    public string Label { get; protected set; }
+    internal SystemGraph Graph;
+    internal SystemSchedule Executable;
+    internal IExecutor Executor;
     protected bool ExecutorInitialized;
 
     public Schedule(string label = "default")
@@ -27,7 +27,7 @@ public class Schedule
         Executable = new SystemSchedule();
         Executor = new SimpleExecutor();
     }
-    
+
     public string GetLabel()
     {
         return Label;
@@ -38,10 +38,20 @@ public class Schedule
     /// </summary>
     /// <param name="configs"></param>
     /// <returns></returns>
-    public Schedule AddSystems(NodeConfigs<ASystem> configs)
+    public Schedule AddSystems(NodeConfigs<RunSystem> configs)
     {
         Graph.ProcessConfigs(configs, false);
         return this;
+    }
+
+    public Schedule AddSystems(RunSystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        return AddSystems(SystemConfigs.Of(systems, collectiveConditions: collectiveConditions, chained: chained));
+    }
+
+    public Schedule AddSystems(NodeConfigs<RunSystem>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        return AddSystems(SystemConfigs.Of(configs, collectiveConditions: collectiveConditions, chained: chained));
     }
 
     /// <summary>
@@ -56,34 +66,36 @@ public class Schedule
         var hasA = Graph.SystemSetIds.TryGetValue(a, out var aNode);
         if (!hasA)
         {
-            throw new ArgumentException($"Could not mark system as ambiguous, {a} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
+            throw new ArgumentException(
+                $"Could not mark system as ambiguous, {a} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
         }
         var hasB = Graph.SystemSetIds.TryGetValue(b, out var bNode);
         if (!hasB)
         {
-            throw new ArgumentException($"Could not mark system as ambiguous, {b} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
+            throw new ArgumentException(
+                $"Could not mark system as ambiguous, {b} was not found in the schedule. Did you try to call IgnoreAmbiguity before adding the system to the world?");
         }
         Graph.AmbiguousWith.AddEdge(new Edge<NodeId>(aNode, bNode));
         return this;
     }
-    
+
     public Schedule SetBuildSettings(ScheduleBuildSettings settings)
     {
         Graph.Config = settings;
         return this;
     }
-    
+
     public ScheduleBuildSettings GetBuildSettings()
     {
         return Graph.Config;
     }
-    
+
     public Schedule SetExecutor(IExecutor executor)
     {
         Executor = executor;
         return this;
     }
-    
+
     public IExecutor GetExecutor()
     {
         return this.Executor;
@@ -102,21 +114,20 @@ public class Schedule
         return this;
     }
 
-    public void Run(World scheduleWorld)
+    public void Run(PolyWorld scheduleWorld)
     {
-        //scheduleWorld.BeforeRun();
+        Initialize(scheduleWorld);
         // TODO resource system to get skip systems
         Executor.Run(Executable, scheduleWorld, null);
-        //scheduleWorld.AfterRun();
     }
 
-    public void Initialize(World scheduleWorld)
+    public void Initialize(PolyWorld scheduleWorld)
     {
         if (Graph.Changed)
         {
             Graph.Initialize(scheduleWorld);
-            // TODO - resource system to get Schedules ambiguitites
-            Graph.UpdateSchedule(Executable, new HashSet<ComponentInfo>(), Label);
+            // TODO - resource system to get Schedules ambiguities
+            Executable = Graph.UpdateSchedule(Executable, new HashSet<ulong>(), Label);
             Graph.Changed = false;
             ExecutorInitialized = false;
         }
@@ -125,14 +136,6 @@ public class Schedule
         {
             Executor.Init(Executable);
             ExecutorInitialized = true;
-        }
-    }
-    
-    public void ApplyDeferred(World scheduleWorld)
-    {
-        foreach (var sys in Executable.Systems)
-        {
-            sys.ApplyDeferred(scheduleWorld);
         }
     }
 }

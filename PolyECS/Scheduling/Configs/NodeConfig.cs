@@ -19,13 +19,28 @@ public abstract class NodeConfig<T>
     /// <summary>
     /// Hierarchy and depdendency metadata for this node
     /// </summary>
-    public SubgraphInfo Subgraph;
-    public List<Condition> Conditions;
+    public SubgraphInfo Subgraph = new ();
+    public List<Condition> Conditions = new ();
 
     public abstract NodeId ProcessConfig(SystemGraph graph);
+    
+    public static implicit operator NodeConfigs<T>(NodeConfig<T> config)
+    {
+        return new NodeConfigs<T>.Node(config);
+    }
 }
 
-public class SystemConfig : NodeConfig<ASystem>
+public class SystemConfig : NodeConfig<RunSystem>
 {
-    public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
+    public SystemConfig(RunSystem system)
+    {
+        Node = system;
+        Subgraph.Hierarchy = system.GetDefaultSystemSets();
+        Conditions = new List<Condition>();
+    }
+    public override NodeId ProcessConfig(SystemGraph graph)
+    {
+        return graph.AddSystem(this);
+    }
+
 }

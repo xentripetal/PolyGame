@@ -3,6 +3,19 @@ using PolyECS.Systems.Graph;
 
 namespace PolyECS.Systems.Configs;
 
+public abstract class SystemConfigs : NodeConfigs<RunSystem>
+{
+    public static NodeConfigs<RunSystem> Of(RunSystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        var configs = new NodeConfigs<RunSystem>[systems.Length];
+        for (var i = 0; i < systems.Length; i++)
+        {
+            configs[i] = systems[i];
+        }
+        return Of(configs, collectiveConditions, chained);
+    }
+}
+public abstract class SetConfigs : NodeConfigs<SystemSet> { }
 
 /// <summary>
 /// A collection of generic <see cref="NodeConfig{T}"/>s
@@ -12,18 +25,50 @@ namespace PolyECS.Systems.Configs;
 /// <typeparam name="T"></typeparam>
 public abstract class NodeConfigs<T>
 {
-    public static NodeConfigs<ASystem> NewSystem(ASystem system)
+    public static NodeConfigs<T> Of(NodeConfig<T> config)
     {
-        var sets = system.GetDefaultSystemSets();
-        return new NodeConfigs<ASystem>.Node(new SystemConfig
-        {
-            Node = system,
-            Subgraph = new SubgraphInfo
-            {
-                Hierarchy = sets
-            }
-        });
+        return new Node(config);
     }
+
+    public static NodeConfigs<T> Of(NodeConfig<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        if (configs == null || configs.Length == 0)
+        {
+            throw new ArgumentException("NodeConfigs must not be empty");
+        }
+
+
+        var convertedConfigs = new NodeConfigs<T>[configs.Length];
+        for (var i = 0; i < configs.Length; i++)
+        {
+            convertedConfigs[i] = Of(configs[i]);
+        }
+        return Of(convertedConfigs, collectiveConditions, chained);
+    }
+
+    public static NodeConfigs<T> Of(NodeConfigs<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    {
+        if (configs == null || configs.Length == 0)
+        {
+            throw new ArgumentException("NodeConfigs must not be empty");
+        }
+        if (collectiveConditions == null)
+        {
+            collectiveConditions = [];
+        }
+        if (configs.Length == 1)
+        {
+            // Treat it as a single node and apply collective conditions to the node
+            var node = configs[0];
+            foreach (var condition in collectiveConditions)
+            {
+                node.DistributiveRunIf(condition);
+            }
+            return node;
+        }
+        return new Configs(configs, collectiveConditions!, chained);
+    }
+
 
     public class Node(NodeConfig<T> config) : NodeConfigs<T>
     {
@@ -101,20 +146,24 @@ public abstract class NodeConfigs<T>
         /// <summary>
         /// Configurations for each element of the tuple
         /// </summary>
-        public List<NodeConfigs<T>> NodeConfigs;
+        public NodeConfigs<T>[] NodeConfigs;
         /// <summary>
         /// Run conditions applied to everything in the tuple.
         /// </summary>
-        public List<Condition> CollectiveConditions;
+        public List<Condition> CollectiveConditions = [];
         /// <summary>
         /// See <see cref="Chained"/> for usage.
         /// </summary>
         public Chain Chained;
 
-        public Configs(List<NodeConfigs<T>> nodeConfigs, List<Condition> collectiveConditions, Chain chained)
+        public Configs(NodeConfigs<T>[] nodeConfigs, Condition[] collectiveConditions, Chain chained)
         {
+            if (nodeConfigs == null || nodeConfigs.Length == 0)
+            {
+                throw new ArgumentException("NodeConfigs must not be empty");
+            }
             NodeConfigs = nodeConfigs;
-            CollectiveConditions = collectiveConditions;
+            CollectiveConditions = collectiveConditions?.ToList() ?? throw new ArgumentException("CollectiveConditions must not be null");
             Chained = chained;
         }
 

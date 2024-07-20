@@ -1,15 +1,40 @@
+using PolyECS.Scheduling.Graph;
+
 namespace PolyECS.Systems;
 
 public interface SystemSet : IEquatable<SystemSet>
 {
-    public bool IsAnonymous();
+    public string Name();
     public Type? SystemType();
+}
+
+public struct NamedSet : SystemSet
+{
+    public NamedSet(string name)
+    {
+        _name = name;
+    }
+
+    private string _name;
+
+    public bool Equals(SystemSet? other)
+    {
+        if (other is NamedSet otherNamed)
+        {
+            return _name == otherNamed._name;
+        }
+        return false;
+    }
+
+    public string Name() => _name;
+
+    public Type? SystemType() => null;
 }
 
 public struct AnonymousSet : SystemSet
 {
     public ulong Id;
-    
+
     public AnonymousSet(ulong id)
     {
         Id = id;
@@ -24,16 +49,14 @@ public struct AnonymousSet : SystemSet
         return false;
     }
 
-    public bool IsAnonymous()
-    {
-        return true;
-    }
 
     public Type? SystemType() => null;
+
+    public string Name() => $"AnonymousSet {Id}";
 }
 
 /// <summary>
-/// A <see cref="SystemSet"/> grouping instances of the same <see cref="ASystem"/>.
+/// A <see cref="SystemSet"/> grouping instances of the same <see cref="BaseSystem{TIn,TOut}"/>.
 ///
 /// This kind of set is automatically populated and thus has some special rules:
 /// <list type="bullet">
@@ -42,21 +65,28 @@ public struct AnonymousSet : SystemSet
 /// <item>You cannot order something relative to one if it has more than one member</item>
 /// </list>
 /// </summary>
-struct SystemTypeSet<TSystem> : SystemSet where TSystem : ASystem
+public class SystemTypeSet : SystemSet
 {
+    public RunSystem System;
+
+    public SystemTypeSet(RunSystem sys)
+    {
+        System = sys;
+    }
+
     public bool Equals(SystemSet? other)
     {
-        if (other is SystemTypeSet<TSystem> otherType)
+        if (other is SystemTypeSet otherType)
         {
-            return true;
+            return System == otherType.System;
         }
         return false;
     }
 
-    public bool IsAnonymous()
-    {
-        return false;
-    }
+    public string Name() => $"SystemTypeSet {System.GetType().Name}";
 
-    public Type? SystemType() => typeof(TSystem);
+    public Type? SystemType()
+    {
+        return System.GetType();
+    }
 }

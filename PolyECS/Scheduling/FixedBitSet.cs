@@ -74,11 +74,17 @@ public struct FixedBitSet
         }
         return Data.Get(index);
     }
-
+    
     public bool this[int index]
     {
         get => Get(index);
         set => SetValue(index, value);
+    }
+    
+    public bool this[ulong index]
+    {
+        get => Get((int)index);
+        set => SetValue((int)index, value);
     }
 
     public void Clear()

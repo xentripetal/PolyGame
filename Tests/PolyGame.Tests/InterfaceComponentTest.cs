@@ -1,5 +1,5 @@
 using System;
-using TinyEcs;
+using Flecs.NET.Core;
 using Xunit.Abstractions;
 
 namespace PolyGame.Tests;
@@ -34,7 +34,7 @@ public class InterfaceComponentTest
     [Fact]
     public void Test()
     {
-        var world = new World();
+        using var world = World.Create();
 
         // Create observer for custom event
         world.Entity("T1-Interface").Set(new ITestWrapper(new T1()));
