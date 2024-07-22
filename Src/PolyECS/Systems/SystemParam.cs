@@ -51,7 +51,7 @@ public class ResParam<T> : SystemParam<Res<T>>
         unsafe
         {
             world.RegisterResource<T>();
-            _globalEntity = world.World.Entity<T>();
+            _globalEntity = world.Entity<T>();
             meta.ComponentAccessSet.AddUnfilteredRead(Type<T>.Id(world.World.Handle));
         }
     }

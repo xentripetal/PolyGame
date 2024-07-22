@@ -6,7 +6,7 @@ using PolyGame.Components.Render.Extract;
 
 namespace PolyGame.Tests;
 
-[TestSubject(typeof(Core))]
+[TestSubject(typeof(App))]
 public class CoreRenderingTests
 {
     public record struct CurrentFrame(int Value);
@@ -24,7 +24,7 @@ public class CoreRenderingTests
     protected class FrameIncSystem : ClassSystem<Query>
     {
         protected override ISystemParam<Query> CreateParam(PolyWorld world) {
-            return Param.Of(world.World.Query<CurrentFrame>());
+            return Param.Of(world.Query<CurrentFrame>());
         }
 
         public override void Run(Query param)
@@ -41,7 +41,7 @@ public class CoreRenderingTests
 
         protected override ISystemParam<Query> CreateParam(PolyWorld world)
         {
-            return Param.Of(world.World.Query<CurrentFrame>());
+            return Param.Of(world.Query<CurrentFrame>());
         }
 
         public override void Run(Query param)
@@ -52,20 +52,20 @@ public class CoreRenderingTests
         }
     }
 
-    public FrameTracker SetupFrameCounter(Core core)
+    public FrameTracker SetupFrameCounter(App app)
     {
-        core.GameWorld.Entity().Set(new CurrentFrame(0));
-        core.GameSchedule.AddSystems(new FrameIncSystem());
+        app.GameWorld.Entity().Set(new CurrentFrame(0));
+        app.GameSchedule.AddSystems(new FrameIncSystem());
         var tracker = new FrameTracker();
-        core.RenderSchedule.AddSystems(tracker);
-        core.Extractors.Add(new TestExtractor());
+        app.RenderSchedule.AddSystems(tracker);
+        app.Extractors.Add(new TestExtractor());
         return tracker;
     }
 
     [Fact]
     public void TestSynchronousRendering()
     {
-        var core = new Core();
+        var core = new App();
         core.SynchronousRendering = true;
         var tracker = SetupFrameCounter(core);
         core.Tick();
@@ -80,7 +80,7 @@ public class CoreRenderingTests
     [Fact]
     public void TestAsynchronousRendering()
     {
-        var core = new Core();
+        var core = new App();
         core.SynchronousRendering = false;
         var tracker = SetupFrameCounter(core);
         for (int i = 0; i < 100; i++)
@@ -94,7 +94,7 @@ public class CoreRenderingTests
     public T getSingleton<T>(PolyWorld world) where T : struct
     {
         T value = new T();
-        world.World.Query<T>().Each((ref T t) => {
+        world.Query<T>().Each((ref T t) => {
             value = t;
         });
         return value;

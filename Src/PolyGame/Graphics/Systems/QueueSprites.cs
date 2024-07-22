@@ -18,14 +18,14 @@ public class QueueSprites : ClassSystem<Query, Query>
 {
     public QueueSprites(PolyWorld world)
     {
-        var registry = world.World.Get<DrawFuncRegistry>();
+        var registry = world.Get<DrawFuncRegistry>();
         DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
     }
 
     protected override (ISystemParam<Query>, ISystemParam<Query>) CreateParams(PolyWorld world)
     {
-        var cameraQuery = world.World.Query<ComputedCamera, Managed<RenderableList>>();
-        var renderableQuery = world.World.Query<Sprite>();
+        var cameraQuery = world.Query<ComputedCamera, Managed<RenderableList>>();
+        var renderableQuery = world.Query<Sprite>();
         return (Param.Of(cameraQuery), Param.Of(renderableQuery));
     }
 
