@@ -2,59 +2,30 @@ using System.Reflection.Metadata;
 
 namespace PolyGame;
 
-public struct Handle<T> : IDisposable
+public struct Handle<T>
 {
-    readonly AssetPath _path;
-    int _id;
-    private AssetServer _server;
+    public static Handle<T> Invalid = new Handle<T>(-1, 0);
+    private int _index;
+    private ushort _generation;
 
-    internal Handle(AssetServer server, AssetPath path, int id)
+    internal Handle(int index, ushort generation)
     {
-        _server = server;
-        _path = path;
-        _id = id;
+        _index = index;
+        _generation = generation;
     }
 
-    public int Id()
+    public int Index()
     {
-        return _id;
+        return _index;
     }
 
-    public AssetPath Path()
+    public ushort Generation()
     {
-        return _path;
+        return _generation;
     }
 
     public bool Valid()
     {
-        return _id > 0;
-    }
-
-    public T? Get()
-    {
-        if (_server == null)
-        {
-            return default;
-        }
-        return _server.Get(this);
-    }
-
-    public bool IsLoaded()
-    {
-        if (_server == null)
-        {
-            return false;
-        }
-        return _server.IsLoaded(this);
-    }
-
-    public void Dispose()
-    {
-        if (_server != null)
-        {
-            _server.Release(this);
-            _server = null;
-            _id = -1;
-        }
+        return _generation != 0 && _index >= 0;
     }
 }
