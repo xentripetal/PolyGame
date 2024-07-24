@@ -7,4 +7,5 @@ public interface IAssetLoader
 {
     public IEnumerable<string> SupportedExtensions { get; }
     public T Load<T>(AssetPath path);
+    public void Unload(AssetPath path, object asset);
 }

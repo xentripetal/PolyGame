@@ -28,4 +28,11 @@ public struct Handle<T>
     {
         return _generation != 0 && _index >= 0;
     }
+
+    public Handle<T> Clone(AssetServer server)
+    {
+        if (!Valid())
+            return Invalid;
+        return server.Clone(this);
+    }
 }

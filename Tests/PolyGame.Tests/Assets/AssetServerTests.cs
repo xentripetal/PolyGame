@@ -26,6 +26,14 @@ public class AssetServerTests
             }
             return default;
         }
+
+        public void Unload(AssetPath path, object asset)
+        {
+            if (asset is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
     }
 
     private class DisposableComponent : IDisposable
@@ -42,7 +50,8 @@ public class AssetServerTests
     public void DisposesHandles()
     {
         using var world = World.Create();
-        var server = new AssetServer(world, [new MockLoader()]);
+        var server = new AssetServer(world);
+        server.AddLoader(new MockLoader());
         var h1 = server.Load<DisposableComponent>("file.test", false);
         var h2 = server.Load<DisposableComponent>("file.test", false);
         Assert.Equal(h1, h2);
@@ -62,7 +71,8 @@ public class AssetServerTests
     public void DisposesComponentHandles()
     {
         using var world = World.Create();
-        var server = new AssetServer(world, [new MockLoader()]);
+        var server = new AssetServer(world);
+        server.AddLoader(new MockLoader());
         var e1 = world.Entity().Set(server.Load<DisposableComponent>("file.test"));
         var e2 = world.Entity().Set(server.Load<DisposableComponent>("file.test"));
         var h1 = e1.Get<Handle<DisposableComponent>>();
@@ -78,5 +88,19 @@ public class AssetServerTests
         e1.Remove<Handle<DisposableComponent>>();
         Assert.False(server.IsLoaded(h1));
         Assert.True(component.Disposed);
+    }
+
+    [Fact]
+    public void UnknownFileTypeInvalid()
+    {
+        using var world = World.Create();
+        var server = new AssetServer(world);
+        server.AddLoader(new MockLoader());
+        var h1 = server.Load<DisposableComponent>("file.unknown", false);
+        Assert.False(h1.Valid());
+
+        Assert.False(server.IsLoaded(h1));
+        Assert.Equal(AssetServer.LoadState.Unloaded, server.GetState(h1));
+        Assert.False(server.Release(h1));
     }
 }

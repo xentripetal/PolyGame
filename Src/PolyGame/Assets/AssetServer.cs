@@ -1,108 +1,32 @@
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
-using Microsoft.Xna.Framework.Content;
 using Serilog;
 
 namespace PolyGame;
-
-public struct AssetPath : IEquatable<AssetPath>
-{
-    /// <summary>
-    /// Named source of the asset, such as http:// or file://. Null will be treated as a relative path.
-    /// </summary>
-    public string? Source;
-    /// <summary>
-    /// Path to the asset. 
-    /// </summary>
-    public string Path;
-    /// <summary>
-    /// File extension of the asset.
-    /// </summary>
-    public string Extension;
-    /// <summary>
-    /// An optional label for referencing elements internal to the path asset.
-    /// </summary>
-    public string? Label;
-
-    /// <summary>
-    /// Creates a separate asset path from the given full path.
-    /// resource.txt -> AssetPath(Path: "resource.txt")
-    /// http://example.com/resource.txt -> AssetPath(Source: "http://example.com", Path: "resource.txt")
-    /// Image/Sprites.Atlas#Sprite1 -> AssetPath(Path: "Image/Sprites.Atlas", Label: "Sprite1")
-    /// </summary>
-    /// <param name="fullPath"></param>
-    public AssetPath(string fullPath)
-    {
-        var sourceIndex = fullPath.IndexOf("://");
-        if (sourceIndex > 0)
-        {
-            Source = fullPath.Substring(0, sourceIndex);
-            Path = fullPath.Substring(sourceIndex + 3);
-        }
-        else
-        {
-            Source = null;
-            Path = fullPath;
-        }
-
-        var labelIndex = Path.LastIndexOf('#');
-        if (labelIndex > 0)
-        {
-            Label = Path.Substring(labelIndex + 1);
-            Path = Path.Substring(0, labelIndex);
-        }
-        else
-        {
-            Label = null;
-        }
-
-        (Path, Extension) = PathAndExtension(Path);
-    }
-
-    public AssetPath(string path, string source, string label)
-    {
-        (Path, Extension) = PathAndExtension(path);
-        Source = source;
-        Label = label;
-    }
-
-    public static (string, string) PathAndExtension(string path)
-    {
-        var extIndex = path.LastIndexOf('.');
-        if (extIndex > 0)
-        {
-            return (path.Substring(0, extIndex), path.Substring(extIndex + 1).ToLower());
-        }
-        return (path, "");
-    }
-
-    public bool Equals(AssetPath other) => Source == other.Source && Path == other.Path && Extension == other.Extension && Label == other.Label;
-
-    public override bool Equals(object? obj) => obj is AssetPath other && Equals(other);
-
-    public override int GetHashCode() => HashCode.Combine(Source, Path, Extension, Label);
-}
 
 /// <summary>
 /// Handles loading and saving assets from a given path and managing <see cref="Handle{T}"/>s to those assets.
 /// </summary>
 public class AssetServer
 {
-    public AssetServer(World world, IEnumerable<IAssetLoader> loaders, bool watchForChanges = false)
+    public AssetServer(World[] worlds)
     {
-        this.world = world;
-        foreach (var loader in loaders)
+        this.worlds = worlds;
+    }
+
+    // TODO - Implement watch for changes
+    public bool WatchForChanges { get; set; }
+
+    public void AddLoader(IAssetLoader loader)
+    {
+        foreach (var extension in loader.SupportedExtensions)
         {
-            foreach (var extension in loader.SupportedExtensions)
+            if (!loadersByExtension.TryAdd(extension, loader))
             {
-                if (!loadersByExtension.TryAdd(extension, loader))
-                {
-                    Log.Warning("Asset Loader {Loader} will be ignored for extension {Extension} as {MainLoader} already claimed it", loader, extension,
-                        loadersByExtension[extension]);
-                }
+                Log.Warning("Asset Loader {Loader} will be ignored for extension {Extension} as {MainLoader} already claimed it", loader, extension,
+                    loadersByExtension[extension]);
             }
         }
     }
@@ -112,7 +36,7 @@ public class AssetServer
     protected ListPool<Asset> assets = new ();
     protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new ();
     protected ReaderWriterLockSlim handleLock = new ();
-    protected World world;
+    protected World[] worlds;
 
     public struct Asset
     {
@@ -148,16 +72,43 @@ public class AssetServer
             {
                 // TODO - I really hate this and it seems dangerous in multithreading scenarios.
                 // Maybe we implement our own Register component with a custom hook?
-                if (!Type<Handle<T>>.IsRegistered(world.Handle))
+                foreach (var world in worlds)
                 {
-                    var component = Type<Handle<T>>.RegisterComponent(world, true, true, 0, "");
-                    flecs.ecs_type_hooks_t hooksDesc = default;
-                    hooksDesc.dtor = Marshal.GetFunctionPointerForDelegate(HandleDtor<T>);
-                    flecs.ecs_set_hooks_id(world, component, &hooksDesc);
+                    if (!Type<Handle<T>>.IsRegistered(world.Handle))
+                    {
+                        var component = Type<Handle<T>>.RegisterComponent(world, true, true, 0, "");
+                        flecs.ecs_type_hooks_t hooksDesc = default;
+                        hooksDesc.dtor = Marshal.GetFunctionPointerForDelegate(HandleDtor<T>);
+                        flecs.ecs_set_hooks_id(world, component, &hooksDesc);
+                    }
                 }
             }
         }
         return new Handle<T>(id, generation);
+    }
+
+    public Handle<T> Clone<T>(Handle<T> handle)
+    {
+        if (!handle.Valid())
+        {
+            return Handle<T>.Invalid;
+        }
+        handleLock.EnterWriteLock();
+        try
+        {
+            if (handle.Generation() != assets.GetGeneration(handle.Index()))
+            {
+                return Handle<T>.Invalid;
+            }
+            var asset = assets[handle.Index()];
+            asset.HandleCount++;
+            assets[handle.Index()] = asset;
+            return CreateHandle<T>(handle.Index(), handle.Generation());
+        }
+        finally
+        {
+            handleLock.ExitWriteLock();
+        }
     }
 
     public Handle<T> Load<T>(AssetPath path, bool async = true)
@@ -231,9 +182,9 @@ public class AssetServer
             }
             else if (asset.State == LoadState.PendingDispose && validGen)
             {
-                if (valid && data is IDisposable disposable)
+                if (valid && data != null)
                 {
-                    disposable.Dispose();
+                    loader.Unload(path, data);
                 }
                 asset.State = LoadState.Unloaded;
                 assets[id] = asset;
@@ -365,10 +316,8 @@ public class AssetServer
         var asset = assets[id];
         if (asset.State == LoadState.Loaded)
         {
-            if (asset.Value is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            var loader = loadersByExtension[asset.Path.Extension];
+            loader.Unload(asset.Path, asset.Value);
             asset.State = LoadState.Unloaded;
             assets[id] = asset;
             assets.Free(id);

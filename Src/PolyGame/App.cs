@@ -15,6 +15,8 @@ public partial class App : Game, IDisposable
     public PolyWorld GameWorld;
     public Schedule GameSchedule;
 
+    public AssetServer AssetServer;
+
     public App(
         int width = 1280,
         int height = 720,
@@ -45,6 +47,7 @@ public partial class App : Game, IDisposable
         RenderSchedule = new Schedule("render");
         GameWorld = new PolyWorld();
         GameSchedule = new Schedule("game");
+        AssetServer = new AssetServer([GameWorld.World, RenderWorld.World]);
     }
 
     protected override void Initialize()
