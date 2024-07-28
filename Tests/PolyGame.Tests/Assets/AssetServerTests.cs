@@ -50,7 +50,7 @@ public class AssetServerTests
     public void DisposesHandles()
     {
         using var world = World.Create();
-        var server = new AssetServer(world);
+        var server = new AssetServer([world]);
         server.AddLoader(new MockLoader());
         var h1 = server.Load<DisposableComponent>("file.test", false);
         var h2 = server.Load<DisposableComponent>("file.test", false);
@@ -71,7 +71,7 @@ public class AssetServerTests
     public void DisposesComponentHandles()
     {
         using var world = World.Create();
-        var server = new AssetServer(world);
+        var server = new AssetServer([world]);
         server.AddLoader(new MockLoader());
         var e1 = world.Entity().Set(server.Load<DisposableComponent>("file.test"));
         var e2 = world.Entity().Set(server.Load<DisposableComponent>("file.test"));
@@ -89,12 +89,35 @@ public class AssetServerTests
         Assert.False(server.IsLoaded(h1));
         Assert.True(component.Disposed);
     }
+    
+    [Fact]
+    public void MultiWorldDisposesComponentHandles()
+    {
+        using var world1 = World.Create();
+        using var world2 = World.Create();
+        var server = new AssetServer([world1, world2]);
+        server.AddLoader(new MockLoader());
+        var e1 = world1.Entity().Set(server.Load<DisposableComponent>("file.test"));
+        var e2 = world2.Entity().Set(server.Load<DisposableComponent>("file.test"));
+        var h1 = e1.Get<Handle<DisposableComponent>>();
+        // Wait for load
+        while (!server.IsLoaded(h1))
+        {
+            Thread.Sleep(1);
+        }
+        e2.Destruct();
+        Assert.True(server.IsLoaded(h1));
+        var component = server.Get(h1);
+        e1.Remove<Handle<DisposableComponent>>();
+        Assert.False(server.IsLoaded(h1));
+        Assert.True(component.Disposed);
+    }
 
     [Fact]
     public void UnknownFileTypeInvalid()
     {
         using var world = World.Create();
-        var server = new AssetServer(world);
+        var server = new AssetServer([world]);
         server.AddLoader(new MockLoader());
         var h1 = server.Load<DisposableComponent>("file.unknown", false);
         Assert.False(h1.Valid());

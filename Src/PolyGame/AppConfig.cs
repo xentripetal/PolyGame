@@ -2,7 +2,7 @@ namespace PolyGame;
 
 public partial class App
 {
-    protected List<IPlugin> _plugins;
+    protected List<IPlugin> _plugins = new ();
     public void AddPlugin(IPlugin plugin)
     {
         _plugins.Add(plugin);
@@ -14,5 +14,10 @@ public partial class App
         {
             plugin.Apply(this);
         }
+    }
+    
+    public void AddExtractor(IExtractor extractor)
+    {
+        Extractors.Add(extractor);
     }
 }

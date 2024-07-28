@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -14,6 +15,7 @@ public partial class App : Game, IDisposable
     public Schedule RenderSchedule;
     public PolyWorld GameWorld;
     public Schedule GameSchedule;
+    public Texture2D? MissingTexture;
 
     public AssetServer AssetServer;
 
@@ -46,8 +48,12 @@ public partial class App : Game, IDisposable
         RenderWorld = new PolyWorld();
         RenderSchedule = new Schedule("render");
         GameWorld = new PolyWorld();
+        RenderWorld.World.Set(new flecs.EcsRest{port = 8081});
+        GameWorld.World.Set(new flecs.EcsRest());
         GameSchedule = new Schedule("game");
         AssetServer = new AssetServer([GameWorld.World, RenderWorld.World]);
+        RenderWorld.SetResource(AssetServer);
+        GameWorld.SetResource(AssetServer);
     }
 
     protected override void Initialize()
@@ -78,7 +84,11 @@ public partial class App : Game, IDisposable
 
     protected virtual async Task ProgressSchedule(Schedule schedule, PolyWorld world, TimeSpan gameTime)
     {
-        await Task.Run(() => schedule.Run(world));
+        await Task.Run(
+            () => {
+                world.World.Progress((float)gameTime.TotalSeconds);
+                schedule.Run(world);
+            });
     }
 
 
@@ -109,7 +119,7 @@ public partial class App : Game, IDisposable
         }
     }
 
-    public List<IExtractor> Extractors = new ();
+    protected List<IExtractor> Extractors = new ();
     private bool _hasRenderState;
 
     protected virtual void Extract()

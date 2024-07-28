@@ -26,7 +26,7 @@ public class ListPool<T>
         get => Buffer[index];
         set => Buffer[index] = value;
     }
-    
+
     public void Clear()
     {
         Array.Clear(Buffer, 0, Length);
@@ -68,6 +68,8 @@ public class ListPool<T>
 
     public ushort GetGeneration(int index)
     {
+        if (index < 0 || index >= Length)
+            return 0;
         return Generations[index];
     }
 

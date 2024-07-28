@@ -511,38 +511,6 @@ public class Batcher : GraphicsResource
 
     public void Draw(
         Texture2D texture,
-        Rectangle sourceRectangle,
-        RectangleF uvs,
-        Sprite sprite,
-        Vector2 position,
-        Color color,
-        float rotation,
-        Vector2 origin,
-        Vector2 scale,
-        SpriteEffects effects,
-        float layerDepth
-    )
-    {
-        CheckBegin();
-        PushSprite(
-            texture,
-            sourceRectangle,
-            uvs,
-            position.X,
-            position.Y,
-            scale.X,
-            scale.Y,
-            color,
-            origin,
-            rotation,
-            layerDepth,
-            (byte)(effects & (SpriteEffects)0x03),
-            0, 0, 0, 0
-        );
-    }
-
-    public void Draw(
-        Texture2D texture,
         Vector2 position,
         Rectangle? sourceRectangle,
         Color color,
