@@ -1,23 +1,19 @@
-﻿using System.Diagnostics;
-using Flecs.NET.Bindings;
-using Flecs.NET.Core;
+﻿using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
-using PolyGame.Components.Render.Extract;
+using PolyGame.Graphics;
 
 namespace PolyGame;
 
 public partial class App : Game, IDisposable
 {
-    public PolyWorld RenderWorld;
     public Schedule RenderSchedule;
-    public PolyWorld GameWorld;
+    public PolyWorld World;
     public Schedule GameSchedule;
     public Texture2D? MissingTexture;
-
-    public AssetServer AssetServer;
+    public AssetServer Assets;
 
     public App(
         int width = 1280,
@@ -42,103 +38,55 @@ public partial class App : Game, IDisposable
         graphicsManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
 
         Content.RootDirectory = contentDirectory;
-        IsMouseVisible = false;
+        IsMouseVisible = true;
         IsFixedTimeStep = false;
 
-        RenderWorld = new PolyWorld();
         RenderSchedule = new Schedule("render");
-        GameWorld = new PolyWorld();
-        RenderWorld.World.Set(new flecs.EcsRest{port = 8081});
-        GameWorld.World.Set(new flecs.EcsRest());
+        World = new PolyWorld();
         GameSchedule = new Schedule("game");
-        AssetServer = new AssetServer([GameWorld.World, RenderWorld.World]);
-        RenderWorld.SetResource(AssetServer);
-        GameWorld.SetResource(AssetServer);
+        Assets = new AssetServer([World.World]);
+        Assets.AddLoader(new XNBAssetLoader(Content));
+        World.SetResource(Assets);
     }
 
     protected override void Initialize()
     {
         base.Initialize();
-        RenderWorld.SetResource(new SpriteBatch(graphicsDevice: GraphicsDevice, capacity: 2048));
+        Assets.AddLoader(new ImageLoader(GraphicsDevice));
+        World.SetResource(GraphicsDevice);
+        World.SetResource(new SpriteBatch(graphicsDevice: GraphicsDevice, capacity: 2048));
+        World.SetResource(new Batcher(graphicsDevice: GraphicsDevice));
+        World.SetResource(GraphicsDevice.Viewport);
         ApplyPlugins();
     }
-
-    /// <summary>
-    /// Task for progressing the game world in the current frame
-    /// </summary>
-    protected Task GameWorldProgress = Task.CompletedTask;
-
-    /// <summary>
-    /// Task for rendering the game world from the previous frame
-    /// </summary>
-    protected Task RenderWorldProgress = Task.CompletedTask;
-
-
-    public bool SynchronousRendering = false;
 
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        GameWorldProgress = ProgressSchedule(GameSchedule, GameWorld, gameTime.ElapsedGameTime);
+        //World.World.Progress((float)gameTime.ElapsedGameTime.TotalSeconds);
+        World.World.Progress();
+        GameSchedule.Run(World);
     }
-
-    protected virtual async Task ProgressSchedule(Schedule schedule, PolyWorld world, TimeSpan gameTime)
-    {
-        await Task.Run(
-            () => {
-                world.World.Progress((float)gameTime.TotalSeconds);
-                schedule.Run(world);
-            });
-    }
-
-
-    protected TimeSpan previousFrameElapsedTime = TimeSpan.Zero;
 
     protected override void Draw(GameTime gameTime)
     {
         base.Draw(gameTime);
-        if (SynchronousRendering)
-        {
-            GameWorldProgress.Wait();
-            Extract();
-            RenderWorldProgress = ProgressSchedule(RenderSchedule, RenderWorld, gameTime.ElapsedGameTime);
-            RenderWorldProgress.Wait();
-        }
-        else
-        {
-            // We render the previous frame, so if this is the first frame, we won't render anything.
-            // Otherwise we start rendering the previous frame and then wait for both this frames logic to finish
-            // and the render before prepping the rendering for the future frame.
-            if (_hasRenderState)
-            {
-                RenderWorldProgress = ProgressSchedule(RenderSchedule, RenderWorld, previousFrameElapsedTime);
-            }
-            Task.WaitAll(GameWorldProgress, RenderWorldProgress);
-            previousFrameElapsedTime = gameTime.ElapsedGameTime;
-            Extract();
-        }
+        RenderSchedule.Run(World);
     }
 
     protected List<IExtractor> Extractors = new ();
     private bool _hasRenderState;
 
-    protected virtual void Extract()
+    ~App()
     {
-        RenderWorld.World.DeleteWith<DeleteAfterRender>();
-        // Clear out last frames entities (except systems)
-        foreach (var extractor in Extractors)
-        {
-            extractor.Extract(GameWorld.World, RenderWorld.World);
-        }
-
-        // There is now a render state in the render world
-        _hasRenderState = true;
+        Dispose();
     }
 
-    public void Dispose()
+    public new void Dispose()
     {
-        RenderWorld.Dispose();
-        GameWorld.Dispose();
+        GC.SuppressFinalize(this);
+        World.Dispose();
+        Assets.Dispose();
         base.Dispose();
     }
 }

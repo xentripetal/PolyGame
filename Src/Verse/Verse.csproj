@@ -15,8 +15,15 @@
       <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     </ItemGroup>
 
+    <!-- Include the Content directory (except for .fx files, since we use .fxb at runtime) -->
     <ItemGroup>
-      <Folder Include="Content\" />
+        <Content Include="Content\**\*" Exclude="**\*.fx">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
+    <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
+        <Message Text="Restoring dotnet tools" Importance="High" />
+        <Exec Command="dotnet tool restore" />
+    </Target>
 
 </Project>

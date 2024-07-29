@@ -70,6 +70,20 @@ public partial class PolyWorld : IDisposable
         World.Dispose();
     }
 
+    public void Register<T>()
+    {
+        Type<T>.RegisterComponent(World, true, true, 0, "");
+    }
+
+    public void RegisterComponent<T>() where T : IComponent
+    {
+        unsafe
+        {
+            var id = Type<T>.RegisterComponent(World, true, true, 0, "");
+            T.Register(new UntypedComponent(World.Handle, id));
+        }
+    }
+
     public Res<T> GetResource<T>() => new Res<T>(World);
     public ResMut<T> GetResourceMut<T>() => new ResMut<T>(World);
 

@@ -5,6 +5,7 @@ using PolyECS.Systems;
 using PolyGame.Components;
 using PolyGame.Components.Render;
 using PolyGame.Components.Transform;
+using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 
 namespace PolyGame.Graphics.Sprites;
@@ -25,7 +26,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
         PolyWorld world
     )
     {
-        var cameraQuery = world.Query<ComputedCamera, Managed<RenderableList>>();
+        var cameraQuery = world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build();
         var renderableQuery = world.QueryBuilder().With<Sprite>().With<Handle<Texture2D>>().With<GlobalPosition2D>().With<GlobalRotation2D>()
             .With<GlobalScale2D>().Build();
         return (Param.Of(cameraQuery), Param.Of(renderableQuery), Param.OfRes<MissingTexture2D>(), Param.OfRes<AssetServer>());
@@ -51,16 +52,17 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
         {
             var missingTextureHandle = missingTexture.Get().Value;
             var tex = Assets.Get(missingTextureHandle);
-            if (tex == null)
+            if (tex != null)
             {
                 MissingTexture = tex;
             }
         }
 
-        cameras.Each((ref ComputedCamera cCam, ref Managed<RenderableList> renderables) => {
-            var rendValue = renderables.Value;
-            sprites.Each((Entity en, ref Sprite sprite, ref Position2D pos) => {
-                rendValue.Add(new RenderableReference
+        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
+            // can't pass ref to lambda
+            var renderables = renderablesRef;
+            sprites.Each((Entity en, ref Sprite sprite, ref Handle<Texture2D> tex, ref GlobalPosition2D pos) => {
+                renderables.Add(new RenderableReference
                 {
                     SortKey = pos.Value.Y, // TODO anchor point
                     DrawFuncIndex = DrawSpriteIndex,

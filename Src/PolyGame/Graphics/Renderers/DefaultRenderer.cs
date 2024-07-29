@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render;
+using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 
 namespace PolyGame.Graphics.Renderers;
@@ -15,17 +16,17 @@ public class DefaultRenderer : Renderer
     {
     }
 
-    public override void Render(ref ComputedCamera cam, GraphicsDevice device, SpriteBatch batch, RenderableList renderables)
+    public override void Render(DrawFuncRegistry registry, ref ComputedCamera cam, GraphicsDevice device, Batcher batch, RenderableList renderables)
     {
         BeginRender(ref cam, device, batch);
 
-        /**
-        foreach (var renderable in renderables)
+        foreach (var layer in renderables.GetLayers())
         {
-            if (renderable.Enabled && renderable.IsVisibleFromCamera(cam))
-                RenderAfterStateCheck(renderable, cam, batch);
+            foreach (var renderable in renderables.GetRenderables(layer))
+            {
+                registry.GetDrawFunc(renderable.DrawFuncIndex).Invoke(renderable, batch);
+            }
         }
-        **/
 
         if (ShouldDebugRender && Globals.DebugRenderEnabled)
             DebugRender(ref cam, device, batch, renderables);

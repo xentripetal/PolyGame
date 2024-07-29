@@ -54,7 +54,7 @@ public class CoreRenderingTests
 
     public FrameTracker SetupFrameCounter(App app)
     {
-        app.GameWorld.Entity().Set(new CurrentFrame(0));
+        app.World.Entity().Set(new CurrentFrame(0));
         app.GameSchedule.AddSystems(new FrameIncSystem());
         var tracker = new FrameTracker();
         app.RenderSchedule.AddSystems(tracker);
@@ -69,11 +69,11 @@ public class CoreRenderingTests
         core.SynchronousRendering = true;
         var tracker = SetupFrameCounter(core);
         core.Tick();
-        Assert.Equal(1, getSingleton<CurrentFrame>(core.GameWorld).Value);
+        Assert.Equal(1, getSingleton<CurrentFrame>(core.World).Value);
         Assert.Equal(1, tracker.RenderFrame.Value);
 
         core.Tick();
-        Assert.Equal(2, getSingleton<CurrentFrame>(core.GameWorld).Value);
+        Assert.Equal(2, getSingleton<CurrentFrame>(core.World).Value);
         Assert.Equal(2, tracker.RenderFrame.Value);
     }
 
@@ -87,7 +87,7 @@ public class CoreRenderingTests
         {
             core.Tick();
             Assert.Equal(i, tracker.RenderFrame.Value);
-            Assert.Equal(i + 1, getSingleton<CurrentFrame>(core.GameWorld).Value);
+            Assert.Equal(i + 1, getSingleton<CurrentFrame>(core.World).Value);
         }
     }
 

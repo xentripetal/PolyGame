@@ -9,7 +9,7 @@ namespace PolyGame;
 /// <summary>
 /// Handles loading and saving assets from a given path and managing <see cref="Handle{T}"/>s to those assets.
 /// </summary>
-public class AssetServer
+public class AssetServer : IDisposable
 {
     public AssetServer(World[] worlds)
     {
@@ -64,6 +64,8 @@ public class AssetServer
         }
     }
 
+    protected List<Delegate> typeHooks = new ();
+
     protected Handle<T> CreateHandle<T>(int id, ushort generation)
     {
         unsafe
@@ -78,7 +80,11 @@ public class AssetServer
                     {
                         var component = Type<Handle<T>>.RegisterComponent(world, true, true, 0, "");
                         flecs.ecs_type_hooks_t hooksDesc = default;
-                        hooksDesc.dtor = Marshal.GetFunctionPointerForDelegate(HandleDtor<T>);
+                        // Make sure we keep the delegate alive
+                        var dtor = (Delegate)HandleDtor<T>;
+                        var dtorPtr = Marshal.GetFunctionPointerForDelegate(dtor);
+                        typeHooks.Add(dtor);
+                        hooksDesc.dtor = dtorPtr;
                         flecs.ecs_set_hooks_id(world, component, &hooksDesc);
                     }
                 }
@@ -114,7 +120,10 @@ public class AssetServer
     public Handle<T> Load<T>(AssetPath path, bool async = true)
     {
         if (!loadersByExtension.TryGetValue(path.Extension, out var loader))
+        {
+            Log.Warning("No loader found for loading asset {Path} with extension {Extension}", path, path.Extension);
             return Handle<T>.Invalid;
+        }
 
         handleLock.EnterWriteLock();
         Handle<T> handle;
@@ -132,6 +141,7 @@ public class AssetServer
             var (id, gen) = assets.Add(new Asset
             {
                 State = LoadState.Loading,
+                Path = path,
                 HandleCount = 1,
             });
             assignedHandles.Add(path, (id, gen));
@@ -328,9 +338,9 @@ public class AssetServer
             asset.State = LoadState.PendingDispose;
             assets[id] = asset;
         }
-        else
+        else if (asset.State != LoadState.Failed)
         {
-            throw new InvalidOperationException("Asset is in an invalid state to be unloaded");
+            Log.Warning("Asset {Path} was in an unexpected state {State} when trying to unload", asset.Path, asset.State);
         }
     }
 
@@ -353,5 +363,11 @@ public class AssetServer
         {
             handleLock.ExitWriteLock();
         }
+    }
+
+    public void Dispose()
+    {
+        handleLock.Dispose();
+        typeHooks.Clear();
     }
 }

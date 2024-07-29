@@ -5,50 +5,56 @@ using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
 using PolyGame.Components.Render;
+using PolyGame.Graphics;
+using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
+using Serilog;
 
 namespace PolyGame.Systems.Render;
 
-public class RendererSystem : ClassSystem<Query, Res<ClearColor>, Res<RenderableList>, ResMut<GraphicsDevice>, ResMut<SpriteBatch>>
+public class RendererSystem : ClassSystem<Query, Res<ClearColor>, ResMut<GraphicsDevice>, ResMut<Batcher>, ResMut<DrawFuncRegistry>>
 {
-    protected Query Cameras;
-    protected GraphicsDevice GraphicsDevice;
-    protected SpriteBatch Batch;
-
-    protected override (ISystemParam<Query>, ISystemParam<Res<ClearColor>>, ISystemParam<Res<RenderableList>>, ISystemParam<ResMut<GraphicsDevice>>,
-        ISystemParam<ResMut<SpriteBatch>>) CreateParams(PolyWorld world)
+    protected override (ISystemParam<Query>, ISystemParam<Res<ClearColor>>, ISystemParam<ResMut<GraphicsDevice>>,
+        ISystemParam<ResMut<Batcher>>, ISystemParam<ResMut<DrawFuncRegistry>>) CreateParams(PolyWorld world)
     {
         return (
-            world.World.Query<ComputedCamera, CameraRenderGraph, RenderTargetConfig>().AsParam(),
+            world.World.QueryBuilder().With<ComputedCamera>().With<CameraRenderGraph>().With<RenderableList>().With<RenderTargetConfig>().Optional().Build().AsParam(),
             new ResParam<ClearColor>(),
-            new ResParam<RenderableList>(),
             new ResMutParam<GraphicsDevice>(),
-            new ResMutParam<SpriteBatch>()
+            new ResMutParam<Batcher>(),
+            new ResMutParam<DrawFuncRegistry>()
         );
     }
 
     public override void Run(
         Query Cameras,
         Res<ClearColor> clearColor,
-        Res<RenderableList> renderables,
         ResMut<GraphicsDevice> graphicsDevice,
-        ResMut<SpriteBatch> batch
+        ResMut<Batcher> batch,
+        ResMut<DrawFuncRegistry> registry
     )
     {
+        var hadCamera = false;
         Cameras.Each((
+            Entity en,
             ref ComputedCamera cCam,
             ref CameraRenderGraph renderGraph,
-            ref RenderTargetConfig renderTarget
+            ref RenderableList renderables
         ) => {
-            var hasRenderTexture = !Unsafe.IsNullRef(renderTarget);
-            var renderTexture = hasRenderTexture ? renderTarget.Texture : null;
-            if (renderables.IsEmpty)
+            hadCamera = true;
+            RenderTarget2D renderTexture = null;
+            if (en.Has<RenderTargetConfig>())
             {
-                return;
+                renderTexture = en.Get<RenderTargetConfig>().Texture;
             }
-            renderGraph.Graph.Render(ref cCam, Batch, GraphicsDevice, clearColor.Get().Color, renderTexture, renderables.Get());
+            renderGraph.Graph.Render(registry, ref cCam, batch, graphicsDevice, clearColor.Get().Color, renderTexture, renderables);
+            renderables.Clear();
         });
+        if (!hadCamera)
+        {
+            Log.Warning("No Camera found in the world!");
+        }
     }
 }
 
