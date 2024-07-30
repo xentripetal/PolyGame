@@ -89,7 +89,6 @@ public abstract class GraphicsResource : IDisposable
     void UpdateResourceReference(bool shouldAdd)
     {
         // TODO this breaks NativeAOT
-        
         var method = shouldAdd ? "AddResourceReference" : "RemoveResourceReference";
         var methodInfo = ReflectionUtils.GetMethodInfo(GraphicsDevice, method);
         methodInfo.Invoke(GraphicsDevice, new object[]

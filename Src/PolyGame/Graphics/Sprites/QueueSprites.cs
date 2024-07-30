@@ -1,4 +1,5 @@
 using Flecs.NET.Core;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
@@ -23,8 +24,8 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
     protected int DrawSpriteIndex;
 
     protected override (ISystemParam<Query>, ISystemParam<Query>, ISystemParam<Res<MissingTexture2D>>, ISystemParam<Res<AssetServer>>) CreateParams(
-        PolyWorld world
-    )
+            PolyWorld world
+        )
     {
         var cameraQuery = world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build();
         var renderableQuery = world.QueryBuilder().With<Sprite>().With<Handle<Texture2D>>().With<GlobalPosition2D>().With<GlobalRotation2D>()
@@ -61,7 +62,17 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
             // can't pass ref to lambda
             var renderables = renderablesRef;
-            sprites.Each((Entity en, ref Sprite sprite, ref Handle<Texture2D> tex, ref GlobalPosition2D pos) => {
+            var s = server.Get();
+            sprites.Each((Entity en, ref Sprite sprite, ref Handle<Texture2D> texHandle, ref GlobalPosition2D pos) => {
+                var tex = s.Get(texHandle);
+                if (tex == null)
+                {
+                    tex = MissingTexture;
+                }
+                if (tex == null)
+                {
+                    return;
+                }
                 renderables.Add(new RenderableReference
                 {
                     SortKey = pos.Value.Y, // TODO anchor point
@@ -90,7 +101,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
             }
         }
         // TODO sourceRect
-        batch.Draw(image, pos, null, sprite.Color, rot, sprite.Anchor, scale, sprite.Effects, 0);
+        batch.Draw(image, pos, null, Color.White, rot, sprite.Anchor, scale, sprite.Effects, 0);
     }
 }
 

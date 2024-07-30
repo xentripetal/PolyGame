@@ -16,6 +16,7 @@
 
     <ItemGroup>
       <Folder Include="Content\" />
+      <Folder Include="Graphics\Effects\" />
     </ItemGroup>
 
 

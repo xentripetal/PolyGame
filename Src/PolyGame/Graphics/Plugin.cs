@@ -51,7 +51,7 @@ public class RenderPlugin : IPlugin
         
         app.World.SetResource(registry);
         app.World.SetResource(new RenderableList());
-        app.World.SetResource(new ClearColor(Microsoft.Xna.Framework.Color.CornflowerBlue));
+        app.World.SetResource(new ClearColor(Color.CornflowerBlue));
         app.AddExtractor(new SpriteExtractor(app.World.Get<AssetServer>()));
         app.RenderSchedule.AddSystems(SystemConfigs.Of([new ComputeCameraSystem(), new QueueSprites(registry), new RendererSystem()], chained: Chain.Yes));
     }

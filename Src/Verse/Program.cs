@@ -14,9 +14,9 @@ try
     // TODO hack for calling init
     verse.RunOneFrame();
     var assetServer = verse.World.GetResource<AssetServer>();
-    for (int x = -100; x < 100; x++)
+    for (int x = 0; x < 16; x++)
     {
-        for (int y = -100; y < 100; y++)
+        for (int y = 0; y < 16; y++)
         {
             var entity = verse.World.Entity($"Sprite{x}_{y}");
             var sb = new SpriteBundle
@@ -24,7 +24,7 @@ try
                 Texture = assetServer.Get().Load<Texture2D>("Content/Missing.png", false),
                 Transform =
                 {
-                    Position = new Vector2(x, y)
+                    Position = new Vector2(x*16, y*16)
                 }
             };
             sb.Apply(entity);
@@ -39,7 +39,7 @@ try
             FarClipPlane3D = 0,
             RawZoom = 4,
             Origin = default,
-            Zoom = 0,
+            Zoom = 1,
             ZoomBounds = new Range<float>(1, 4)
         },
         Inset = new CameraInset(),

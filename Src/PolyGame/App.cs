@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
+using PolyGame.Components.Render;
 using PolyGame.Graphics;
 
 namespace PolyGame;
@@ -15,6 +16,8 @@ public partial class App : Game, IDisposable
     public Texture2D? MissingTexture;
     public AssetServer Assets;
 
+    protected GraphicsDeviceManager _manager;
+
     public App(
         int width = 1280,
         int height = 720,
@@ -24,7 +27,7 @@ public partial class App : Game, IDisposable
         bool hardwareModeSwitch = true
     ) : base()
     {
-        var graphicsManager = new GraphicsDeviceManager(this)
+        _manager = new GraphicsDeviceManager(this)
         {
             PreferredBackBufferWidth = width,
             PreferredBackBufferHeight = height,
@@ -35,7 +38,7 @@ public partial class App : Game, IDisposable
         };
         Window.Title = windowTitle;
 
-        graphicsManager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
+        _manager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
 
         Content.RootDirectory = contentDirectory;
         IsMouseVisible = true;
@@ -49,16 +52,26 @@ public partial class App : Game, IDisposable
         World.SetResource(Assets);
     }
 
+    protected Batcher Batcher;
+
     protected override void Initialize()
     {
         base.Initialize();
         Assets.AddLoader(new ImageLoader(GraphicsDevice));
         World.SetResource(GraphicsDevice);
-        World.SetResource(new SpriteBatch(graphicsDevice: GraphicsDevice, capacity: 2048));
-        World.SetResource(new Batcher(graphicsDevice: GraphicsDevice));
-        World.SetResource(GraphicsDevice.Viewport);
+        Batcher = new Batcher(GraphicsDevice);
+        // We don't use the SpriteBatch but still set it up in case it's needed
+        World.SetResource(new SpriteBatch(GraphicsDevice, 2048));
+        World.SetResource(Batcher);
+        var screen = new Screen(_manager);
+        screen.SetSize(1280, 720);
+        World.SetResource(screen);
+        World.SetResource(_manager.GraphicsDevice.Viewport);
         ApplyPlugins();
+
     }
+
+    protected Texture2D _testTex;
 
     protected override void Update(GameTime gameTime)
     {
@@ -70,8 +83,8 @@ public partial class App : Game, IDisposable
 
     protected override void Draw(GameTime gameTime)
     {
-        base.Draw(gameTime);
         RenderSchedule.Run(World);
+        base.Draw(gameTime);
     }
 
     protected List<IExtractor> Extractors = new ();

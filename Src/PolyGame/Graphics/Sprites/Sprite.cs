@@ -17,7 +17,7 @@ public struct Sprite
     //   When used with a [`TextureAtlas`](crate::TextureAtlas), the rect
     //   is offset by the atlas's minimal (top-left) corner position.
     // [`Anchor`] point of the sprite in the world
-    public Anchor Anchor = Anchor.BottomLeft;
+    public Anchor Anchor;
 
     public Sprite() { }
 }
