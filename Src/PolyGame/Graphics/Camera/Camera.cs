@@ -1,17 +1,49 @@
+using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PolyECS;
+using PolyGame.Components.Transform;
+using PolyGame.Graphics.Renderable;
+using PolyGame.Graphics.Renderers;
+using PolyGame.Systems.Render;
 
-namespace PolyGame.Components.Render;
+namespace PolyGame.Graphics.Camera;
 
-public struct CameraInset
+public struct CameraInset : IComponent
 {
     public float Left;
     public float Right;
     public float Top;
     public float Bottom;
+    public static void Register(UntypedComponent component)
+    {
+        component
+            .Member<float>("Left")
+            .Member<float>("Right")
+            .Member<float>("Top")
+            .Member<float>("Bottom");
+    }
 }
 
-public struct ComputedCamera
+public class CameraBundle
+{
+    public Camera Camera = new Camera();
+    public CameraInset Inset;
+    public RenderGraph RenderGraph = new RenderGraph([new DefaultRenderer()]);
+    public TransformBundle2D Transform = new TransformBundle2D();
+
+    public void Apply(Entity entity)
+    {
+        Transform.Apply(entity);
+        entity.Set(Camera)
+            .Set(Inset)
+            .Set(new CameraRenderGraph(RenderGraph))
+            .Set(new ComputedCamera(Camera, Transform.Position, Transform.Rotation, new Viewport(0, 0, 1920, 1080), Inset))
+            .Set(new RenderableList());
+    }
+}
+
+public struct ComputedCamera : IComponent
 {
     /// <summary>
     /// Used to convert from world coordinates to screen
@@ -61,7 +93,7 @@ public struct ComputedCamera
     {
         TransformMatrix = cam.TransformMatrix(translation, origin, radians);
         Matrix2D.Invert(ref TransformMatrix, out InverseTransformMatrix);
-        ProjectionMatrix = cam.ProjectionMatrix(viewport.X, viewport.Y);
+        ProjectionMatrix = cam.ProjectionMatrix(viewport.Width, viewport.Height);
         ViewProjectionMatrix = TransformMatrix * ProjectionMatrix;
         ComputeBounds(translation, radians, viewport, inset);
     }
@@ -94,9 +126,20 @@ public struct ComputedCamera
             Bounds.Height = bottomRight.Y - topLeft.Y;
         }
     }
+
+    public static void Register(UntypedComponent component)
+    {
+        component
+            .Member<Matrix2D>("TransformMatrix")
+            .Member<Matrix2D>("InverseTransformMatrix")
+            .Member<Matrix>("ProjectionMatrix")
+            .Member<Matrix>("ViewProjectionMatrix")
+            .Member<Matrix>("ProjectionMatrix3D")
+            .Member<RectangleF>("Bounds");
+    }
 }
 
-public struct Camera
+public struct Camera : IComponent
 {
     public float PositionZ3D = 2000f;
 
@@ -199,4 +242,15 @@ public struct Camera
     }
 
     public Camera() { }
+
+    public static void Register(UntypedComponent component)
+    {
+        component
+            .Member<float>("PositionZ3D")
+            .Member<float>("NearClipPlane3D")
+            .Member<float>("FarClipPlane3D")
+            .Member<float>("RawZoom")
+            .Member<Vector2>("Origin")
+            .Member<Range<float>>("ZoomBounds");
+    }
 }

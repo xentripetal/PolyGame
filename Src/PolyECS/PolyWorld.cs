@@ -70,10 +70,28 @@ public partial class PolyWorld : IDisposable
         World.Dispose();
     }
 
+    public void Register<T>()
+    {
+        Type<T>.RegisterComponent(World, true, true, 0, "");
+    }
+
+    public void RegisterComponent<T>() where T : IComponent
+    {
+        unsafe
+        {
+            var id = Type<T>.RegisterComponent(World, true, true, 0, "");
+            T.Register(new UntypedComponent(World.Handle, id));
+        }
+    }
+
     public Res<T> GetResource<T>() => new Res<T>(World);
     public ResMut<T> GetResourceMut<T>() => new ResMut<T>(World);
 
 
+    #region Flecs.World Proxies
+
+    public void Set<T>(T value) => World.Set(value);
+    public T Get<T>() => World.Get<T>();
     public Entity Entity() => World.Entity();
 
     public Entity Entity(string name) => World.Entity(name);
@@ -83,4 +101,20 @@ public partial class PolyWorld : IDisposable
     public Entity Entity<T>() => World.Entity<T>();
 
     public Entity Entity<T>(string name) => World.Entity<T>(name);
+
+    public QueryBuilder QueryBuilder() => World.QueryBuilder();
+
+    public Query Query<T>() => World.Query<T>();
+
+    public Query Query<T1, T2>() => World.Query<T1, T2>();
+
+    public Query Query<T1, T2, T3>() => World.Query<T1, T2, T3>();
+
+    public Query Query<T1, T2, T3, T4>() => World.Query<T1, T2, T3, T4>();
+
+    public Query Query<T1, T2, T3, T4, T5>() => World.Query<T1, T2, T3, T4, T5>();
+
+    public Query Query<T1, T2, T3, T4, T5, T6>() => World.Query<T1, T2, T3, T4, T5, T6>();
+
+    #endregion
 }

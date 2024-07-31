@@ -66,7 +66,7 @@ public class RenderableList
                 { };
         }
 
-        return _renderables.Buffer[layer].Buffer;
+        return _renderables.Buffer[layer].Buffer.Take(_renderables.Buffer[layer].Length);
     }
 
 
@@ -84,6 +84,9 @@ public class RenderableList
     /// </summary>
     public void Clear()
     {
-        _renderables.Clear();
+        for (int i = 0; i < _renderables.Length; i++)
+        {
+            _renderables.Buffer[i].Clear();
+        }
     }
 }

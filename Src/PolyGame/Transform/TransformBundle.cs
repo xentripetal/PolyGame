@@ -31,6 +31,9 @@ public struct TransformBundle2D
     {
         entity.Set(new Position2D(Position))
             .Set(new Rotation2D(Rotation))
-            .Set(new Scale2D(Scale));
+            .Set(new Scale2D(Scale))
+            .Set(new GlobalPosition2D(Position))
+            .Set(new GlobalRotation2D(Rotation))
+            .Set(new GlobalScale2D(Scale));
     }
 }

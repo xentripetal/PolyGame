@@ -3,6 +3,7 @@ using PolyECS;
 using PolyECS.Systems;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
+using Serilog;
 
 namespace PolyECS.Scheduling.Executor;
 
@@ -82,7 +83,7 @@ public class SimpleExecutor : IExecutor
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error in system {system.GetType().Name}: {e.Message}");
+                Log.Error(e, "Error in system {System}", system.GetType().Name);
             }
         }
         EvaluatedSets.Clear();

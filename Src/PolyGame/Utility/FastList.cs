@@ -9,7 +9,7 @@ namespace PolyGame;
 	/// for( var i = 0; i &lt;= list.length; i++ )
 	/// 	var item = list.buffer[i];
 	/// </summary>
-	public class FastList<T>
+	public class FastList<T> 
 	{
 		/// <summary>
 		/// direct access to the backing buffer. Do not use buffer.Length! Use FastList.length

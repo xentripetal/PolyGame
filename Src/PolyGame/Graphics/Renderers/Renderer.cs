@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render;
+using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Systems.Render;
 
@@ -62,7 +63,7 @@ public abstract class Renderer : IComparable<Renderer>
 
     public virtual void OnAddedToGraph(RenderGraph graph) { }
 
-    public virtual void BeginRender(ref ComputedCamera cam, GraphicsDevice device, SpriteBatch batch)
+    public virtual void BeginRender(ref ComputedCamera cam, GraphicsDevice device, Batcher batch)
     {
         if (RenderTexture != null)
         {
@@ -73,13 +74,13 @@ public abstract class Renderer : IComparable<Renderer>
         batch.Begin(CurrentMaterial, cam.TransformMatrix);
     }
 
-    abstract public void Render(ref ComputedCamera cam, GraphicsDevice device, SpriteBatch batch, RenderableList renderables);
+    abstract public void Render(DrawFuncRegistry registry, ref ComputedCamera cam, GraphicsDevice device, Batcher batch, RenderableList renderables);
 
     /// <summary>
     /// renders the RenderableComponent flushing the Batcher and resetting current material if necessary
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected void RenderAfterStateCheck(ComputedCamera cam, SpriteBatch batch)
+    protected void RenderAfterStateCheck(ComputedCamera cam, Batcher batch)
     {
         /**
         // check for Material changes
@@ -100,7 +101,7 @@ public abstract class Renderer : IComparable<Renderer>
         **/
     }
 
-    void FlushBatch(ComputedCamera cam, SpriteBatch batch)
+    void FlushBatch(ComputedCamera cam, Batcher batch)
     {
         batch.End();
         batch.Begin(CurrentMaterial, cam.TransformMatrix);
@@ -108,13 +109,13 @@ public abstract class Renderer : IComparable<Renderer>
 
     /// ends the Batcher and clears the RenderTarget if it had a RenderTarget
     /// </summary>
-    protected virtual void EndRender(SpriteBatch batch) => batch.End();
+    protected virtual void EndRender(Batcher batch) => batch.End();
 
     /// <summary>
     /// default debugRender method just loops through all entities and calls entity.debugRender. Note that you are in the middle of a batch
     /// at this point so you may want to call Batcher.End and Batcher.begin to clear out any Materials and items awaiting rendering.
     /// </summary>
-    protected virtual void DebugRender(ref ComputedCamera cam, GraphicsDevice device, SpriteBatch batch, RenderableList renderables)
+    protected virtual void DebugRender(ref ComputedCamera cam, GraphicsDevice device, Batcher batch, RenderableList renderables)
     {
         batch.End();
         batch.Begin(cam.TransformMatrix);

@@ -1,6 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render;
+using PolyGame.Graphics;
+using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
 using Serilog;
@@ -9,7 +11,11 @@ namespace PolyGame.Systems.Render;
 
 public class RenderGraph
 {
-    public RenderGraph() { }
+    public RenderGraph(IEnumerable<Renderer> renderers)
+    {
+        foreach (var renderer in renderers)
+            AddRenderer(renderer);
+    }
 
     protected bool Active = true;
 
@@ -48,7 +54,7 @@ public class RenderGraph
     protected List<Renderer> Renderers = new ();
     protected List<Renderer> AfterPostProcessorRenderers = new ();
 
-    public void Render(ref ComputedCamera cam, SpriteBatch batch, GraphicsDevice device, Color clearColor, RenderTarget2D? target, RenderableList renderables)
+    public void Render(DrawFuncRegistry registry, ref ComputedCamera cam, Batcher batch, GraphicsDevice device, Color clearColor, RenderTarget2D? target, RenderableList renderables)
     {
         if (Renderers.Count == 0)
         {
@@ -83,7 +89,7 @@ public class RenderGraph
                 Camera.ForceMatrixUpdate();
                 **/
             }
-            Renderers[i].Render(ref cam, device, batch, renderables);
+            Renderers[i].Render(registry, ref cam, device, batch, renderables);
             lastRendererHadRenderTarget = Renderers[i].RenderTexture != null;
         }
     }

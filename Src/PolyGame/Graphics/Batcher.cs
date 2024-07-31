@@ -3,11 +3,12 @@ using System.Runtime.InteropServices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Render;
+using PolyGame.Graphics.Sprites;
 using PolyGame.Systems.Render;
 
 namespace PolyGame.Graphics;
 
-public class Batcher : GraphicsResource
+public class Batcher 
 {
     /// <summary>
     /// Matrix to be used when creating the projection matrix
@@ -19,6 +20,8 @@ public class Batcher : GraphicsResource
     /// If true, destination positions will be rounded before being drawn.
     /// </summary>
     public bool ShouldRoundDestinations = true;
+    
+    protected GraphicsDevice GraphicsDevice;
 
 
     #region variables
@@ -127,8 +130,10 @@ public class Batcher : GraphicsResource
             1.0f
         );
     }
+    
+    private bool IsDisposed { get; set; }
 
-    protected override void Dispose(bool disposing)
+    protected void Dispose(bool disposing)
     {
         if (!IsDisposed && disposing)
         {
@@ -136,11 +141,7 @@ public class Batcher : GraphicsResource
             _indexBuffer.Dispose();
             _vertexBuffer.Dispose();
         }
-
-        base.Dispose(disposing);
     }
-
-    public Material? CurrentMaterial = null;
 
     /// <summary>
     /// sets if position rounding should be ignored. Useful when you are drawing primitives for debugging.
@@ -155,43 +156,36 @@ public class Batcher : GraphicsResource
 
     public void Begin()
     {
-        CurrentMaterial = null;
         Begin(BlendState.AlphaBlend, Globals.DefaultSamplerState, DepthStencilState.None,
             RasterizerState.CullCounterClockwise, null, Matrix.Identity, false);
     }
 
     public void Begin(Effect effect)
     {
-        CurrentMaterial = null;
         Begin(BlendState.AlphaBlend, Globals.DefaultSamplerState, DepthStencilState.None,
             RasterizerState.CullCounterClockwise, effect, Matrix.Identity, false);
     }
 
     public void Begin(Material material)
     {
-        CurrentMaterial = material;
         Begin(material.BlendState, material.SamplerState, material.DepthStencilState,
-            RasterizerState.CullCounterClockwise, material.Effect, Matrix.Identity,
-            false);
+            RasterizerState.CullCounterClockwise, material.Effect);
     }
 
     public void Begin(Matrix transformationMatrix)
     {
-        CurrentMaterial = null;
         Begin(BlendState.AlphaBlend, Globals.DefaultSamplerState, DepthStencilState.None,
             RasterizerState.CullCounterClockwise, null, transformationMatrix, false);
     }
 
     public void Begin(BlendState blendState)
     {
-        CurrentMaterial = null;
         Begin(blendState, Globals.DefaultSamplerState, DepthStencilState.None, RasterizerState.CullCounterClockwise,
             null, Matrix.Identity, false);
     }
 
     public void Begin(Material material, Matrix transformationMatrix)
     {
-        CurrentMaterial = material;
         Begin(material.BlendState, material.SamplerState, material.DepthStencilState,
             RasterizerState.CullCounterClockwise, material.Effect, transformationMatrix, false);
     }
@@ -203,7 +197,6 @@ public class Batcher : GraphicsResource
         RasterizerState rasterizerState
     )
     {
-        CurrentMaterial = null;
         Begin(
             blendState,
             samplerState,
@@ -223,7 +216,6 @@ public class Batcher : GraphicsResource
         Effect effect
     )
     {
-        CurrentMaterial = null;
         Begin(
             blendState,
             samplerState,
@@ -244,7 +236,6 @@ public class Batcher : GraphicsResource
         Matrix transformationMatrix
     )
     {
-        CurrentMaterial = null;
         Begin(
             blendState,
             samplerState,
@@ -354,20 +345,6 @@ public class Batcher : GraphicsResource
 
     public void Draw(
         Texture2D texture,
-        RectangleF destinationRectangle,
-        Rectangle? sourceRectangle,
-        Color color,
-        SpriteEffects effects
-    )
-    {
-        CheckBegin();
-        PushSprite(texture, sourceRectangle, destinationRectangle.X, destinationRectangle.Y,
-            destinationRectangle.Width, destinationRectangle.Height,
-            color, Vector2.Zero, 0.0f, 0.0f, (byte)(effects & (SpriteEffects)0x03), true, 0, 0, 0, 0);
-    }
-
-    public void Draw(
-        Texture2D texture,
         Rectangle destinationRectangle,
         Rectangle? sourceRectangle,
         Color color,
@@ -448,10 +425,10 @@ public class Batcher : GraphicsResource
         );
     }
 
+    /**
     public void Draw(
-        Texture2D texture,
-        Rectangle sourceRectangle,
-        RectangleF uvs,
+        Sprite sprite,
+        Texture2D texture2D,
         Vector2 position,
         Color color,
         float rotation,
@@ -463,9 +440,7 @@ public class Batcher : GraphicsResource
     {
         CheckBegin();
         PushSprite(
-            texture,
-            sourceRectangle,
-            uvs,
+            sprite,
             position.X,
             position.Y,
             scale,
@@ -478,6 +453,7 @@ public class Batcher : GraphicsResource
             0, 0, 0, 0
         );
     }
+    **/
 
     public void Draw(
         Texture2D texture,
@@ -509,10 +485,8 @@ public class Batcher : GraphicsResource
         );
     }
 
+    /**
     public void Draw(
-        Texture2D texture,
-        Rectangle sourceRectangle,
-        RectangleF uvs,
         Sprite sprite,
         Vector2 position,
         Color color,
@@ -525,9 +499,7 @@ public class Batcher : GraphicsResource
     {
         CheckBegin();
         PushSprite(
-            texture,
-            sourceRectangle,
-            uvs,
+            sprite,
             position.X,
             position.Y,
             scale.X,
@@ -540,6 +512,7 @@ public class Batcher : GraphicsResource
             0, 0, 0, 0
         );
     }
+    **/
 
     public void Draw(
         Texture2D texture,
@@ -931,14 +904,15 @@ public class Batcher : GraphicsResource
         }
     }
 
+    // TODO ComputedSprite?
+    /**
     /// <summary>
     /// Sprite alternative to the old SpriteBatch pushSprite
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     unsafe void PushSprite(
+        Sprite sprite,
         Texture2D texture,
-        Rectangle sourceRect,
-        RectangleF uvs,
         float destinationX,
         float destinationY,
         float destinationW,
@@ -965,10 +939,10 @@ public class Batcher : GraphicsResource
         }
 
         // Source/Destination/Origin Calculations. destinationW/H is the scale value so we multiply by the size of the texture region
-        var originX = (origin.X / uvs.Width) / texture.Width;
-        var originY = (origin.Y / uvs.Height) / texture.Height;
-        destinationW *= sourceRect.Width;
-        destinationH *= sourceRect.Height;
+        var originX = (origin.X / sprite.Uvs.Width) / sprite.Texture2D.Width;
+        var originY = (origin.Y / sprite.Uvs.Height) / sprite.Texture2D.Height;
+        destinationW *= sprite.SourceRect.Width;
+        destinationH *= sprite.SourceRect.Height;
 
         // Rotation Calculations
         float rotationMatrix1X;
@@ -1062,21 +1036,21 @@ public class Batcher : GraphicsResource
             );
 
             vertexInfo->TextureCoordinate0.X =
-                (_cornerOffsetX[0 ^ effects] * uvs.Width) + uvs.X;
+                (_cornerOffsetX[0 ^ effects] * sprite.Uvs.Width) + sprite.Uvs.X;
             vertexInfo->TextureCoordinate0.Y =
-                (_cornerOffsetY[0 ^ effects] * uvs.Height) + uvs.Y;
+                (_cornerOffsetY[0 ^ effects] * sprite.Uvs.Height) + sprite.Uvs.Y;
             vertexInfo->TextureCoordinate1.X =
-                (_cornerOffsetX[1 ^ effects] * uvs.Width) + uvs.X;
+                (_cornerOffsetX[1 ^ effects] * sprite.Uvs.Width) + sprite.Uvs.X;
             vertexInfo->TextureCoordinate1.Y =
-                (_cornerOffsetY[1 ^ effects] * uvs.Height) + uvs.Y;
+                (_cornerOffsetY[1 ^ effects] * sprite.Uvs.Height) + sprite.Uvs.Y;
             vertexInfo->TextureCoordinate2.X =
-                (_cornerOffsetX[2 ^ effects] * uvs.Width) + uvs.X;
+                (_cornerOffsetX[2 ^ effects] * sprite.Uvs.Width) + sprite.Uvs.X;
             vertexInfo->TextureCoordinate2.Y =
-                (_cornerOffsetY[2 ^ effects] * uvs.Height) + uvs.Y;
+                (_cornerOffsetY[2 ^ effects] * sprite.Uvs.Height) + sprite.Uvs.Y;
             vertexInfo->TextureCoordinate3.X =
-                (_cornerOffsetX[3 ^ effects] * uvs.Width) + uvs.X;
+                (_cornerOffsetX[3 ^ effects] * sprite.Uvs.Width) + sprite.Uvs.X;
             vertexInfo->TextureCoordinate3.Y =
-                (_cornerOffsetY[3 ^ effects] * uvs.Height) + uvs.Y;
+                (_cornerOffsetY[3 ^ effects] * sprite.Uvs.Height) + sprite.Uvs.Y;
             vertexInfo->Position0.Z = depth;
             vertexInfo->Position1.Z = depth;
             vertexInfo->Position2.Z = depth;
@@ -1090,14 +1064,15 @@ public class Batcher : GraphicsResource
         if (_disableBatching)
         {
             _vertexBuffer.SetData(0, _vertexInfo, 0, 1, VertexPositionColorTexture4.RealStride, SetDataOptions.None);
-            DrawPrimitives(texture, 0, 1);
+            DrawPrimitives(sprite, 0, 1);
         }
         else
         {
-            _textureInfo[_numSprites] = texture;
+            _textureInfo[_numSprites] = sprite;
             _numSprites += 1;
         }
     }
+    **/
 
     public unsafe void FlushBatch()
     {
@@ -1168,25 +1143,8 @@ public class Batcher : GraphicsResource
         GraphicsDevice.SetVertexBuffer(_vertexBuffer);
         GraphicsDevice.Indices = _indexBuffer;
 
-        var viewport = GraphicsDevice.Viewport;
-
-        // inlined CreateOrthographicOffCenter
-        if (UseFnaHalfPixelMatrix)
-        {
-            _projectionMatrix.M11 = (float)(2.0 / (double)(viewport.Width / 2 * 2 - 1));
-            _projectionMatrix.M22 = (float)(-2.0 / (double)(viewport.Height / 2 * 2 - 1));
-        }
-        else
-        {
-            _projectionMatrix.M11 = (float)(2.0 / (double)viewport.Width);
-            _projectionMatrix.M22 = (float)(-2.0 / (double)viewport.Height);
-        }
-
-        _projectionMatrix.M41 = -1 - 0.5f * _projectionMatrix.M11;
-        _projectionMatrix.M42 = 1 - 0.5f * _projectionMatrix.M22;
-
-        Matrix.Multiply(ref _transformMatrix, ref _projectionMatrix, out _matrixTransformMatrix);
-        _spriteEffect.TransformMatrix = _matrixTransformMatrix;
+        // Note - Nez uses a custom effect and projection logic. If you run into weird bugs in the future with shaders try swapping to Nez's SpriteEffect instead of MonoGames
+        _spriteEffect.TransformMatrix = _transformMatrix;
 
         // we have to Apply here because custom effects often wont have a vertex shader and we need the default SpriteEffect's
         _spriteEffectPass.Apply();

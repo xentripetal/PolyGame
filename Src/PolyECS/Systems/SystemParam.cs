@@ -35,13 +35,9 @@ public static class Param
 {
     public static ISystemParam<Query> Of(Query query) => new QueryParam(query);
     public static ISystemParam<PolyWorld> Of(PolyWorld world) => new WorldParam();
+    public static ISystemParam<Res<T>> OfRes<T>() => new ResParam<T>();
+    public static ISystemParam<ResMut<T>> OfResMut<T>() => new ResMutParam<T>();
     public static ISystemParam<T> Local<T>(T value) => new LocalParam<T>(value);
-
-    public static ISystemParam<(T1, T2)> Of<T1, T2>(ISystemParam<T1> p1, ISystemParam<T2> p2) => new BiParam<T1, T2>(p1, p2);
-
-    //public static ISystemParam<(T1, T2)> Of<T1, T2>(T1 p1, T2 p2) => new BiParam<T1, T2>(Of(p1), Of(p2));
-    public static ISystemParam<(T1, T2, T3)> Of<T1, T2, T3>(ISystemParam<T1> p1, ISystemParam<T2> p2, ISystemParam<T3> p3)
-        => new TriParam<T1, T2, T3>(p1, p2, p3);
 }
 
 public class ResParam<T> : SystemParam<Res<T>>
@@ -51,7 +47,7 @@ public class ResParam<T> : SystemParam<Res<T>>
         unsafe
         {
             world.RegisterResource<T>();
-            _globalEntity = world.World.Entity<T>();
+            _globalEntity = world.Entity<T>();
             meta.ComponentAccessSet.AddUnfilteredRead(Type<T>.Id(world.World.Handle));
         }
     }

@@ -43,7 +43,7 @@ public class ParamTest
     public void SingletonTest()
     {
         using var world = new PolyWorld();
-        world.World.Set<int>(0);
+        world.Set(0);
         world.RunSystemOnce(new CountUpSystem());
         Assert.Equal(1, world.World.Get<int>());
         world.RunSystemOnce(new CountUpSystem());
