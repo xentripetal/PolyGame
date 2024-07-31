@@ -90,3 +90,21 @@ public class SystemTypeSet : SystemSet
         return System.GetType();
     }
 }
+
+/// <summary>
+/// A system set that is defined by its type. All instances of the same type are part of the same set.
+/// </summary>
+public abstract class StaticSystemSet : SystemSet
+{
+    public bool Equals(SystemSet? other)
+    {
+        return other is StaticSystemSet && other.GetType() == GetType();
+    }
+
+    public string Name()
+    {
+        return GetType().Name;
+    }
+
+    public Type? SystemType() => null;
+}

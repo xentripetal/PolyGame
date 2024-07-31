@@ -58,7 +58,6 @@ public class CoreRenderingTests
         app.GameSchedule.AddSystems(new FrameIncSystem());
         var tracker = new FrameTracker();
         app.RenderSchedule.AddSystems(tracker);
-        app.Extractors.Add(new TestExtractor());
         return tracker;
     }
 
@@ -66,7 +65,6 @@ public class CoreRenderingTests
     public void TestSynchronousRendering()
     {
         var core = new App();
-        core.SynchronousRendering = true;
         var tracker = SetupFrameCounter(core);
         core.Tick();
         Assert.Equal(1, getSingleton<CurrentFrame>(core.World).Value);
@@ -77,6 +75,7 @@ public class CoreRenderingTests
         Assert.Equal(2, tracker.RenderFrame.Value);
     }
 
+    /** Disabling as I've stopped async rendering for now. Will come back to it later maybe
     [Fact]
     public void TestAsynchronousRendering()
     {
@@ -90,6 +89,7 @@ public class CoreRenderingTests
             Assert.Equal(i + 1, getSingleton<CurrentFrame>(core.World).Value);
         }
     }
+    **/
 
     public T getSingleton<T>(PolyWorld world) where T : struct
     {

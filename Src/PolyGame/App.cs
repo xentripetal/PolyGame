@@ -1,6 +1,7 @@
 ﻿using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using PolyECS;
 using PolyECS.Systems;
 using PolyGame.Components.Render;
