@@ -10,7 +10,7 @@ public abstract class SystemConfigs : NodeConfigs<RunSystem>
         var configs = new NodeConfigs<RunSystem>[systems.Length];
         for (var i = 0; i < systems.Length; i++)
         {
-            configs[i] = systems[i];
+            configs[i] = new SystemConfig(systems[i]);
         }
         return Of(configs, collectiveConditions, chained);
     }

@@ -1,9 +1,15 @@
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
+using PolyECS.Queries;
 
 namespace PolyECS.Systems;
 
-public interface ISystemParam<T> : IIntoSystemParam<T>
+public interface IIntoSystemParam<T>
+{
+    public static abstract ISystemParam<T> IntoParam(PolyWorld world);
+}
+
+public interface ISystemParam<T>
 {
     public void Initialize(PolyWorld world, SystemMeta meta);
     public void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration);
@@ -15,20 +21,18 @@ public abstract class SystemParam<T> : ISystemParam<T>
     public abstract void Initialize(PolyWorld world, SystemMeta meta);
     public abstract void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration);
     public abstract T Get(PolyWorld world, SystemMeta systemMeta);
-
-    public ISystemParam<T> IntoParam() => this;
 }
 
-public interface IIntoSystemParam<T>
-{
-    public ISystemParam<T> IntoParam();
-}
-
-public class VoidParam : SystemParam<object?>
+public class VoidParam : SystemParam<object?>, IIntoSystemParam<object?>
 {
     public override void Initialize(PolyWorld world, SystemMeta meta) { }
     public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGen) { }
     public override object Get(PolyWorld world, SystemMeta systemMeta) => null!;
+
+    public static ISystemParam<object?> IntoParam(PolyWorld world)
+    {
+        return new VoidParam();
+    }
 }
 
 public static class Param
@@ -187,6 +191,57 @@ public class WorldParam : SystemParam<PolyWorld>
     public static implicit operator WorldParam(PolyWorld world)
     {
         return new WorldParam();
+    }
+}
+
+public class TQueryParam<TData> : SystemParam<TQuery<TData>>
+{
+    public TQueryParam(TQuery<TData> query)
+    {
+        Param = new QueryParam(query.Query);
+        Query = query;
+    }
+
+    protected TQuery<TData> Query;
+    protected readonly QueryParam Param;
+
+    public override void Initialize(PolyWorld world, SystemMeta meta)
+    {
+        Param.Initialize(world, meta);
+    }
+
+    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
+    {
+        Param.EvaluateNewTable(meta, table, tableGeneration);
+    }
+
+    public override TQuery<TData> Get(PolyWorld world, SystemMeta systemMeta) => Query;
+}
+
+public class TQueryParam<TData, TFilter> : SystemParam<TQuery<TData, TFilter>>
+{
+    public TQueryParam(TQuery<TData, TFilter> query)
+    {
+        Param = new QueryParam(query.Query);
+        Query = query;
+    }
+
+    protected TQuery<TData, TFilter> Query;
+    protected readonly QueryParam Param;
+
+    public override void Initialize(PolyWorld world, SystemMeta meta)
+    {
+        Param.Initialize(world, meta);
+    }
+
+    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
+    {
+        Param.EvaluateNewTable(meta, table, tableGeneration);
+    }
+
+    public override TQuery<TData, TFilter> Get(PolyWorld world, SystemMeta systemMeta)
+    {
+        return Query;
     }
 }
 

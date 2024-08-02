@@ -21,7 +21,7 @@ public class Res<T> : IIntoSystemParam<Res<T>>
     public bool HasValue => World.Has<T>();
 
     public static implicit operator T(Res<T> res) => res.Get();
-    public ISystemParam<Res<T>> IntoParam() => new ResParam<T>();
+    public static ISystemParam<Res<T>> IntoParam(PolyWorld world) => new ResParam<T>();
 }
 
 public class ResMut<T> : Res<T>, IIntoSystemParam<ResMut<T>>
@@ -40,5 +40,5 @@ public class ResMut<T> : Res<T>, IIntoSystemParam<ResMut<T>>
         return ref World.GetRef<T>().Get();
     }
 
-    public ISystemParam<ResMut<T>> IntoParam() => new ResMutParam<T>();
+    public static ISystemParam<ResMut<T>> IntoParam(PolyWorld world) => new ResMutParam<T>();
 }
