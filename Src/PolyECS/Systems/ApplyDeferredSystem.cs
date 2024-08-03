@@ -19,11 +19,11 @@ public sealed class ApplyDeferredSystem : RunSystem
         return null;
     }
 
-    public bool HasDeferred
+    public override bool HasDeferred
     {
         get => false;
     }
-    public bool IsExclusive
+    public override bool IsExclusive
     {
         get => true;
     }

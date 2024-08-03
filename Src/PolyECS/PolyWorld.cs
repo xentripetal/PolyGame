@@ -6,11 +6,13 @@ namespace PolyECS;
 /// <summary>
 /// A wrapper around <see cref="World"/> with some helper methods.
 /// </summary>
-public partial class PolyWorld : IDisposable
+public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
 {
     public PolyWorld(World world)
     {
         World = world;
+        TableCache = new TableCache(World);
+        TableCache.Update();
     }
 
     public PolyWorld()
@@ -117,4 +119,6 @@ public partial class PolyWorld : IDisposable
     public Query Query<T1, T2, T3, T4, T5, T6>() => World.Query<T1, T2, T3, T4, T5, T6>();
 
     #endregion
+
+    public static ISystemParam<PolyWorld> IntoParam(PolyWorld world) => new PolyWorldParam();
 }

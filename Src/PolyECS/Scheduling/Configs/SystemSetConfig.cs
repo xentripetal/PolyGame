@@ -5,11 +5,7 @@ namespace PolyECS.Systems.Configs;
 
 public class SystemSetConfig : NodeConfig<SystemSet>
 {
-    public SystemSet Set;
-    public SystemSetConfig(SystemSet set)
-    {
-        Set = set;
-    }
-    
+    public SystemSetConfig(SystemSet set) : base(set) { }
+
     public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
 }

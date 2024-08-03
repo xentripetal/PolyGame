@@ -21,6 +21,10 @@ public abstract class NodeConfig<T>
     /// </summary>
     public SubgraphInfo Subgraph = new ();
     public List<Condition> Conditions = new ();
+    protected NodeConfig(T node)
+    {
+        Node = node;
+    }
 
     public abstract NodeId ProcessConfig(SystemGraph graph);
     
@@ -32,9 +36,8 @@ public abstract class NodeConfig<T>
 
 public class SystemConfig : NodeConfig<RunSystem>
 {
-    public SystemConfig(RunSystem system)
+    public SystemConfig(RunSystem system) : base(system)
     {
-        Node = system;
         Subgraph.Hierarchy = system.GetDefaultSystemSets();
         Conditions = new List<Condition>();
     }

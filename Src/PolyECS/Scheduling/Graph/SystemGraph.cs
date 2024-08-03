@@ -262,10 +262,10 @@ public class SystemGraph
     /// Add a single `SystemSetConfig` to the graph, including its dependencies and conditions.
     protected NodeId ConfigureSet(SystemSetConfig set)
     {
-        var ok = SystemSetIds.TryGetValue(set.Set, out var id);
+        var ok = SystemSetIds.TryGetValue(set.Node, out var id);
         if (!ok)
         {
-            id = AddSet(set.Set);
+            id = AddSet(set.Node);
         }
 
         UpdateGraphs(id, set.Subgraph);

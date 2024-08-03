@@ -35,10 +35,10 @@ public class ResMut<T> : Res<T>, IIntoSystemParam<ResMut<T>>
 
     public static implicit operator T(ResMut<T> res) => res.Get();
 
-    public ref T Get()
+    public new ref T Get()
     {
         return ref World.GetRef<T>().Get();
     }
 
-    public static ISystemParam<ResMut<T>> IntoParam(PolyWorld world) => new ResMutParam<T>();
+    public new static ISystemParam<ResMut<T>> IntoParam(PolyWorld world) => new ResMutParam<T>();
 }

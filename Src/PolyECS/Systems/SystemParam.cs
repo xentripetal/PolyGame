@@ -100,6 +100,25 @@ public class ResMutParam<T> : SystemParam<ResMut<T>>
     public override ResMut<T> Get(PolyWorld world, SystemMeta systemMeta) => world.GetResourceMut<T>();
 }
 
+public class PolyWorldParam : SystemParam<PolyWorld>
+{
+    public override void Initialize(PolyWorld world, SystemMeta meta)
+    {
+        meta.ComponentAccessSet.WriteAll();
+        meta.TableComponentAccess.WriteAll();
+        meta.HasDeferred = true;
+        _world = world;
+    }
+
+    private PolyWorld _world;
+
+    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
+    {
+    }
+
+    public override PolyWorld Get(PolyWorld world, SystemMeta systemMeta) => _world;
+}
+
 /// <summary>
 /// A wrapping <see cref="ISystemParam{T}"/> that has callbacks for initialization, evaluation and getting the value. Each hook will be called after the
 /// wrapped <see cref="ISystemParam{T}"/> has been called.
@@ -218,7 +237,7 @@ public class TQueryParam<TData> : SystemParam<TQuery<TData>>
     public override TQuery<TData> Get(PolyWorld world, SystemMeta systemMeta) => Query;
 }
 
-public class TQueryParam<TData, TFilter> : SystemParam<TQuery<TData, TFilter>>
+public class TQueryParam<TData, TFilter> : SystemParam<TQuery<TData, TFilter>> where TFilter : IIntoFilter
 {
     public TQueryParam(TQuery<TData, TFilter> query)
     {
