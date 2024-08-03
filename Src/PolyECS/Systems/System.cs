@@ -23,7 +23,5 @@ public abstract class BaseSystem<TIn, TOut>
     public abstract List<SystemSet> GetDefaultSystemSets();
 
     public abstract void UpdateTableComponentAccess(TableCache cache);
-
-
 }
 

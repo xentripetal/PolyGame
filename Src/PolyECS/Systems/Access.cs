@@ -290,9 +290,9 @@ public class Access<T> : IEquatable<Access<T>>
         return ReadsAndWrites.IsSubsetOf(other.ReadsAndWrites) && Writes.IsSubsetOf(other.Writes);
     }
 
-    public bool Equals(Access<T> other)
+    public bool Equals(Access<T>? other)
     {
-        return ReadsAndWrites.SetEquals(other.ReadsAndWrites) && Writes.SetEquals(other.Writes) && ReadsAll == other.ReadsAll && WritesAll == other.WritesAll &&
+        return other != null && ReadsAndWrites.SetEquals(other.ReadsAndWrites) && Writes.SetEquals(other.Writes) && ReadsAll == other.ReadsAll && WritesAll == other.WritesAll &&
                Archetypal.SetEquals(other.Archetypal);
     }
 

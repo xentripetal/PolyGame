@@ -96,8 +96,6 @@ public class Batcher
 
     public Batcher(GraphicsDevice graphicsDevice)
     {
-        Insist.IsTrue(graphicsDevice != null);
-
         GraphicsDevice = graphicsDevice;
 
         _vertexInfo = new VertexPositionColorTexture4[MAX_SPRITES];
