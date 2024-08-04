@@ -1,6 +1,5 @@
 using Flecs.NET.Core;
 using PolyECS.Scheduling.Graph;
-using PolyECS.Systems.Configs;
 
 namespace PolyECS.Systems;
 
@@ -20,7 +19,7 @@ public abstract class BaseSystem<TIn, TOut>
 
     public abstract Access<TableComponentId> GetTableAccess();
 
-    public abstract List<SystemSet> GetDefaultSystemSets();
+    public abstract List<ISystemSet> GetDefaultSystemSets();
 
     public abstract void UpdateTableComponentAccess(TableCache cache);
 }

@@ -1,6 +1,5 @@
 using System.Diagnostics;
-using Flecs.NET.Core;
-using PolyECS.Systems.Configs;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Systems.Graph;
 using PolyECS.Systems;
 using QuikGraph;
@@ -25,13 +24,13 @@ public class SystemGraph
     /// List of conditions for each system, in the same order as `systems`
     protected List<List<Condition>> SystemConditions = new ();
     /// List of system sets in the schedule
-    protected List<SystemSet> SystemSets = new ();
+    protected List<ISystemSet> SystemSets = new ();
 
     /// List of conditions for each system set, in the same order as `system_sets`
     protected List<List<Condition>> SystemSetConditions = new ();
 
     /// Map from system set to node id
-    public Dictionary<SystemSet, NodeId> SystemSetIds = new ();
+    public Dictionary<ISystemSet, NodeId> SystemSetIds = new ();
 
     /// Systems that have not been initialized yet; for system sets, we store the index of the first uninitialized condition
     /// (all the conditions after that index still need to be initialized)
@@ -59,7 +58,7 @@ public class SystemGraph
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public SystemSet? GetSetAt(NodeId id)
+    public ISystemSet? GetSetAt(NodeId id)
     {
         if (id.Type != NodeType.Set)
         {
@@ -106,7 +105,7 @@ public class SystemGraph
         }
     }
 
-    public IEnumerable<(NodeId, SystemSet, Condition[])> GetSets()
+    public IEnumerable<(NodeId, ISystemSet, Condition[])> GetSets()
     {
         for (var i = 0; i < SystemSets.Count; i++)
         {
@@ -276,7 +275,7 @@ public class SystemGraph
         return id;
     }
 
-    public NodeId AddSet(SystemSet set)
+    public NodeId AddSet(ISystemSet set)
     {
         var id = new NodeId(Systems.Count, NodeType.Set);
         SystemSets.Add(set);
@@ -287,7 +286,7 @@ public class SystemGraph
         return id;
     }
 
-    protected void CheckHierarchySet(NodeId id, SystemSet set)
+    protected void CheckHierarchySet(NodeId id, ISystemSet set)
     {
         if (SystemSetIds.TryGetValue(set, out var setId))
         {
@@ -443,7 +442,7 @@ public class SystemGraph
         Uninit.Clear();
     }
 
-    public SystemSchedule BuildSchedule(string label, HashSet<ulong> ignoredAmbiguities)
+    public SystemSchedule BuildSchedule(ScheduleLabel label, HashSet<ulong> ignoredAmbiguities)
     {
         var hierarchySort = Hierarchy.TopologicalSort().ToArray();
         var hierResults = CheckGraph(Hierarchy, hierarchySort);
@@ -590,7 +589,7 @@ public class SystemGraph
         };
     }
 
-    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ulong> ignoredAmbiguities, string label)
+    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ulong> ignoredAmbiguities, ScheduleLabel label)
     {
         if (Uninit.Count != 0)
         {
@@ -831,8 +830,8 @@ public class SystemGraph
     }
 
     /// <summary>
-    /// Return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a list of <see cref="RunSystem"/> <see cref="NodeId"/>'s that are included in the set.
-    /// Also return a map from a <see cref="SystemSet"/> <see cref="NodeId"/> to a <see cref="FixedBitSet"/> of <see cref="SystemSet"/> <see cref="NodeId"/>'s
+    /// Return a map from a <see cref="ISystemSet"/> <see cref="NodeId"/> to a list of <see cref="RunSystem"/> <see cref="NodeId"/>'s that are included in the set.
+    /// Also return a map from a <see cref="ISystemSet"/> <see cref="NodeId"/> to a <see cref="FixedBitSet"/> of <see cref="ISystemSet"/> <see cref="NodeId"/>'s
     /// that are included in the set, where the bitset order is the same as <see cref="SystemGraph.GetSystems()"/>
     /// </summary>
     /// <param name="hierarchyTopsort"></param>

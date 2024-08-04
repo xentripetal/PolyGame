@@ -11,13 +11,10 @@ namespace PolyGame;
 
 public partial class App : Game, IDisposable
 {
-    public Schedule RenderSchedule;
     public PolyWorld World;
-    public Schedule GameSchedule;
-    public Texture2D? MissingTexture;
     public AssetServer Assets;
-
     protected GraphicsDeviceManager _manager;
+    public MainScheduleOrder MainScheduleOrder = new ();
 
     public App(
         int width = 1280,
@@ -45,12 +42,11 @@ public partial class App : Game, IDisposable
         IsMouseVisible = true;
         IsFixedTimeStep = false;
 
-        RenderSchedule = new Schedule("render");
         World = new PolyWorld();
-        GameSchedule = new Schedule("game");
         Assets = new AssetServer([World.World]);
         Assets.AddLoader(new XNBAssetLoader(Content));
         World.SetResource(Assets);
+        World.SetResource(MainScheduleOrder);
     }
 
     protected Batcher Batcher;
@@ -70,22 +66,32 @@ public partial class App : Game, IDisposable
         World.SetResource(_manager.GraphicsDevice.Viewport);
         ApplyPlugins();
 
+        // Run any startup systems
+        foreach (var startupScheduleLabel in MainScheduleOrder.StartupLabels)
+        {
+            World.RunSchedule(startupScheduleLabel);
+        }
     }
-
-    protected Texture2D _testTex;
 
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        //World.World.Progress((float)gameTime.ElapsedGameTime.TotalSeconds);
+        // Progress any internal flecs routines such as http server
         World.World.Progress();
-        GameSchedule.Run(World);
+        // Run our main schedule
+        foreach (var schedule in MainScheduleOrder.UpdateLabels)
+        {
+            World.RunSchedule(schedule);
+        }
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        RenderSchedule.Run(World);
         base.Draw(gameTime);
+        foreach (var schedule in MainScheduleOrder.RenderLabels)
+        {
+            World.RunSchedule(schedule);
+        }
     }
 
     protected List<IExtractor> Extractors = new ();

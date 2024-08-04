@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using Flecs.NET.Core;
 using JetBrains.Annotations;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
-using PolyECS.Systems.Configs;
 
 namespace PolyECS.Tests.Scheduling;
 
@@ -35,14 +35,14 @@ public class ScheduleTest
     [Fact]
     public void EmptySchedule()
     {
-        var schedule = new Schedule();
+        var schedule = new Schedule(new ScheduleLabel("default"));
         using var world = new PolyWorld();
         schedule.Run(world);
     }
 
     protected Schedule ScheduleAndRun(params NodeConfigs<RunSystem>[] configs)
     {
-        var schedule = new Schedule();
+        var schedule = new Schedule(new ScheduleLabel("default"));
         using var world = new PolyWorld();
         schedule.AddSystems(configs);
         schedule.Run(world);

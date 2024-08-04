@@ -111,13 +111,6 @@ public struct Components<T1, T2> : IIntoData
     }
 }
 
-public struct Optional<T> : IIntoData
-{
-    public QueryBuilder ApplyData(QueryBuilder qb)
-    {
-        return QueryHelpers.ApplyData<T>(qb).Optional();
-    }
-}
 
 public struct R<T> : IIntoData
 {

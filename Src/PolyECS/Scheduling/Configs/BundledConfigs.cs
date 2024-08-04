@@ -1,21 +1,30 @@
 using PolyECS.Scheduling.Graph;
+using PolyECS.Systems;
 using PolyECS.Systems.Graph;
 
-namespace PolyECS.Systems.Configs;
+namespace PolyECS.Scheduling.Configs;
 
-public abstract class SystemConfigs : NodeConfigs<RunSystem>
+public abstract class SystemConfigs : NodeConfigs<RunSystem>, IIntoSystemConfigs
 {
-    public static NodeConfigs<RunSystem> Of(RunSystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    public static SystemConfigs Of(IIntoSystemConfigs[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
         var configs = new NodeConfigs<RunSystem>[systems.Length];
         for (var i = 0; i < systems.Length; i++)
         {
-            configs[i] = new SystemConfig(systems[i]);
+            configs[i] = systems[i].IntoSystemConfig();
         }
-        return Of(configs, collectiveConditions, chained);
+        return (SystemConfigs)Of(configs, collectiveConditions, chained);
     }
+
+    public static SystemConfigs Of(params IIntoSystemConfigs[] configs)
+    {
+        return Of(configs, null, Chain.No);
+    }
+
+    public SystemConfigs IntoSystemConfig() => this;
 }
-public abstract class SetConfigs : NodeConfigs<SystemSet> { }
+
+public abstract class SetConfigs : NodeConfigs<ISystemSet> { }
 
 /// <summary>
 /// A collection of generic <see cref="NodeConfig{T}"/>s
@@ -29,6 +38,7 @@ public abstract class NodeConfigs<T>
     {
         return new Node(config);
     }
+
 
     public static NodeConfigs<T> Of(NodeConfig<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
@@ -52,10 +62,7 @@ public abstract class NodeConfigs<T>
         {
             throw new ArgumentException("NodeConfigs must not be empty");
         }
-        if (collectiveConditions == null)
-        {
-            collectiveConditions = [];
-        }
+        collectiveConditions ??= [];
         if (configs.Length == 1)
         {
             // Treat it as a single node and apply collective conditions to the node
@@ -66,41 +73,41 @@ public abstract class NodeConfigs<T>
             }
             return node;
         }
-        return new Configs(configs, collectiveConditions!, chained);
+        return new Configs(configs, collectiveConditions, chained);
     }
 
 
     public class Node(NodeConfig<T> config) : NodeConfigs<T>
     {
-        public NodeConfig<T> Config = config;
+        public readonly NodeConfig<T> Config = config;
 
-        public override NodeConfigs<T> InSet(SystemSet set)
+        public override NodeConfigs<T> InSet(IIntoSystemSet set)
         {
-            Config.Subgraph.Hierarchy.Add(set);
+            Config.Subgraph.Hierarchy.Add(set.IntoSystemSet());
             return this;
         }
 
-        public override NodeConfigs<T> Before(SystemSet set)
+        public override NodeConfigs<T> Before(IIntoSystemSet set)
         {
-            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.Before, set));
+            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.Before, set.IntoSystemSet()));
             return this;
         }
 
-        public override NodeConfigs<T> After(SystemSet set)
+        public override NodeConfigs<T> After(IIntoSystemSet set)
         {
-            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.After, set));
+            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.After, set.IntoSystemSet()));
             return this;
         }
 
-        public override NodeConfigs<T> BeforeIgnoreDeferred(SystemSet set)
+        public override NodeConfigs<T> BeforeIgnoreDeferred(IIntoSystemSet set)
         {
-            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.BeforeNoSync, set));
+            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.BeforeNoSync, set.IntoSystemSet()));
             return this;
         }
 
-        public override NodeConfigs<T> AfterIgnoreDeferred(SystemSet set)
+        public override NodeConfigs<T> AfterIgnoreDeferred(IIntoSystemSet set)
         {
-            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.AfterNoSync, set));
+            Config.Subgraph.Dependencies.Add(new Dependency(DependencyKind.AfterNoSync, set.IntoSystemSet()));
             return this;
         }
 
@@ -110,9 +117,9 @@ public abstract class NodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> AmbiguousWith(SystemSet set)
+        public override NodeConfigs<T> AmbiguousWith(IIntoSystemSet set)
         {
-            Config.Subgraph.AddAmbiguousWith(set);
+            Config.Subgraph.AddAmbiguousWith(set.IntoSystemSet());
             return this;
         }
 
@@ -146,11 +153,11 @@ public abstract class NodeConfigs<T>
         /// <summary>
         /// Configurations for each element of the tuple
         /// </summary>
-        public NodeConfigs<T>[] NodeConfigs;
+        public readonly NodeConfigs<T>[] NodeConfigs;
         /// <summary>
         /// Run conditions applied to everything in the tuple.
         /// </summary>
-        public List<Condition> CollectiveConditions = [];
+        public List<Condition> CollectiveConditions;
         /// <summary>
         /// See <see cref="Chained"/> for usage.
         /// </summary>
@@ -163,11 +170,11 @@ public abstract class NodeConfigs<T>
                 throw new ArgumentException("NodeConfigs must not be empty");
             }
             NodeConfigs = nodeConfigs;
-            CollectiveConditions = collectiveConditions?.ToList() ?? throw new ArgumentException("CollectiveConditions must not be null");
+            CollectiveConditions = collectiveConditions.ToList();
             Chained = chained;
         }
 
-        public override NodeConfigs<T> InSet(SystemSet set)
+        public override NodeConfigs<T> InSet(IIntoSystemSet set)
         {
             foreach (var cfg in NodeConfigs)
             {
@@ -176,7 +183,7 @@ public abstract class NodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> Before(SystemSet set)
+        public override NodeConfigs<T> Before(IIntoSystemSet set)
         {
             foreach (var cfg in NodeConfigs)
             {
@@ -185,7 +192,7 @@ public abstract class NodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> After(SystemSet set)
+        public override NodeConfigs<T> After(IIntoSystemSet set)
         {
             foreach (var cfg in NodeConfigs)
             {
@@ -194,7 +201,7 @@ public abstract class NodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> BeforeIgnoreDeferred(SystemSet set)
+        public override NodeConfigs<T> BeforeIgnoreDeferred(IIntoSystemSet set)
         {
             foreach (var cfg in NodeConfigs)
             {
@@ -203,7 +210,7 @@ public abstract class NodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> AfterIgnoreDeferred(SystemSet set)
+        public override NodeConfigs<T> AfterIgnoreDeferred(IIntoSystemSet set)
         {
             foreach (var cfg in NodeConfigs)
             {
@@ -218,7 +225,7 @@ public abstract class NodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> AmbiguousWith(SystemSet set)
+        public override NodeConfigs<T> AmbiguousWith(IIntoSystemSet set)
         {
             foreach (var cfg in NodeConfigs)
             {
@@ -262,19 +269,29 @@ public abstract class NodeConfigs<T>
     /// Adds a system set to the systems
     /// </summary>
     /// <param name="set"></param>
-    public abstract NodeConfigs<T> InSet(SystemSet set);
+    public abstract NodeConfigs<T> InSet(IIntoSystemSet set);
 
-    public abstract NodeConfigs<T> Before(SystemSet set);
+    /// <summary>
+    /// Adds a system to the set represented by the enum
+    /// </summary>
+    /// <param name="set"></param>
+    /// <typeparam name="TEnum"></typeparam>
+    public NodeConfigs<T> InSet<TEnum>(TEnum set) where TEnum : struct, Enum
+    {
+        return InSet(new EnumSystemSet<TEnum>(set));
+    }
 
-    public abstract NodeConfigs<T> After(SystemSet set);
+    public abstract NodeConfigs<T> Before(IIntoSystemSet set);
 
-    public abstract NodeConfigs<T> BeforeIgnoreDeferred(SystemSet set);
+    public abstract NodeConfigs<T> After(IIntoSystemSet set);
 
-    public abstract NodeConfigs<T> AfterIgnoreDeferred(SystemSet set);
+    public abstract NodeConfigs<T> BeforeIgnoreDeferred(IIntoSystemSet set);
+
+    public abstract NodeConfigs<T> AfterIgnoreDeferred(IIntoSystemSet set);
 
     public abstract NodeConfigs<T> DistributiveRunIf(Condition condition);
 
-    public abstract NodeConfigs<T> AmbiguousWith(SystemSet set);
+    public abstract NodeConfigs<T> AmbiguousWith(IIntoSystemSet set);
 
     public abstract NodeConfigs<T> AmbiguousWithAll();
 

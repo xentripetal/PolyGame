@@ -14,9 +14,9 @@ public sealed class ApplyDeferredSystem : RunSystem
 
     public override void Initialize(PolyWorld world) { }
 
-    public override object? Run(object? i, PolyWorld world)
+    public override Empty Run(Empty _, PolyWorld world)
     {
-        return null;
+        return Empty.Instance;
     }
 
     public override bool HasDeferred
@@ -32,9 +32,9 @@ public sealed class ApplyDeferredSystem : RunSystem
 
     public override Access<TableComponentId> GetTableAccess() => tableAccess;
 
-    public override List<SystemSet> GetDefaultSystemSets()
+    public override List<ISystemSet> GetDefaultSystemSets()
     {
-        return new List<SystemSet>([new SystemTypeSet(this)]);
+        return new List<ISystemSet>([new SystemReferenceSet(this)]);
     }
 
     public override void UpdateTableComponentAccess(TableCache cache) { }

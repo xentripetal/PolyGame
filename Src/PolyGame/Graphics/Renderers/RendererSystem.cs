@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -8,7 +7,6 @@ using PolyGame.Components.Render;
 using PolyGame.Graphics;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
-using PolyGame.Graphics.Renderers;
 using Serilog;
 
 namespace PolyGame.Systems.Render;
@@ -19,11 +17,12 @@ public class RendererSystem : ClassSystem<Query, Res<ClearColor>, ResMut<Graphic
         ISystemParam<ResMut<Batcher>>, ISystemParam<ResMut<DrawFuncRegistry>>) CreateParams(PolyWorld world)
     {
         return (
-            world.World.QueryBuilder().With<ComputedCamera>().With<CameraRenderGraph>().With<RenderableList>().With<RenderTargetConfig>().Optional().Build().AsParam(),
-            new ResParam<ClearColor>(),
-            new ResMutParam<GraphicsDevice>(),
-            new ResMutParam<Batcher>(),
-            new ResMutParam<DrawFuncRegistry>()
+            Param.Of(world.World.QueryBuilder().With<ComputedCamera>().With<CameraRenderGraph>().With<RenderableList>().With<RenderTargetConfig>().Optional()
+                .Build()),
+            Param.OfRes<ClearColor>(),
+            Param.OfResMut<GraphicsDevice>(),
+            Param.OfResMut<Batcher>(),
+            Param.OfResMut<DrawFuncRegistry>()
         );
     }
 

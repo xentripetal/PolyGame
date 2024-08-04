@@ -1,6 +1,3 @@
-using Flecs.NET.Core;
-using PolyECS.Scheduling.Graph;
-
 namespace PolyECS.Systems;
 
 public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
@@ -8,13 +5,13 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
     protected ParameterSystem(string name)
     {
         Meta = new SystemMeta(name);
-        Parameter = null;
+        _parameter = null;
     }
 
     protected ParameterSystem()
     {
         Meta = new SystemMeta(GetType().Name);
-        Parameter = null;
+        _parameter = null;
     }
 
     /// <summary>
@@ -24,12 +21,10 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
     /// <returns></returns>
     protected abstract ISystemParam<TParam> CreateParam(PolyWorld world);
 
-    protected SystemSet set;
-
     private PolyWorld? _world;
     protected SystemMeta Meta;
-    private ISystemParam<TParam>? Parameter;
-    protected int tableGeneration = 0;
+    private ISystemParam<TParam>? _parameter;
+    protected int TableGeneration;
 
     public override void Initialize(PolyWorld world)
     {
@@ -45,13 +40,13 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
             _world = world;
         }
 
-        Parameter = CreateParam(world);
-        Parameter.Initialize(world, Meta);
+        _parameter = CreateParam(world);
+        _parameter.Initialize(world, Meta);
     }
 
     public override TOut Run(TIn i, PolyWorld world)
     {
-        var p = Parameter.Get(world, Meta);
+        var p = _parameter!.Get(world, Meta);
         return Run(i, p);
     }
 
@@ -71,15 +66,15 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
         return Meta.TableComponentAccess;
     }
 
-    protected List<SystemSet> DefaultSets = new List<SystemSet>();
-    public override List<SystemSet> GetDefaultSystemSets() => DefaultSets;
+    protected List<ISystemSet> DefaultSets = new ();
+    public override List<ISystemSet> GetDefaultSystemSets() => DefaultSets;
 
     public override void UpdateTableComponentAccess(TableCache cache)
     {
-        (var oldGeneration, tableGeneration) = (tableGeneration, cache.Generation);
-        for (int i = oldGeneration; i < tableGeneration; i++)
+        (var oldGeneration, TableGeneration) = (TableGeneration, cache.Generation);
+        for (int i = oldGeneration; i < TableGeneration; i++)
         {
-            Parameter.EvaluateNewTable(Meta, cache[i], i);
+            _parameter.EvaluateNewTable(Meta, cache[i], i);
         }
     }
 }

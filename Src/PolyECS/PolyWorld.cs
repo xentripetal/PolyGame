@@ -1,5 +1,7 @@
+using DotNext;
 using Flecs.NET.Core;
 using PolyECS.Systems;
+using Serilog;
 
 namespace PolyECS;
 
@@ -19,8 +21,54 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
     {
         World = World.Create();
         TableCache = new TableCache(World);
+        SetResource(new ScheduleContainer());
+        SetResource(TableCache);
         TableCache.Update();
     }
+
+    /// <summary>
+    /// Temporarily removes the schedule associated with label from the <see cref="ScheduleContainer"/>, passes it to the provided fn, and finally re-adds it
+    /// to the container. 
+    /// </summary>
+    /// <param name="label">Label of schedule to scope</param>
+    /// <param name="fn">Function to invoke with the schedule</param>
+    /// <typeparam name="T">Return type from the scoped function</typeparam>
+    /// <returns>response from fn</returns>
+    public Result<T> ScheduleScope<T>(ScheduleLabel label, Func<PolyWorld, Schedule, T> fn)
+    {
+        var res = GetResourceMut<ScheduleContainer>();
+        if (!res.HasValue)
+        {
+            return new Result<T>(new InvalidOperationException("ScheduleContainer resource not found"));
+        }
+
+        var schedule = res.Get().Remove(label);
+        if (schedule == null)
+        {
+            return new Result<T>(new ArgumentException($"Schedule for label {label} not found"));
+        }
+        var data = fn(this, schedule);
+        var old = res.Get().Insert(schedule);
+        if (old != null)
+        {
+            Log.Warning("Schedule {Label} was inserted during a call to PolyWorld.ScheduleScope, its value has been overwritten", label);
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Runs the <see cref="Schedule"/> associated with the label a single time
+    /// </summary>
+    /// <param name="label"></param>
+    public Result<Empty> RunSchedule(ScheduleLabel label)
+    {
+        return ScheduleScope<Empty>(label, (world, schedule) => {
+            schedule.Run(world);
+            return Empty.Instance;
+        });
+    }
+
 
     public bool DeferBegin()
     {

@@ -1,11 +1,12 @@
 using PolyECS.Scheduling.Graph;
+using PolyECS.Systems;
 using PolyECS.Systems.Graph;
 
-namespace PolyECS.Systems.Configs;
+namespace PolyECS.Scheduling.Configs;
 
-public class SystemSetConfig : NodeConfig<SystemSet>
+public class SystemSetConfig : NodeConfig<ISystemSet>
 {
-    public SystemSetConfig(SystemSet set) : base(set) { }
+    public SystemSetConfig(ISystemSet set) : base(set) { }
 
     public override NodeId ProcessConfig(SystemGraph graph) => throw new NotImplementedException();
 }

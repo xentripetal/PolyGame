@@ -13,6 +13,5 @@ public class TransformPlugin : IPlugin
         app.World.World.Component<GlobalPosition2D>().Member<Vector2>("Value");
         app.World.World.Component<GlobalRotation2D>().Member<float>("Value");
         app.World.World.Component<GlobalScale2D>().Member<Vector2>("Value");
-        
     }
 }

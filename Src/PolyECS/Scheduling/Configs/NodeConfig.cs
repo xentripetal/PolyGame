@@ -1,7 +1,8 @@
 using PolyECS.Scheduling.Graph;
+using PolyECS.Systems;
 using PolyECS.Systems.Graph;
 
-namespace PolyECS.Systems.Configs;
+namespace PolyECS.Scheduling.Configs;
 
 /// <summary>
 /// Stores configuration for a single generic node (a system or a system set)
@@ -34,7 +35,7 @@ public abstract class NodeConfig<T>
     }
 }
 
-public class SystemConfig : NodeConfig<RunSystem>
+public class SystemConfig : NodeConfig<RunSystem>, IIntoSystemConfigs
 {
     public SystemConfig(RunSystem system) : base(system)
     {
@@ -46,4 +47,5 @@ public class SystemConfig : NodeConfig<RunSystem>
         return graph.AddSystem(this);
     }
 
+    public SystemConfigs IntoSystemConfig() => SystemConfigs.Of(this);
 }
