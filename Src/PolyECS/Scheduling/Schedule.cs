@@ -33,9 +33,12 @@ public class Schedule
         return Label;
     }
 
-    public Schedule AddSystems(IIntoSystemConfigs configs)
+    public Schedule AddSystems(params IIntoNodeConfigs<RunSystem>[] configs)
     {
-        Graph.ProcessConfigs(configs.IntoSystemConfig(), false);
+        foreach (var config in configs)
+        {
+            Graph.ProcessConfigs(config.IntoConfigs(), false);
+        }
         return this;
     }
 

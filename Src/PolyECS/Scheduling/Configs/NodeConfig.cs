@@ -14,7 +14,7 @@ namespace PolyECS.Scheduling.Configs;
 ///
 /// Port of bevy_ecs::schedule::config::NodeConfig
 /// </summary>
-public abstract class NodeConfig<T>
+public abstract class NodeConfig<T> : IIntoNodeConfigs<T>
 {
     public T Node;
     /// <summary>
@@ -33,6 +33,8 @@ public abstract class NodeConfig<T>
     {
         return new NodeConfigs<T>.Node(config);
     }
+
+    public NodeConfigs<T> IntoConfigs() => NodeConfigs<T>.Of(this);
 }
 
 public class SystemConfig : NodeConfig<RunSystem>, IIntoSystemConfigs
@@ -46,6 +48,4 @@ public class SystemConfig : NodeConfig<RunSystem>, IIntoSystemConfigs
     {
         return graph.AddSystem(this);
     }
-
-    public SystemConfigs IntoSystemConfig() => SystemConfigs.Of(this);
 }

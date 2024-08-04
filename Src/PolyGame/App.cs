@@ -47,6 +47,12 @@ public partial class App : Game, IDisposable
         Assets.AddLoader(new XNBAssetLoader(Content));
         World.SetResource(Assets);
         World.SetResource(MainScheduleOrder);
+
+        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        foreach (var label in MainScheduleOrder.AllLabels)
+        {
+            schedules.Insert(new Schedule(label));
+        }
     }
 
     protected Batcher Batcher;

@@ -19,7 +19,7 @@ public static class Schedules
     public static readonly ScheduleLabel Render = new ("render");
     public static readonly ScheduleLabel PostRender = new ("post-render");
     public static readonly ScheduleLabel LastRender = new ("last-render");
-    
+
     public static ScheduleLabel Default = Update;
 }
 
@@ -46,6 +46,8 @@ public class MainScheduleOrder
         Schedules.Startup,
         Schedules.PostStartup,
     ]);
+
+    public IEnumerable<ScheduleLabel> AllLabels => UpdateLabels.Concat(RenderLabels).Concat(StartupLabels);
 
     public void InsertUpdateAfter(ScheduleLabel after, ScheduleLabel label)
     {

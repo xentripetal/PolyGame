@@ -12,83 +12,84 @@ public abstract class RunnableSystem<T> : ParameterSystem<T, Empty, Empty>, IInt
 
     protected RunnableSystem() : base() { }
 
-    public SystemConfigs IntoSystemConfig()
+    public NodeConfigs<RunSystem> IntoConfigs()
     {
-      IIntoSystemConfigs baseConfig = SystemConfigs.Of(new SystemConfig(this));  
-      
-      // Apply any attributes of this type onto its base config
-      var attributes = Attribute.GetCustomAttributes(GetType(), true);
-      foreach (var attr in attributes)
-      {
-          if (attr is SystemConfigAttribute configAttr)
-          {
-              baseConfig = configAttr.Apply(baseConfig);
-          }
-      }
+        IIntoNodeConfigs<RunSystem> baseConfig = NodeConfigs<RunSystem>.Of(new SystemConfig(this));
 
-      return baseConfig.IntoSystemConfig();
-    } 
+        // Apply any attributes of this type onto its base config
+        var attributes = Attribute.GetCustomAttributes(GetType(), true);
+        foreach (var attr in attributes)
+        {
+            if (attr is SystemConfigAttribute configAttr)
+            {
+                baseConfig = configAttr.Apply(baseConfig);
+            }
+        }
+
+        return baseConfig.IntoConfigs();
+    }
 
     public ISystemSet IntoSystemSet() => new SystemReferenceSet(this);
 
     // Re-export all the interface methods from IIntoSystemConfigs to make it easier to chain them
-    public SystemConfigs InSet(IIntoSystemSet set)
+
+    public IIntoNodeConfigs<RunSystem> InSet(IIntoSystemSet set)
     {
-        return (SystemConfigs)IntoSystemConfig().InSet(set);
+        return IntoConfigs().InSet(set);
     }
 
-    public SystemConfigs InSet<TEnum>(TEnum set) where TEnum : struct, Enum
+    public IIntoNodeConfigs<RunSystem> InSet<TEnum>(TEnum set) where TEnum : struct, Enum
     {
-        return (SystemConfigs)IntoSystemConfig().InSet(set);
+        return IntoConfigs().InSet(set);
     }
 
-    public SystemConfigs Before(IIntoSystemSet set)
+    public IIntoNodeConfigs<RunSystem> Before(IIntoSystemSet set)
     {
-        return (SystemConfigs)IntoSystemConfig().Before(set);
+        return IntoConfigs().Before(set);
     }
 
-    public SystemConfigs After(IIntoSystemSet set)
+    public IIntoNodeConfigs<RunSystem> After(IIntoSystemSet set)
     {
-        return (SystemConfigs)IntoSystemConfig().After(set);
+        return IntoConfigs().After(set);
     }
 
-    public SystemConfigs BeforeIgnoreDeferred(IIntoSystemSet set)
+    public IIntoNodeConfigs<RunSystem> BeforeIgnoreDeferred(IIntoSystemSet set)
     {
-        return (SystemConfigs)IntoSystemConfig().BeforeIgnoreDeferred(set);
+        return IntoConfigs().BeforeIgnoreDeferred(set);
     }
 
-    public SystemConfigs AfterIgnoreDeferred(IIntoSystemSet set)
+    public IIntoNodeConfigs<RunSystem> AfterIgnoreDeferred(IIntoSystemSet set)
     {
-        return (SystemConfigs)IntoSystemConfig().AfterIgnoreDeferred(set);
+        return IntoConfigs().AfterIgnoreDeferred(set);
     }
 
-    public SystemConfigs Chained()
+    public IIntoNodeConfigs<RunSystem> Chained()
     {
-        return (SystemConfigs)IntoSystemConfig().SetChained();
+        return IntoConfigs().SetChained();
     }
 
-    public SystemConfigs ChainedIgnoreDeferred()
+    public IIntoNodeConfigs<RunSystem> ChainedIgnoreDeferred()
     {
-        return (SystemConfigs)IntoSystemConfig().SetChainedIgnoreDeferred();
+        return IntoConfigs().SetChainedIgnoreDeferred();
     }
 
-    public SystemConfigs RunIf(Condition condition)
+    public IIntoNodeConfigs<RunSystem> RunIf(Condition condition)
     {
-        return (SystemConfigs)IntoSystemConfig().RunIf(condition);
+        return IntoConfigs().RunIf(condition);
     }
 
-    public SystemConfigs DistributiveRunIf(Condition condition)
+    public IIntoNodeConfigs<RunSystem> DistributiveRunIf(Condition condition)
     {
-        return (SystemConfigs)IntoSystemConfig().DistributiveRunIf(condition);
+        return IntoConfigs().DistributiveRunIf(condition);
     }
 
-    public SystemConfigs AmbiguousWith(IIntoSystemSet set)
+    public IIntoNodeConfigs<RunSystem> AmbiguousWith(IIntoSystemSet set)
     {
-        return (SystemConfigs)IntoSystemConfig().AmbiguousWith(set);
+        return IntoConfigs().AmbiguousWith(set);
     }
 
-    public SystemConfigs AmbiguousWithAll()
+    public IIntoNodeConfigs<RunSystem> AmbiguousWithAll()
     {
-        return (SystemConfigs)IntoSystemConfig().AmbiguousWithAll();
+        return IntoConfigs().AmbiguousWithAll();
     }
 }

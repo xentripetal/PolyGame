@@ -5,9 +5,9 @@ namespace PolyGame;
 
 public partial class App
 {
-    public Schedule AddSystems(ScheduleLabel label, IIntoSystemConfigs systems)
+    public Schedule AddSystems(ScheduleLabel label, IIntoNodeConfigs<RunSystem> systems)
     {
-        return AddSystems(label, systems.IntoSystemConfig());
+        return AddSystems(label, systems.IntoConfigs());
     }
 
     public Schedule AddSystems(ScheduleLabel label, NodeConfigs<RunSystem> systems)
@@ -22,12 +22,7 @@ public partial class App
         return schedule;
     }
 
-    public Schedule AddSystems(IIntoSystemConfigs systems)
-    {
-        return AddSystems(Schedules.Default, systems);
-    }
-
-    public Schedule AddSystems(NodeConfigs<RunSystem> systems)
+    public Schedule AddSystems(IIntoNodeConfigs<RunSystem> systems)
     {
         return AddSystems(Schedules.Default, systems);
     }

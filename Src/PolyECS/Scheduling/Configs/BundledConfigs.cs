@@ -4,26 +4,7 @@ using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Configs;
 
-public abstract class SystemConfigs : NodeConfigs<RunSystem>, IIntoSystemConfigs
-{
-    public static SystemConfigs Of(IIntoSystemConfigs[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
-    {
-        var configs = new NodeConfigs<RunSystem>[systems.Length];
-        for (var i = 0; i < systems.Length; i++)
-        {
-            configs[i] = systems[i].IntoSystemConfig();
-        }
-        return (SystemConfigs)Of(configs, collectiveConditions, chained);
-    }
-
-    public static SystemConfigs Of(params IIntoSystemConfigs[] configs)
-    {
-        return Of(configs, null, Chain.No);
-    }
-
-    public SystemConfigs IntoSystemConfig() => this;
-}
-
+public abstract class SystemConfigs : NodeConfigs<RunSystem> { }
 public abstract class SetConfigs : NodeConfigs<ISystemSet> { }
 
 /// <summary>
@@ -32,15 +13,19 @@ public abstract class SetConfigs : NodeConfigs<ISystemSet> { }
 /// A port of bevy_ecs::schedule::config::NodeConfigs
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public abstract class NodeConfigs<T>
+public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
 {
     public static NodeConfigs<T> Of(NodeConfig<T> config)
     {
         return new Node(config);
     }
 
+    public static NodeConfigs<T> Of(params IIntoNodeConfigs<T>[] configs)
+    {
+        return Of(configs, null, Chain.No);
+    }
 
-    public static NodeConfigs<T> Of(NodeConfig<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    public static NodeConfigs<T> Of(IIntoNodeConfigs<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
         if (configs == null || configs.Length == 0)
         {
@@ -51,29 +36,9 @@ public abstract class NodeConfigs<T>
         var convertedConfigs = new NodeConfigs<T>[configs.Length];
         for (var i = 0; i < configs.Length; i++)
         {
-            convertedConfigs[i] = Of(configs[i]);
+            convertedConfigs[i] = configs[i].IntoConfigs();
         }
-        return Of(convertedConfigs, collectiveConditions, chained);
-    }
-
-    public static NodeConfigs<T> Of(NodeConfigs<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
-    {
-        if (configs == null || configs.Length == 0)
-        {
-            throw new ArgumentException("NodeConfigs must not be empty");
-        }
-        collectiveConditions ??= [];
-        if (configs.Length == 1)
-        {
-            // Treat it as a single node and apply collective conditions to the node
-            var node = configs[0];
-            foreach (var condition in collectiveConditions)
-            {
-                node.DistributiveRunIf(condition);
-            }
-            return node;
-        }
-        return new Configs(configs, collectiveConditions, chained);
+        return new Configs(convertedConfigs, collectiveConditions, chained);
     }
 
 
@@ -163,11 +128,15 @@ public abstract class NodeConfigs<T>
         /// </summary>
         public Chain Chained;
 
-        public Configs(NodeConfigs<T>[] nodeConfigs, Condition[] collectiveConditions, Chain chained)
+        public Configs(NodeConfigs<T>[] nodeConfigs, Condition[]? collectiveConditions, Chain chained)
         {
             if (nodeConfigs == null || nodeConfigs.Length == 0)
             {
                 throw new ArgumentException("NodeConfigs must not be empty");
+            }
+            if (collectiveConditions == null)
+            {
+                collectiveConditions = Array.Empty<Condition>();
             }
             NodeConfigs = nodeConfigs;
             CollectiveConditions = collectiveConditions.ToList();
@@ -264,6 +233,8 @@ public abstract class NodeConfigs<T>
             return this;
         }
     }
+
+    public NodeConfigs<T> IntoConfigs() => this;
 
     /// <summary>
     /// Adds a system set to the systems

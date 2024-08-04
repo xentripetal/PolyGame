@@ -55,9 +55,9 @@ public class CoreRenderingTests
     public FrameTracker SetupFrameCounter(App app)
     {
         app.World.Entity().Set(new CurrentFrame(0));
-        app.GameSchedule.AddSystems(new FrameIncSystem());
+        app.AddSystems(new FrameIncSystem());
         var tracker = new FrameTracker();
-        app.RenderSchedule.AddSystems(tracker);
+        app.AddSystems(Schedules.Render, tracker);
         return tracker;
     }
 

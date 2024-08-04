@@ -22,7 +22,7 @@ public interface IIntoNodeConfigs<T>
         return IntoConfigs().InSet(set);
     }
     
-    public NodeConfigs<T> InSet<T>(T set) where T : struct, Enum
+    public NodeConfigs<T> InSet<TEnum>(TEnum set) where TEnum : struct, Enum
     {
         return IntoConfigs().InSet(set);
     }
@@ -80,73 +80,7 @@ public interface IIntoNodeConfigs<T>
 }
 
 
-public interface IIntoSystemConfigs
+public interface IIntoSystemConfigs : IIntoNodeConfigs<RunSystem>
 {
-    public SystemConfigs IntoSystemConfig();
-
-    /// <summary>
-    /// Adds these systems to the provided <see cref="set"/>
-    /// </summary>
-    /// <param name="set">Set to put systems in</param>
-    /// <returns></returns>
-    public SystemConfigs InSet(IIntoSystemSet set)
-    {
-        return (SystemConfigs)IntoSystemConfig().InSet(set);
-    }
-    
-    public SystemConfigs InSet<T>(T set) where T : struct, Enum
-    {
-        return (SystemConfigs)IntoSystemConfig().InSet(set);
-    }
-    
-    public SystemConfigs Before(IIntoSystemSet set)
-    {
-        return (SystemConfigs)IntoSystemConfig().Before(set);
-    }
-    
-    public SystemConfigs After(IIntoSystemSet set)
-    {
-        return (SystemConfigs)IntoSystemConfig().After(set);
-    }
-    
-    public SystemConfigs BeforeIgnoreDeferred(IIntoSystemSet set)
-    {
-        return (SystemConfigs)IntoSystemConfig().BeforeIgnoreDeferred(set);
-    }
-    
-    public SystemConfigs AfterIgnoreDeferred(IIntoSystemSet set)
-    {
-        return (SystemConfigs)IntoSystemConfig().AfterIgnoreDeferred(set);
-    }
-
-    public SystemConfigs Chained()
-    {
-        return (SystemConfigs)IntoSystemConfig().SetChained();
-    }
-    
-    public SystemConfigs ChainedIgnoreDeferred()
-    {
-        return (SystemConfigs)IntoSystemConfig().SetChainedIgnoreDeferred();
-    }
-    
-    public SystemConfigs RunIf(Condition condition)
-    {
-        return (SystemConfigs)IntoSystemConfig().RunIf(condition);
-    }
-    
-    public SystemConfigs DistributiveRunIf(Condition condition)
-    {
-        return (SystemConfigs)IntoSystemConfig().DistributiveRunIf(condition);
-    }
-    
-    public SystemConfigs AmbiguousWith(IIntoSystemSet set)
-    {
-        return (SystemConfigs)IntoSystemConfig().AmbiguousWith(set);
-    }
-    
-    public SystemConfigs AmbiguousWithAll()
-    {
-        return (SystemConfigs)IntoSystemConfig().AmbiguousWithAll();
-    }
     
 }

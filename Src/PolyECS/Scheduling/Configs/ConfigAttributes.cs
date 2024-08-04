@@ -4,7 +4,7 @@ namespace PolyECS.Scheduling.Configs;
 
 public abstract class SystemConfigAttribute : Attribute
 {
-    public abstract IIntoSystemConfigs Apply(IIntoSystemConfigs configs);
+    public abstract IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs);
 }
 
 public abstract class EnumSetReferenceAttribute<T> : SystemConfigAttribute where T : struct, Enum
@@ -29,7 +29,7 @@ public abstract class GenericSetReferenceAttribute<T> : SystemConfigAttribute wh
 
 public class BeforeSystemAttribute<T> : GenericSetReferenceAttribute<T> where T : RunSystem
 {
-    public override IIntoSystemConfigs Apply(IIntoSystemConfigs configs)
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
     {
         return configs.Before(ReferenceSet);
     }
@@ -37,7 +37,7 @@ public class BeforeSystemAttribute<T> : GenericSetReferenceAttribute<T> where T 
 
 public class BeforeAttribute<TEnum> : EnumSetReferenceAttribute<TEnum> where TEnum : struct, Enum
 {
-    public override IIntoSystemConfigs Apply(IIntoSystemConfigs configs)
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
     {
         return configs.Before(ReferenceSet);
     }
@@ -47,7 +47,7 @@ public class BeforeAttribute<TEnum> : EnumSetReferenceAttribute<TEnum> where TEn
 
 public class AfterSystemAttribute<T> : GenericSetReferenceAttribute<T> where T : RunSystem
 {
-    public override IIntoSystemConfigs Apply(IIntoSystemConfigs configs)
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
     {
         return configs.After(ReferenceSet);
     }
@@ -55,7 +55,7 @@ public class AfterSystemAttribute<T> : GenericSetReferenceAttribute<T> where T :
 
 public class AfterAttribute<TEnum> : EnumSetReferenceAttribute<TEnum> where TEnum : struct, Enum
 {
-    public override IIntoSystemConfigs Apply(IIntoSystemConfigs configs)
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
     {
         return configs.After(ReferenceSet);
     }
@@ -66,7 +66,7 @@ public class AfterAttribute<TEnum> : EnumSetReferenceAttribute<TEnum> where TEnu
 public class InSetAttribute<T>(T set) : EnumSetReferenceAttribute<T>(set)
     where T : struct, Enum
 {
-    public override IIntoSystemConfigs Apply(IIntoSystemConfigs configs)
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
     {
         return configs.InSet(ReferenceSet);
     }
