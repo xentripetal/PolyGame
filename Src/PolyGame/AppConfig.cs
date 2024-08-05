@@ -23,10 +23,4 @@ public partial class App
         bundle.Apply(this);
         return this;
     }
-
-    public App AddExtractor(IExtractor extractor)
-    {
-        Extractors.Add(extractor);
-        return this;
-    }
 }

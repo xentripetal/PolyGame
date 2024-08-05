@@ -65,12 +65,12 @@ public abstract class RunnableSystem<T> : ParameterSystem<T, Empty, Empty>, IInt
 
     public IIntoNodeConfigs<RunSystem> Chained()
     {
-        return IntoConfigs().SetChained();
+        return IntoConfigs().Chained();
     }
 
     public IIntoNodeConfigs<RunSystem> ChainedIgnoreDeferred()
     {
-        return IntoConfigs().SetChainedIgnoreDeferred();
+        return IntoConfigs().ChainedIgnoreDeferred();
     }
 
     public IIntoNodeConfigs<RunSystem> RunIf(Condition condition)

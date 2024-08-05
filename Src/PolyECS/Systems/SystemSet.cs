@@ -2,7 +2,7 @@ using PolyECS.Scheduling.Configs;
 
 namespace PolyECS.Systems;
 
-public interface ISystemSet : IEquatable<ISystemSet>, IIntoSystemSet
+public interface ISystemSet : IEquatable<ISystemSet>, IIntoSystemSet, IIntoSystemSetConfigs
 {
     public string GetName();
     public Type? SystemType();
@@ -12,6 +12,11 @@ public readonly record struct NamedSet(string Name) : ISystemSet
 {
     public Type? SystemType() => null;
 
+    public override int GetHashCode()
+    {
+        return Name.GetHashCode();
+    }
+
     public bool Equals(ISystemSet? other)
     {
         if (other is NamedSet otherNamed)
@@ -20,9 +25,10 @@ public readonly record struct NamedSet(string Name) : ISystemSet
         }
         return false;
     }
-
+    
     public string GetName() => Name;
     public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 public readonly struct AnonymousSet(ulong id) : ISystemSet
@@ -37,12 +43,17 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
         }
         return false;
     }
-
+    
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 
     public Type? SystemType() => null;
 
     public string GetName() => $"AnonymousSet {Id}";
     public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 /// <summary>
@@ -67,6 +78,11 @@ public class SystemReferenceSet(RunSystem sys) : ISystemSet
         }
         return false;
     }
+    
+    public override int GetHashCode()
+    {
+        return System.GetHashCode();
+    }
 
     public string GetName() => $"SystemReferenceSet {System.GetType().Name}";
 
@@ -76,6 +92,7 @@ public class SystemReferenceSet(RunSystem sys) : ISystemSet
     }
 
     public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 public class SystemTypeSet : ISystemSet
@@ -99,12 +116,18 @@ public class SystemTypeSet : ISystemSet
         }
         return false;
     }
+    
+    public override int GetHashCode()
+    {
+        return Type.GetHashCode();
+    }
 
     public ISystemSet IntoSystemSet() => this;
 
     public string GetName() => $"SystemTypeSet {Type.Name}";
 
     public Type? SystemType() => Type;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
@@ -118,7 +141,7 @@ public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
         }
         return base.Equals(other);
     }
-
+    
     public new string GetName() => $"SystemTypeSet {typeof(T).Name}";
 
     public new ISystemSet IntoSystemSet() => this;
@@ -141,12 +164,18 @@ public class EnumSystemSet<T> : ISystemSet where T : struct, Enum
         }
         return false;
     }
+    
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(typeof(T), Value);
+    }
 
     public ISystemSet IntoSystemSet() => this;
 
     public string GetName() => $"{typeof(T).Name}({Enum.GetName(Value)})";
 
     public Type? SystemType() => null;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 /// <summary>
@@ -163,7 +192,13 @@ public abstract class StaticSystemSet : ISystemSet
     {
         return GetType().Name;
     }
+    
+    public override int GetHashCode()
+    {
+        return GetType().GetHashCode();
+    }
 
     public Type? SystemType() => null;
     public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }

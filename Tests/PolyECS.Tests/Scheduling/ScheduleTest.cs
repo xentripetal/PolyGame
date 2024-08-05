@@ -54,7 +54,7 @@ public class ScheduleTest
     {
         var sysA = new TestSystem("A");
         var sysB = new TestSystem("B");
-        var schedule = ScheduleAndRun(SystemConfigs.Of([sysA, sysB]).SetChained());
+        var schedule = ScheduleAndRun(SystemConfigs.Of([sysA, sysB]).Chained());
 
         // Should have our 2 systems and a sync point between them
         Assert.Equal(3, schedule.Executable.Systems.Count);

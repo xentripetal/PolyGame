@@ -5,7 +5,19 @@ using PolyECS.Systems.Graph;
 namespace PolyECS.Scheduling.Configs;
 
 public abstract class SystemConfigs : NodeConfigs<RunSystem> { }
-public abstract class SetConfigs : NodeConfigs<ISystemSet> { }
+
+public abstract class SetConfigs : NodeConfigs<ISystemSet>
+{
+    public static NodeConfigs<ISystemSet> Of<T>(params T[] sets) where T : struct, Enum
+    {
+        var convertedSets = new IIntoNodeConfigs<ISystemSet>[sets.Length];
+        for (var i = 0; i < sets.Length; i++)
+        {
+            convertedSets[i] = new EnumSystemSet<T>(sets[i]);
+        }
+        return NodeConfigs<ISystemSet>.Of(convertedSets);
+    }
+}
 
 /// <summary>
 /// A collection of generic <see cref="NodeConfig{T}"/>s
@@ -100,13 +112,13 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> SetChained()
+        public override NodeConfigs<T> Chained()
         {
             //no-op
             return this;
         }
 
-        public override NodeConfigs<T> SetChainedIgnoreDeferred()
+        public override NodeConfigs<T> ChainedIgnoreDeferred()
         {
             //no-op
             return this;
@@ -124,11 +136,11 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
         /// </summary>
         public List<Condition> CollectiveConditions;
         /// <summary>
-        /// See <see cref="Chained"/> for usage.
+        /// See <see cref="Chain"/> for usage.
         /// </summary>
-        public Chain Chained;
+        public Chain Chain;
 
-        public Configs(NodeConfigs<T>[] nodeConfigs, Condition[]? collectiveConditions, Chain chained)
+        public Configs(NodeConfigs<T>[] nodeConfigs, Condition[]? collectiveConditions, Chain chain)
         {
             if (nodeConfigs == null || nodeConfigs.Length == 0)
             {
@@ -140,7 +152,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             }
             NodeConfigs = nodeConfigs;
             CollectiveConditions = collectiveConditions.ToList();
-            Chained = chained;
+            Chain = chain;
         }
 
         public override NodeConfigs<T> InSet(IIntoSystemSet set)
@@ -221,15 +233,15 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> SetChained()
+        public override NodeConfigs<T> Chained()
         {
-            Chained = Chain.Yes;
+            Chain = Chain.Yes;
             return this;
         }
 
-        public override NodeConfigs<T> SetChainedIgnoreDeferred()
+        public override NodeConfigs<T> ChainedIgnoreDeferred()
         {
-            Chained = Chain.YesIgnoreDeferred;
+            Chain = Chain.YesIgnoreDeferred;
             return this;
         }
     }
@@ -268,9 +280,9 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
 
     public abstract NodeConfigs<T> RunIf(Condition condition);
 
-    public abstract NodeConfigs<T> SetChained();
+    public abstract NodeConfigs<T> Chained();
 
-    public abstract NodeConfigs<T> SetChainedIgnoreDeferred();
+    public abstract NodeConfigs<T> ChainedIgnoreDeferred();
 }
 
 public enum Chain

@@ -47,6 +47,7 @@ public partial class App : Game, IDisposable
         Assets.AddLoader(new XNBAssetLoader(Content));
         World.SetResource(Assets);
         World.SetResource(MainScheduleOrder);
+        World.RegisterResource<GameTime>();
 
         var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
         foreach (var label in MainScheduleOrder.AllLabels)
@@ -82,6 +83,7 @@ public partial class App : Game, IDisposable
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
+        World.World.Set(gameTime);
         // Progress any internal flecs routines such as http server
         World.World.Progress();
         // Run our main schedule

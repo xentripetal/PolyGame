@@ -1,3 +1,4 @@
+using DotNext.Collections.Generic;
 using PolyECS.Scheduling.Graph;
 using PolyECS.Systems;
 using PolyECS.Systems.Graph;
@@ -49,3 +50,13 @@ public class SystemConfig : NodeConfig<RunSystem>, IIntoSystemConfigs
         return graph.AddSystem(this);
     }
 }
+
+public class SystemSetConfig : NodeConfig<ISystemSet>, IIntoSystemSet, IIntoSystemSetConfigs
+{
+    public SystemSetConfig(ISystemSet set) : base(set) { }
+
+    public override NodeId ProcessConfig(SystemGraph graph) => graph.ConfigureSet(this);
+    public NodeConfigs<ISystemSet> IntoConfigs() => this;
+    public ISystemSet IntoSystemSet() => Node;
+}
+

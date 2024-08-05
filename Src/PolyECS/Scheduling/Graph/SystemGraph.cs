@@ -195,8 +195,8 @@ public class SystemGraph
             throw new ArgumentException("Invalid NodeConfigs type");
 
         ApplyCollectiveConditions(bundledConfigs.NodeConfigs, bundledConfigs.CollectiveConditions);
-        var ignoreDeferred = bundledConfigs.Chained == Chain.YesIgnoreDeferred;
-        var chained = bundledConfigs.Chained == Chain.Yes || bundledConfigs.Chained == Chain.YesIgnoreDeferred;
+        var ignoreDeferred = bundledConfigs.Chain == Chain.YesIgnoreDeferred;
+        var chained = bundledConfigs.Chain == Chain.Yes || bundledConfigs.Chain == Chain.YesIgnoreDeferred;
         var denselyChained = chained || bundledConfigs.NodeConfigs.Length == 1;
         var nodes = new List<NodeId>();
 
@@ -259,7 +259,7 @@ public class SystemGraph
 
 
     /// Add a single `SystemSetConfig` to the graph, including its dependencies and conditions.
-    protected NodeId ConfigureSet(SystemSetConfig set)
+    internal NodeId ConfigureSet(SystemSetConfig set)
     {
         var ok = SystemSetIds.TryGetValue(set.Node, out var id);
         if (!ok)
@@ -275,9 +275,9 @@ public class SystemGraph
         return id;
     }
 
-    public NodeId AddSet(ISystemSet set)
+    protected NodeId AddSet(ISystemSet set)
     {
-        var id = new NodeId(Systems.Count, NodeType.Set);
+        var id = new NodeId(SystemSets.Count, NodeType.Set);
         SystemSets.Add(set);
         SystemSetIds[set] = id;
         SystemSetConditions.Add(new List<Condition>());
@@ -882,7 +882,16 @@ public class SystemGraph
 
     public String GetNodeName(NodeId id)
     {
-        return id.Type == NodeType.System ? Systems[id.Id].GetType().Name : SystemSets[id.Id].GetType().Name;
+        if (id.Type == NodeType.System)
+        {
+            var sys = Systems[id.Id];
+            if (sys is IMetaSystem metaSys)
+            {
+                return metaSys.GetMeta().Name;
+            }
+            return sys.GetType().Name;
+        }
+        return SystemSets[id.Id].GetName();
     }
 
     void CheckCrossDependencies(CheckGraphResults<NodeId> depResults, HashSet<(NodeId, NodeId)> hierResultsConnected)
@@ -1067,6 +1076,10 @@ public class SystemGraph
             }
             var aSystems = setSystemBitsets[a];
             var bSystems = setSystemBitsets[b];
+            if (aSystems.Length == 0)
+            {
+                continue;
+            }
             if (!aSystems.IsDisjoint(bSystems))
             {
                 throw new ScheduleBuildException.SetsHaveOrderButIntersect(GetNodeName(a), GetNodeName(b));
@@ -1126,5 +1139,10 @@ public class SystemGraph
             }
         }
         return message;
+    }
+
+    public void ConfigureSets(IIntoNodeConfigs<ISystemSet> sets)
+    {
+        ProcessConfigs(sets.IntoConfigs(), false);
     }
 }

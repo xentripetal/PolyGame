@@ -120,18 +120,18 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         World.Dispose();
     }
 
-    public void Register<T>()
+    public Component<T> Register<T>()
     {
-        Type<T>.RegisterComponent(World, true, true, 0, "");
+        unsafe
+        {
+            return new Component<T>(World.Handle, Type<T>.RegisterComponent(World, true, true, 0, ""));
+        }
     }
 
     public void RegisterComponent<T>() where T : IComponent
     {
-        unsafe
-        {
-            var id = Type<T>.RegisterComponent(World, true, true, 0, "");
-            T.Register(new UntypedComponent(World.Handle, id));
-        }
+        var c = Register<T>();
+        T.Register(c.UntypedComponent);
     }
 
     public Res<T> GetResource<T>() => new Res<T>(World);

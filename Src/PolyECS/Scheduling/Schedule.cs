@@ -126,4 +126,19 @@ public class Schedule
             ExecutorInitialized = true;
         }
     }
+
+    public Schedule ConfigureSets(IIntoNodeConfigs<ISystemSet> sets)
+    {
+        Graph.ConfigureSets(sets);
+        return this;
+    }
+
+    public Schedule ConfigureSets(IIntoNodeConfigs<ISystemSet>[] sets)
+    {
+        foreach (var set in sets)
+        {
+            Graph.ConfigureSets(set);
+        }
+        return this;
+    }
 }

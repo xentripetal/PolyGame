@@ -16,6 +16,6 @@ public class InputPlugin : IPlugin
         app.World.RegisterResource<PreviousKeyboardState>();
         app.World.RegisterResource<MouseState>();
         app.World.RegisterResource<PreviousMouseState>();
-        app.AddSystems(SystemConfigs.Of(new PopulateKeyboardState(), new PopulateMouseState()).InSet(InputSets.CopyInput));
+        app.AddSystems(Schedules.PreUpdate, SystemConfigs.Of(new PopulateKeyboardState(), new PopulateMouseState()).InSet(InputSets.CopyInput));
     }
 }

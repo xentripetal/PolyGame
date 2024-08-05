@@ -1,6 +1,6 @@
 namespace PolyECS.Systems;
 
-public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
+public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>, IMetaSystem
 {
     protected ParameterSystem(string name)
     {
@@ -76,5 +76,10 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
         {
             _parameter.EvaluateNewTable(Meta, cache[i], i);
         }
+    }
+
+    public SystemMeta GetMeta()
+    {
+        return Meta;
     }
 }
