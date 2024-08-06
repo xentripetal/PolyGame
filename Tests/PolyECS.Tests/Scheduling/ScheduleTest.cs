@@ -1,22 +1,22 @@
 using System.Collections.Generic;
 using Flecs.NET.Core;
 using JetBrains.Annotations;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
-using PolyECS.Systems.Configs;
 
 namespace PolyECS.Tests.Scheduling;
 
 [TestSubject(typeof(Schedule))]
 public class ScheduleTest
 {
-    protected class TestSystem : ClassSystem<object?>
+    protected class TestSystem : ClassSystem<Empty>
     {
         public int InitCout = 0;
         public int RunCount = 0;
 
-        protected override ISystemParam<object> CreateParam(PolyWorld world) => new VoidParam();
+        protected override ISystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
 
-        public override void Run([CanBeNull] object param)
+        public override void Run(Empty param)
         {
             RunCount++;
         }
@@ -35,14 +35,14 @@ public class ScheduleTest
     [Fact]
     public void EmptySchedule()
     {
-        var schedule = new Schedule();
+        var schedule = new Schedule(new ScheduleLabel("default"));
         using var world = new PolyWorld();
         schedule.Run(world);
     }
 
-    protected Schedule ScheduleAndRun(params NodeConfigs<RunSystem>[] configs)
+    protected Schedule ScheduleAndRun(params IIntoNodeConfigs<RunSystem>[] configs)
     {
-        var schedule = new Schedule();
+        var schedule = new Schedule(new ScheduleLabel("default"));
         using var world = new PolyWorld();
         schedule.AddSystems(configs);
         schedule.Run(world);
@@ -54,7 +54,7 @@ public class ScheduleTest
     {
         var sysA = new TestSystem("A");
         var sysB = new TestSystem("B");
-        var schedule = ScheduleAndRun(SystemConfigs.Of([sysA, sysB], chained: Chain.Yes));
+        var schedule = ScheduleAndRun(SystemConfigs.Of([sysA, sysB]).Chained());
 
         // Should have our 2 systems and a sync point between them
         Assert.Equal(3, schedule.Executable.Systems.Count);
@@ -65,7 +65,7 @@ public class ScheduleTest
     [Fact]
     public void DoesntInsertASyncPoint()
     {
-        var schedule = ScheduleAndRun(SystemConfigs.Of([new TestSystem("A"), new TestSystem("B")], chained: Chain.No));
+        var schedule = ScheduleAndRun(new TestSystem("A"), new TestSystem("B"));
         Assert.Equal(2, schedule.Executable.Systems.Count);
     }
 }

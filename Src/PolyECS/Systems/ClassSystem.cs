@@ -1,4 +1,4 @@
-using PolyECS.Systems.Configs;
+using PolyECS.Scheduling.Configs;
 
 namespace PolyECS.Systems;
 
@@ -10,16 +10,16 @@ public abstract class ClassSystem<T> : RunnableSystem<T>
 {
     protected ClassSystem(string name) : base(name)
     {
-        DefaultSets.Add(new SystemTypeSet(this));
+        DefaultSets.Add(new SystemTypeSet(GetType()));
     }
 
     protected ClassSystem() : base()
     {
-        DefaultSets.Add(new SystemTypeSet(this));
+        DefaultSets.Add(new SystemTypeSet(GetType()));
     }
 
 
-    public override object? Run(object? i, T param)
+    public override Empty Run(Empty i, T param)
     {
         Run(param);
         return i;

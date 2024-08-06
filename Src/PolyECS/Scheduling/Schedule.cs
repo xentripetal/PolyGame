@@ -1,7 +1,7 @@
 using Flecs.NET.Core;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Scheduling.Executor;
 using PolyECS.Scheduling.Graph;
-using PolyECS.Systems.Configs;
 using PolyECS.Systems.Executor;
 using PolyECS.Systems.Graph;
 using QuikGraph;
@@ -14,13 +14,13 @@ namespace PolyECS.Systems;
 /// </summary>
 public class Schedule
 {
-    public string Label { get; protected set; }
+    public ScheduleLabel Label { get; protected set; }
     internal SystemGraph Graph;
     internal SystemSchedule Executable;
     internal IExecutor Executor;
     protected bool ExecutorInitialized;
 
-    public Schedule(string label = "default")
+    public Schedule(ScheduleLabel label)
     {
         Label = label;
         Graph = new SystemGraph();
@@ -28,30 +28,18 @@ public class Schedule
         Executor = new SimpleExecutor();
     }
 
-    public string GetLabel()
+    public ScheduleLabel GetLabel()
     {
         return Label;
     }
 
-    /// <summary>
-    /// Add a collection of systems to the schedule.
-    /// </summary>
-    /// <param name="configs"></param>
-    /// <returns></returns>
-    public Schedule AddSystems(NodeConfigs<RunSystem> configs)
+    public Schedule AddSystems(params IIntoNodeConfigs<RunSystem>[] configs)
     {
-        Graph.ProcessConfigs(configs, false);
+        foreach (var config in configs)
+        {
+            Graph.ProcessConfigs(config.IntoConfigs(), false);
+        }
         return this;
-    }
-
-    public Schedule AddSystems(RunSystem[] systems, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
-    {
-        return AddSystems(SystemConfigs.Of(systems, collectiveConditions: collectiveConditions, chained: chained));
-    }
-
-    public Schedule AddSystems(NodeConfigs<RunSystem>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
-    {
-        return AddSystems(SystemConfigs.Of(configs, collectiveConditions: collectiveConditions, chained: chained));
     }
 
     /// <summary>
@@ -61,7 +49,7 @@ public class Schedule
     /// <param name="b"></param>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public Schedule IgnoreAmbiguity(SystemSet a, SystemSet b)
+    public Schedule IgnoreAmbiguity(ISystemSet a, ISystemSet b)
     {
         var hasA = Graph.SystemSetIds.TryGetValue(a, out var aNode);
         if (!hasA)
@@ -137,5 +125,20 @@ public class Schedule
             Executor.Init(Executable);
             ExecutorInitialized = true;
         }
+    }
+
+    public Schedule ConfigureSets(IIntoNodeConfigs<ISystemSet> sets)
+    {
+        Graph.ConfigureSets(sets);
+        return this;
+    }
+
+    public Schedule ConfigureSets(IIntoNodeConfigs<ISystemSet>[] sets)
+    {
+        foreach (var set in sets)
+        {
+            Graph.ConfigureSets(set);
+        }
+        return this;
     }
 }

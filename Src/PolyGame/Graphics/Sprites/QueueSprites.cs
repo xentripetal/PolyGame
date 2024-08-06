@@ -8,6 +8,7 @@ using PolyGame.Components.Render;
 using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
+using PolyGame.Systems.Render;
 
 namespace PolyGame.Graphics.Sprites;
 

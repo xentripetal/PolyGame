@@ -5,26 +5,28 @@ using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Sprites;
 using Serilog;
+using Verse;
 
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 try
 {
-    using var verse = new Verse();
-    verse.AddPluginBundle(new DefaultPlugins());
+    using var app = new App();
+    app.AddPluginBundle(new DefaultPlugins())
+        .AddSystems(Schedules.Update, new MoveCameraSystem());
     // TODO hack for calling init
-    verse.RunOneFrame();
-    var assetServer = verse.World.GetResource<AssetServer>();
+    app.RunOneFrame();
+    var assetServer = app.World.GetResource<AssetServer>();
     for (int x = 0; x < 16; x++)
     {
         for (int y = 0; y < 16; y++)
         {
-            var entity = verse.World.Entity($"Sprite{x}_{y}");
+            var entity = app.World.Entity($"Sprite{x}_{y}");
             var sb = new SpriteBundle
             {
                 Texture = assetServer.Get().Load<Texture2D>("Content/Missing.png", false),
                 Transform =
                 {
-                    Position = new Vector2(x*16, y*16)
+                    Position = new Vector2(x * 16, y * 16)
                 }
             };
             sb.Apply(entity);
@@ -45,8 +47,8 @@ try
         Inset = new CameraInset(),
         Transform = new TransformBundle2D(),
     };
-    cb.Apply(verse.World.Entity("TestCamera"));
-    verse.Run();
+    cb.Apply(app.World.Entity("TestCamera"));
+    app.Run();
 }
 catch (Exception e)
 {

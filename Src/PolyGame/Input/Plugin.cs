@@ -1,7 +1,12 @@
 using Microsoft.Xna.Framework.Input;
-using PolyECS.Systems.Configs;
+using PolyECS.Scheduling.Configs;
 
 namespace PolyGame.Input;
+
+public enum InputSets
+{
+    CopyInput
+}
 
 public class InputPlugin : IPlugin
 {
@@ -11,6 +16,6 @@ public class InputPlugin : IPlugin
         app.World.RegisterResource<PreviousKeyboardState>();
         app.World.RegisterResource<MouseState>();
         app.World.RegisterResource<PreviousMouseState>();
-        app.GameSchedule.AddSystems(SystemConfigs.Of([new PopulateKeyboardState(), new PopulateMouseState()]));
+        app.AddSystems(Schedules.PreUpdate, SystemConfigs.Of(new PopulateKeyboardState(), new PopulateMouseState()).InSet(InputSets.CopyInput));
     }
 }

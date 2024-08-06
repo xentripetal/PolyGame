@@ -1,11 +1,13 @@
+using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
+using PolyECS;
 
 namespace PolyGame;
 
 	/// <summary>
 	/// Describes a 2D-rectangle. 
 	/// </summary>
-	public struct RectangleF : IEquatable<RectangleF>
+	public struct RectangleF : IEquatable<RectangleF>, IComponent
 	{
 		static RectangleF emptyRectangle = new RectangleF();
 
@@ -948,6 +950,11 @@ namespace PolyGame;
 		public override string ToString()
 		{
 			return string.Format("X:{0}, Y:{1}, Width: {2}, Height: {3}", X, Y, Width, Height);
+		}
+
+		public static void Register(UntypedComponent component)
+		{
+			component.Member<float>("X").Member<float>("Y").Member<float>("Width").Member<float>("Height");
 		}
 
 		#endregion

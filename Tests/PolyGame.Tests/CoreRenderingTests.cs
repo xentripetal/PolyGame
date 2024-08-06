@@ -11,19 +11,10 @@ public class CoreRenderingTests
 {
     public record struct CurrentFrame(int Value);
 
-    class TestExtractor : IExtractor
-    {
-        public void Extract(World sourceWorld, World targetWorld)
-        {
-            sourceWorld.Each((ref CurrentFrame frame) => {
-                targetWorld.Entity().Set(frame).Add<DeleteAfterRender>();
-            });
-        }
-    }
-    
     protected class FrameIncSystem : ClassSystem<Query>
     {
-        protected override ISystemParam<Query> CreateParam(PolyWorld world) {
+        protected override ISystemParam<Query> CreateParam(PolyWorld world)
+        {
             return Param.Of(world.Query<CurrentFrame>());
         }
 
@@ -35,7 +26,7 @@ public class CoreRenderingTests
         }
     }
 
-    public class FrameTracker: ClassSystem<Query>
+    public class FrameTracker : ClassSystem<Query>
     {
         public CurrentFrame RenderFrame = new CurrentFrame(0);
 
@@ -55,9 +46,9 @@ public class CoreRenderingTests
     public FrameTracker SetupFrameCounter(App app)
     {
         app.World.Entity().Set(new CurrentFrame(0));
-        app.GameSchedule.AddSystems(new FrameIncSystem());
+        app.AddSystems(Schedules.Update, new FrameIncSystem());
         var tracker = new FrameTracker();
-        app.RenderSchedule.AddSystems(tracker);
+        app.AddSystems(Schedules.Render, tracker);
         return tracker;
     }
 
@@ -90,7 +81,6 @@ public class CoreRenderingTests
         }
     }
     **/
-
     public T getSingleton<T>(PolyWorld world) where T : struct
     {
         T value = new T();

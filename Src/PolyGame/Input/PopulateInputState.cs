@@ -1,13 +1,14 @@
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework.Input;
 using PolyECS;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
 
 namespace PolyGame.Input;
 
 public record struct PreviousKeyboardState(KeyboardState State) { }
 
-public class PopulateKeyboardState: ClassSystem<ResMut<KeyboardState>, ResMut<PreviousKeyboardState>>
+public class PopulateKeyboardState : ClassSystem<ResMut<KeyboardState>, ResMut<PreviousKeyboardState>>
 {
     protected override (ISystemParam<ResMut<KeyboardState>>, ISystemParam<ResMut<PreviousKeyboardState>>) CreateParams(PolyWorld world) => (
         Param.OfResMut<KeyboardState>(),
@@ -28,7 +29,7 @@ public class PopulateKeyboardState: ClassSystem<ResMut<KeyboardState>, ResMut<Pr
 
 public record struct PreviousMouseState(MouseState State) { }
 
-public class PopulateMouseState: ClassSystem<ResMut<MouseState>, ResMut<PreviousMouseState>>
+public class PopulateMouseState : ClassSystem<ResMut<MouseState>, ResMut<PreviousMouseState>>
 {
     protected override (ISystemParam<ResMut<MouseState>>, ISystemParam<ResMut<PreviousMouseState>>) CreateParams(PolyWorld world) => (
         Param.OfResMut<MouseState>(),
@@ -46,4 +47,3 @@ public class PopulateMouseState: ClassSystem<ResMut<MouseState>, ResMut<Previous
         state.GetRef().Get() = Mouse.GetState();
     }
 }
-

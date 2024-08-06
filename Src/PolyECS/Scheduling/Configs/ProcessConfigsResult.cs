@@ -1,6 +1,6 @@
 using PolyECS.Systems.Graph;
 
-namespace PolyECS.Systems.Configs;
+namespace PolyECS.Scheduling.Configs;
 
 public struct ProcessConfigsResult
 {

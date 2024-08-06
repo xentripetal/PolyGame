@@ -20,7 +20,12 @@ public struct FixedBitSet
     /// is equivalent to checking for an empty intersection.
     public bool IsDisjoint(FixedBitSet other)
     {
-        return new BitArray(Data).And(other.Data).HasAnySet();
+        return !Clone().And(other).HasAnySet();
+    }
+    
+    public bool HasAnySet()
+    {
+        return Data.HasAnySet();
     }
 
     private static int GetInt32ArrayLengthFromBitLength(int n) => n - 1 + 32 >>> 5;
@@ -74,13 +79,13 @@ public struct FixedBitSet
         }
         return Data.Get(index);
     }
-    
+
     public bool this[int index]
     {
         get => Get(index);
         set => SetValue(index, value);
     }
-    
+
     public bool this[ulong index]
     {
         get => Get((int)index);
@@ -108,7 +113,7 @@ public struct FixedBitSet
         Data = Data.Or(other.Data);
     }
 
-    public void And(FixedBitSet other)
+    public FixedBitSet And(FixedBitSet other)
     {
         if (other.Length > Length)
         {
@@ -122,6 +127,14 @@ public struct FixedBitSet
         }
 
         Data = Data.And(other.Data);
+        return this;
+    }
+
+    public FixedBitSet Clone()
+    {
+        var clone = new FixedBitSet(Length);
+        clone.Data = new BitArray(Data);
+        return clone;
     }
 
     /// Iterates over all enabled bits.

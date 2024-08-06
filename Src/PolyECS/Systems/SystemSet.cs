@@ -1,46 +1,41 @@
-using PolyECS.Scheduling.Graph;
+using PolyECS.Scheduling.Configs;
 
 namespace PolyECS.Systems;
 
-public interface SystemSet : IEquatable<SystemSet>
+public interface ISystemSet : IEquatable<ISystemSet>, IIntoSystemSet, IIntoSystemSetConfigs
 {
-    public string Name();
+    public string GetName();
     public Type? SystemType();
 }
 
-public struct NamedSet : SystemSet
+public readonly record struct NamedSet(string Name) : ISystemSet
 {
-    public NamedSet(string name)
+    public Type? SystemType() => null;
+
+    public override int GetHashCode()
     {
-        _name = name;
+        return Name.GetHashCode();
     }
 
-    private string _name;
-
-    public bool Equals(SystemSet? other)
+    public bool Equals(ISystemSet? other)
     {
         if (other is NamedSet otherNamed)
         {
-            return _name == otherNamed._name;
+            return Name == otherNamed.Name;
         }
         return false;
     }
-
-    public string Name() => _name;
-
-    public Type? SystemType() => null;
+    
+    public string GetName() => Name;
+    public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
-public struct AnonymousSet : SystemSet
+public readonly struct AnonymousSet(ulong id) : ISystemSet
 {
-    public ulong Id;
+    public readonly ulong Id = id;
 
-    public AnonymousSet(ulong id)
-    {
-        Id = id;
-    }
-
-    public bool Equals(SystemSet? other)
+    public bool Equals(ISystemSet? other)
     {
         if (other is AnonymousSet otherAnonymous)
         {
@@ -48,15 +43,21 @@ public struct AnonymousSet : SystemSet
         }
         return false;
     }
-
+    
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 
     public Type? SystemType() => null;
 
-    public string Name() => $"AnonymousSet {Id}";
+    public string GetName() => $"AnonymousSet {Id}";
+    public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 /// <summary>
-/// A <see cref="SystemSet"/> grouping instances of the same <see cref="BaseSystem{TIn,TOut}"/>.
+/// A <see cref="ISystemSet"/> grouping instances of the same <see cref="BaseSystem{TIn,TOut}"/>.
 ///
 /// This kind of set is automatically populated and thus has some special rules:
 /// <list type="bullet">
@@ -65,46 +66,139 @@ public struct AnonymousSet : SystemSet
 /// <item>You cannot order something relative to one if it has more than one member</item>
 /// </list>
 /// </summary>
-public class SystemTypeSet : SystemSet
+public class SystemReferenceSet(RunSystem sys) : ISystemSet
 {
-    public RunSystem System;
+    public readonly RunSystem System = sys;
 
-    public SystemTypeSet(RunSystem sys)
+    public bool Equals(ISystemSet? other)
     {
-        System = sys;
-    }
-
-    public bool Equals(SystemSet? other)
-    {
-        if (other is SystemTypeSet otherType)
+        if (other is SystemReferenceSet otherType)
         {
             return System == otherType.System;
         }
         return false;
     }
+    
+    public override int GetHashCode()
+    {
+        return System.GetHashCode();
+    }
 
-    public string Name() => $"SystemTypeSet {System.GetType().Name}";
+    public string GetName() => $"SystemReferenceSet {System.GetType().Name}";
 
-    public Type? SystemType()
+    public Type SystemType()
     {
         return System.GetType();
     }
+
+    public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+}
+
+public class SystemTypeSet : ISystemSet
+{
+    public SystemTypeSet(Type type)
+    {
+        if (!typeof(RunSystem).IsAssignableFrom(type))
+        {
+            throw new ArgumentException("Type must be a subclass of RunSystem to be a SystemTypeSet");
+        }
+        Type = type;
+    }
+
+    public Type Type { get; }
+
+    public bool Equals(ISystemSet? other)
+    {
+        if (other is SystemTypeSet otherType)
+        {
+            return Type == otherType.Type;
+        }
+        return false;
+    }
+    
+    public override int GetHashCode()
+    {
+        return Type.GetHashCode();
+    }
+
+    public ISystemSet IntoSystemSet() => this;
+
+    public string GetName() => $"SystemTypeSet {Type.Name}";
+
+    public Type? SystemType() => Type;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+}
+
+public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
+    where T : RunSystem
+{
+    public new bool Equals(ISystemSet? other)
+    {
+        if (other is SystemTypeSet<T> otherType)
+        {
+            return true;
+        }
+        return base.Equals(other);
+    }
+    
+    public new string GetName() => $"SystemTypeSet {typeof(T).Name}";
+
+    public new ISystemSet IntoSystemSet() => this;
+}
+
+public class EnumSystemSet<T> : ISystemSet where T : struct, Enum
+{
+    public EnumSystemSet(T set)
+    {
+        Value = set;
+    }
+
+    public T Value { get; }
+
+    public bool Equals(ISystemSet? other)
+    {
+        if (other is EnumSystemSet<T> otherEnum)
+        {
+            return Value.Equals(otherEnum.Value);
+        }
+        return false;
+    }
+    
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(typeof(T), Value);
+    }
+
+    public ISystemSet IntoSystemSet() => this;
+
+    public string GetName() => $"{typeof(T).Name}({Enum.GetName(Value)})";
+
+    public Type? SystemType() => null;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }
 
 /// <summary>
 /// A system set that is defined by its type. All instances of the same type are part of the same set.
 /// </summary>
-public abstract class StaticSystemSet : SystemSet
+public abstract class StaticSystemSet : ISystemSet
 {
-    public bool Equals(SystemSet? other)
+    public bool Equals(ISystemSet? other)
     {
         return other is StaticSystemSet && other.GetType() == GetType();
     }
 
-    public string Name()
+    public string GetName()
     {
         return GetType().Name;
     }
+    
+    public override int GetHashCode()
+    {
+        return GetType().GetHashCode();
+    }
 
     public Type? SystemType() => null;
+    public ISystemSet IntoSystemSet() => this;
+    public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 }

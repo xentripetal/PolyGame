@@ -1,4 +1,6 @@
+using DotNext;
 using Flecs.NET.Core;
+using PolyECS.Queries;
 using PolyECS.Systems;
 
 namespace PolyECS;
@@ -7,7 +9,17 @@ public class Res<T> : IIntoSystemParam<Res<T>>
 {
     public T Get()
     {
+        // TODO - Move Res out of World and into its own storage system
         return World.Get<T>();
+    }
+    
+    public Optional<T> TryGet()
+    {
+        if (World.Has<T>())
+        {
+            return World.Get<T>();
+        }
+        return Optional<T>.None;
     }
 
     public Res(World world)

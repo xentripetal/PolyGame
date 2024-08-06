@@ -1,7 +1,9 @@
+using DotNext.Collections.Generic;
 using PolyECS.Scheduling.Graph;
+using PolyECS.Systems;
 using PolyECS.Systems.Graph;
 
-namespace PolyECS.Systems.Configs;
+namespace PolyECS.Scheduling.Configs;
 
 /// <summary>
 /// Stores configuration for a single generic node (a system or a system set)
@@ -13,7 +15,7 @@ namespace PolyECS.Systems.Configs;
 ///
 /// Port of bevy_ecs::schedule::config::NodeConfig
 /// </summary>
-public abstract class NodeConfig<T>
+public abstract class NodeConfig<T> : IIntoNodeConfigs<T>
 {
     public T Node;
     /// <summary>
@@ -32,9 +34,11 @@ public abstract class NodeConfig<T>
     {
         return new NodeConfigs<T>.Node(config);
     }
+
+    public NodeConfigs<T> IntoConfigs() => NodeConfigs<T>.Of(this);
 }
 
-public class SystemConfig : NodeConfig<RunSystem>
+public class SystemConfig : NodeConfig<RunSystem>, IIntoSystemConfigs
 {
     public SystemConfig(RunSystem system) : base(system)
     {
@@ -45,5 +49,14 @@ public class SystemConfig : NodeConfig<RunSystem>
     {
         return graph.AddSystem(this);
     }
-
 }
+
+public class SystemSetConfig : NodeConfig<ISystemSet>, IIntoSystemSet, IIntoSystemSetConfigs
+{
+    public SystemSetConfig(ISystemSet set) : base(set) { }
+
+    public override NodeId ProcessConfig(SystemGraph graph) => graph.ConfigureSet(this);
+    public NodeConfigs<ISystemSet> IntoConfigs() => this;
+    public ISystemSet IntoSystemSet() => Node;
+}
+

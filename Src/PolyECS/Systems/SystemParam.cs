@@ -23,13 +23,13 @@ public abstract class SystemParam<T> : ISystemParam<T>
     public abstract T Get(PolyWorld world, SystemMeta systemMeta);
 }
 
-public class VoidParam : SystemParam<object?>, IIntoSystemParam<object?>
+public class VoidParam : SystemParam<Empty>, IIntoSystemParam<Empty>
 {
     public override void Initialize(PolyWorld world, SystemMeta meta) { }
     public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGen) { }
-    public override object Get(PolyWorld world, SystemMeta systemMeta) => null!;
+    public override Empty Get(PolyWorld world, SystemMeta systemMeta) => Empty.Instance;
 
-    public static ISystemParam<object?> IntoParam(PolyWorld world)
+    public static ISystemParam<Empty> IntoParam(PolyWorld world)
     {
         return new VoidParam();
     }

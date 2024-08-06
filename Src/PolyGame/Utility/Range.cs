@@ -1,8 +1,9 @@
+using Flecs.NET.Core;
 using PolyECS;
 
 namespace PolyGame;
 
-public struct Range<T> where T : struct, IComparable<T>, IEquatable<T>
+public struct Range<T> : IComponent where T : struct, IComparable<T>, IEquatable<T>
 {
     public T Start;
     public T End;
@@ -20,4 +21,9 @@ public struct Range<T> where T : struct, IComparable<T>, IEquatable<T>
     public bool Equals(Range<T> other) => Start.Equals(other.Start) && End.Equals(other.End);
 
     public override int GetHashCode() => HashCode.Combine(Start, End);
+
+    public static void Register(UntypedComponent component)
+    {
+        component.Member<T>("Start").Member<T>("End");
+    }
 }

@@ -2,7 +2,6 @@ using System;
 using Flecs.NET.Core;
 using JetBrains.Annotations;
 using PolyECS.Systems;
-using PolyECS.Systems.Configs;
 
 namespace PolyECS.Tests.Systems;
 
