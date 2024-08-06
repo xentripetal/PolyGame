@@ -19,7 +19,16 @@ public partial class App
         schedule.AddSystems(systems);
         return this;
     }
-    
+
+    public App AddSystem<T>(IIntoScheduleLabel label, Func<T, IIntoNodeConfigs<RunSystem>>? cfg = null) where T : IIntoNodeConfigs<RunSystem>, new()
+    {
+        if (cfg != null)
+        {
+            return AddSystems(label, cfg(new T()));
+        }
+        return AddSystems(label, new T());
+    }
+
     public App AddSchedule(Schedule schedule)
     {
         var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));

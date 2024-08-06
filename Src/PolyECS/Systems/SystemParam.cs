@@ -38,7 +38,7 @@ public class VoidParam : SystemParam<Empty>, IIntoSystemParam<Empty>
 public static class Param
 {
     public static ISystemParam<Query> Of(Query query) => new QueryParam(query);
-    public static ISystemParam<PolyWorld> Of(PolyWorld world) => new WorldParam();
+    public static ISystemParam<PolyWorld> OfWorld() => new WorldParam();
     public static ISystemParam<Res<T>> OfRes<T>() => new ResParam<T>();
     public static ISystemParam<ResMut<T>> OfResMut<T>() => new ResMutParam<T>();
     public static ISystemParam<T> Local<T>(T value) => new LocalParam<T>(value);
