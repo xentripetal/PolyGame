@@ -9,6 +9,7 @@ using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Systems.Render;
+using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Sprites;
 
@@ -29,8 +30,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
         )
     {
         var cameraQuery = world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build();
-        var renderableQuery = world.QueryBuilder().With<Sprite>().With<Handle<Texture2D>>().With<GlobalPosition2D>().With<GlobalRotation2D>()
-            .With<GlobalScale2D>().Build();
+        var renderableQuery = world.QueryBuilder().With<Sprite>().With<Handle<Texture2D>>().With<GlobalTransform2D>().Build();
         return (Param.Of(cameraQuery), Param.Of(renderableQuery), Param.OfRes<MissingTexture2D>(), Param.OfRes<AssetServer>());
     }
 
@@ -64,7 +64,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
             // can't pass ref to lambda
             var renderables = renderablesRef;
             var s = server.Get();
-            sprites.Each((Entity en, ref Sprite sprite, ref Handle<Texture2D> texHandle, ref GlobalPosition2D pos) => {
+            sprites.Each((Entity en, ref Sprite sprite, ref Handle<Texture2D> texHandle, ref GlobalTransform2D pos) => {
                 var tex = s.Get(texHandle);
                 if (tex == null)
                 {
@@ -76,7 +76,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
                 }
                 renderables.Add(new RenderableReference
                 {
-                    SortKey = pos.Value.Y, // TODO anchor point
+                    SortKey = pos.Value.Translation.Y, // TODO anchor point
                     DrawFuncIndex = DrawSpriteIndex,
                     Entity = en,
                 });
@@ -88,9 +88,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
     {
         var sprite = renderable.Entity.Get<Sprite>();
         var imageHandle = renderable.Entity.Get<Handle<Texture2D>>();
-        var pos = renderable.Entity.Get<GlobalPosition2D>().Value;
-        var rot = renderable.Entity.Get<GlobalRotation2D>().Value;
-        var scale = renderable.Entity.Get<GlobalScale2D>().Value;
+        var transform = renderable.Entity.Get<GlobalTransform2D>().Value;
         // TODO this is an unregistered read of AssetServer. Really should do something better... 
         var image = Assets.Get(imageHandle);
         if (image == null)
@@ -102,7 +100,8 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
             }
         }
         // TODO sourceRect
-        batch.Draw(image, pos, null, Color.White, rot, sprite.Anchor, scale, sprite.Effects, 0);
+        // TODO transform based draw
+        batch.Draw(image, transform.Translation, null, Color.White, transform.Rotation, sprite.Anchor, transform.Scale, sprite.Effects, 0);
     }
 }
 

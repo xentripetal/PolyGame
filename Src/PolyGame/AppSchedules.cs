@@ -48,6 +48,11 @@ public partial class App
         return this;
     }
 
+    public App ConfigureSet<T>(IIntoScheduleLabel label, T set) where T : struct, Enum
+    {
+        return ConfigureSets(label, SetConfigs.Of(set));
+    }
+
     public App ConfigureSchedules(ScheduleBuildSettings settings)
     {
         var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));

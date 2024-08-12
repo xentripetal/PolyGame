@@ -2,6 +2,7 @@ using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyGame.Components.Transform;
+using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Sprites;
 
@@ -45,7 +46,7 @@ public class SpriteBundle
 {
     public Sprite Sprite = new Sprite();
     public Handle<Texture2D> Texture = default;
-    public TransformBundle2D Transform = new TransformBundle2D();
+    public TransformBundle Transform = new TransformBundle();
 
     public void Apply(Entity entity)
     {

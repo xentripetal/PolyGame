@@ -896,7 +896,7 @@ public struct Matrix2D : IEquatable<Matrix2D>
     }
 
     #endregion
-    
+
     /// <summary>
     /// Creates a new <see cref="Vector2"/> that contains a transformation of 2d-vector by the specified <see cref="Matrix"/>.
     /// </summary>
@@ -981,4 +981,27 @@ public struct Matrix2D : IEquatable<Matrix2D>
     }
 
     #endregion
+
+    public static Matrix2D Create(Vector2 pos, float radians, Vector2 scale)
+    {
+        Matrix2D result;
+        Create(pos, radians, scale, out result);
+        return result;
+    }
+
+    public static void Create(Vector2 pos, float radians, Vector2 scale, out Matrix2D result)
+    {
+        result.M11 = scale.X;
+        result.M22 = scale.Y;
+        result.M31 = pos.X;
+        result.M32 = pos.Y;
+        result.M12 = 0;
+        result.M21 = 0;
+
+
+        if (radians != 0)
+        {
+            result *= CreateRotation(radians);
+        }
+    }
 }

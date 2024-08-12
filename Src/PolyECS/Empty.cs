@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace PolyECS;
 
-/// <summary>Empty placeholder </summary>
+/// <summary>Empty value for Void/() style generics</summary>
 public sealed class Empty
 {
     private Empty() { }

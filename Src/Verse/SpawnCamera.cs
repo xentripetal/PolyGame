@@ -3,6 +3,7 @@ using PolyECS.Systems;
 using PolyGame;
 using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
+using PolyGame.Transform;
 
 namespace Verse;
 
@@ -25,7 +26,7 @@ public class SpawnCamera : ClassSystem<PolyWorld>
                 ZoomBounds = new Range<float>(1, 4)
             },
             Inset = new CameraInset(),
-            Transform = new TransformBundle2D(),
+            Transform = new TransformBundle(),
         };
         cb.Apply(world.Entity("TestCamera"));
     }

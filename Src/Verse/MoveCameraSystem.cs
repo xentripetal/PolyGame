@@ -5,13 +5,14 @@ using PolyECS;
 using PolyECS.Systems;
 using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
+using PolyGame.Transform;
 
 namespace Verse;
 
 public class MoveCameraSystem : ClassSystem<Query, Res<KeyboardState>, Res<GameTime>>
 {
     protected override (ISystemParam<Query>, ISystemParam<Res<KeyboardState>>, ISystemParam<Res<GameTime>>) CreateParams(PolyWorld world) => (
-        Param.Of(world.QueryBuilder().With<GlobalPosition2D>().InOut().With<Camera>().InOutNone().Build()),
+        Param.Of(world.QueryBuilder().With<Position2D>().InOut().With<Camera>().InOutNone().Build()),
         Param.OfRes<KeyboardState>(),
         Param.OfRes<GameTime>()
     );
@@ -43,7 +44,7 @@ public class MoveCameraSystem : ClassSystem<Query, Res<KeyboardState>, Res<GameT
             move.X += 1;
         }
         
-        cameras.Each((ref GlobalPosition2D pos) => {
+        cameras.Each((ref Position2D pos) => {
             pos.Value += move * 100 * (float)delta;
         });
     }

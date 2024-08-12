@@ -2,16 +2,10 @@ using Flecs.NET.Core;
 
 namespace PolyECS;
 
-public struct TableComponentId : IEquatable<TableComponentId>
+public struct TableComponentId(int tableGeneration, ulong id) : IEquatable<TableComponentId>
 {
-    public TableComponentId(int tableGeneration, ulong id)
-    {
-        TableGeneration = tableGeneration;
-        Id = id;
-    }
-    
-    public int TableGeneration;
-    public ulong Id;
+    public readonly int TableGeneration = tableGeneration;
+    public readonly ulong Id = id;
 
     public Id ToId(World world)
     {

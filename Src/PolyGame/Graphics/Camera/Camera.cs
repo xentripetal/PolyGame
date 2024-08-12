@@ -6,6 +6,7 @@ using PolyGame.Components.Transform;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
 using PolyGame.Systems.Render;
+using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Camera;
 
@@ -30,7 +31,7 @@ public class CameraBundle
     public Camera Camera = new Camera();
     public CameraInset Inset;
     public RenderGraph RenderGraph = new RenderGraph([new DefaultRenderer()]);
-    public TransformBundle2D Transform = new TransformBundle2D();
+    public TransformBundle Transform = new TransformBundle();
 
     public void Apply(Entity entity)
     {
