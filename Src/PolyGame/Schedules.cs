@@ -1,4 +1,4 @@
-using PolyECS.Systems;
+using PolyECS.Scheduling;
 
 namespace PolyGame;
 
@@ -25,14 +25,6 @@ public static class Schedules
 
 public class MainScheduleOrder
 {
-    public List<ScheduleLabel> UpdateLabels = new ([
-        Schedules.FirstUpdate,
-        Schedules.PreUpdate,
-        Schedules.Update,
-        Schedules.PostUpdate,
-        Schedules.LastUpdate
-    ]);
-
     public List<ScheduleLabel> RenderLabels = new ([
         Schedules.FirstRender,
         Schedules.PreRender,
@@ -44,7 +36,14 @@ public class MainScheduleOrder
     public List<ScheduleLabel> StartupLabels = new ([
         Schedules.PreStartup,
         Schedules.Startup,
-        Schedules.PostStartup,
+        Schedules.PostStartup
+    ]);
+    public List<ScheduleLabel> UpdateLabels = new ([
+        Schedules.FirstUpdate,
+        Schedules.PreUpdate,
+        Schedules.Update,
+        Schedules.PostUpdate,
+        Schedules.LastUpdate
     ]);
 
     public IEnumerable<ScheduleLabel> AllLabels => UpdateLabels.Concat(RenderLabels).Concat(StartupLabels);

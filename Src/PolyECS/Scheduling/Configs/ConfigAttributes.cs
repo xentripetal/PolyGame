@@ -9,65 +9,44 @@ public abstract class SystemConfigAttribute : Attribute
 
 public abstract class EnumSetReferenceAttribute<T> : SystemConfigAttribute where T : struct, Enum
 {
-    public EnumSetReferenceAttribute(T set)
-    {
-        ReferenceSet = new EnumSystemSet<T>(set);
-    }
-
     protected IIntoSystemSet ReferenceSet;
+
+    public EnumSetReferenceAttribute(T set) => ReferenceSet = new EnumSystemSet<T>(set);
 }
 
 public abstract class GenericSetReferenceAttribute<T> : SystemConfigAttribute where T : RunSystem
 {
-    public GenericSetReferenceAttribute()
-    {
-        ReferenceSet = new SystemTypeSet<T>();
-    }
-
     protected IIntoSystemSet ReferenceSet;
+
+    public GenericSetReferenceAttribute() => ReferenceSet = new SystemTypeSet<T>();
 }
 
 public class BeforeSystemAttribute<T> : GenericSetReferenceAttribute<T> where T : RunSystem
 {
-    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
-    {
-        return configs.Before(ReferenceSet);
-    }
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs) => configs.Before(ReferenceSet);
 }
 
 public class BeforeAttribute<TEnum> : EnumSetReferenceAttribute<TEnum> where TEnum : struct, Enum
 {
-    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
-    {
-        return configs.Before(ReferenceSet);
-    }
-
     public BeforeAttribute(TEnum set) : base(set) { }
+
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs) => configs.Before(ReferenceSet);
 }
 
 public class AfterSystemAttribute<T> : GenericSetReferenceAttribute<T> where T : RunSystem
 {
-    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
-    {
-        return configs.After(ReferenceSet);
-    }
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs) => configs.After(ReferenceSet);
 }
 
 public class AfterAttribute<TEnum> : EnumSetReferenceAttribute<TEnum> where TEnum : struct, Enum
 {
-    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
-    {
-        return configs.After(ReferenceSet);
-    }
-
     public AfterAttribute(TEnum set) : base(set) { }
+
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs) => configs.After(ReferenceSet);
 }
 
 public class InSetAttribute<T>(T set) : EnumSetReferenceAttribute<T>(set)
     where T : struct, Enum
 {
-    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs)
-    {
-        return configs.InSet(ReferenceSet);
-    }
+    public override IIntoNodeConfigs<RunSystem> Apply(IIntoNodeConfigs<RunSystem> configs) => configs.InSet(ReferenceSet);
 }

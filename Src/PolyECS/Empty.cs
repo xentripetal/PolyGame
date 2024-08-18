@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 namespace PolyECS;
 
 /// <summary>Empty value for Void/() style generics</summary>

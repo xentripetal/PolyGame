@@ -1,16 +1,15 @@
 using Microsoft.Xna.Framework;
 using PolyECS.Scheduling.Configs;
-using PolyGame.Components.Transform;
 
 namespace PolyGame.Transform;
 
 /// <summary>
-/// Set enum for the systems relating to transform propagation
+///     Set enum for the systems relating to transform propagation
 /// </summary>
 public enum TransformSystem
 {
-    /// <summary>Propagates changes in transform to children's <see cref="GlobalPosition"/></summary>
-    TransformPropagate,
+    /// <summary>Propagates changes in transform to children's <see cref="GlobalPosition" /></summary>
+    TransformPropagate
 }
 
 public class TransformPlugin : IPlugin
@@ -22,7 +21,7 @@ public class TransformPlugin : IPlugin
         app.RegisterType<Rotation2D>().Member<float>("Value");
         app.RegisterType<Scale2D>().Member<Vector2>("Value");
 
-        var syncSystem = new TransformSync();
+        var syncSystem = new PropagateTransform();
         app.ConfigureSets(Schedules.PostStartup, SetConfigs.Of(TransformSystem.TransformPropagate))
             .AddSystems(Schedules.PostStartup, syncSystem.InSet(TransformSystem.TransformPropagate))
             .ConfigureSets(Schedules.PostUpdate, SetConfigs.Of(TransformSystem.TransformPropagate))

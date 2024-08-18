@@ -4,20 +4,42 @@ using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 using Serilog;
 
-namespace PolyGame;
+namespace PolyGame.Assets;
 
 /// <summary>
-/// Handles loading and saving assets from a given path and managing <see cref="Handle{T}"/>s to those assets.
+///     Handles loading and saving assets from a given path and managing <see cref="Handle{T}" />s to those assets.
 /// </summary>
 public class AssetServer : IDisposable
 {
-    public AssetServer(World[] worlds)
+    public enum LoadState
     {
-        this.worlds = worlds;
+        Unloaded,
+        Loading,
+        PendingDispose,
+        Loaded,
+        Failed
     }
+
+    protected ListPool<Asset> assets = new ();
+    protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new ();
+    protected ReaderWriterLockSlim handleLock = new ();
+
+
+    protected Dictionary<string, IAssetLoader> loadersByExtension = new ();
+
+    protected List<Delegate> typeHooks = new ();
+    protected World[] worlds;
+
+    public AssetServer(World[] worlds) => this.worlds = worlds;
 
     // TODO - Implement watch for changes
     public bool WatchForChanges { get; set; }
+
+    public void Dispose()
+    {
+        handleLock.Dispose();
+        typeHooks.Clear();
+    }
 
     public void AddLoader(IAssetLoader loader)
     {
@@ -31,40 +53,14 @@ public class AssetServer : IDisposable
         }
     }
 
-
-    protected Dictionary<string, IAssetLoader> loadersByExtension = new ();
-    protected ListPool<Asset> assets = new ();
-    protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new ();
-    protected ReaderWriterLockSlim handleLock = new ();
-    protected World[] worlds;
-
-    public struct Asset
-    {
-        public LoadState State;
-        public AssetPath Path;
-        public object? Value;
-        public int HandleCount;
-    }
-
-    public enum LoadState
-    {
-        Unloaded,
-        Loading,
-        PendingDispose,
-        Loaded,
-        Failed
-    }
-
     internal unsafe void HandleDtor<T>(void* data, int count, flecs.ecs_type_info_t* typeInfoHandle)
     {
-        Handle<T>* handles = (Handle<T>*)data;
-        for (int i = 0; i < count; i++)
+        var handles = (Handle<T>*)data;
+        for (var i = 0; i < count; i++)
         {
             Release(handles[i]);
         }
     }
-
-    protected List<Delegate> typeHooks = new ();
 
     protected Handle<T> CreateHandle<T>(int id, ushort generation)
     {
@@ -138,11 +134,11 @@ public class AssetServer : IDisposable
                 return CreateHandle<T>(idx.Item1, idx.Item2);
             }
             // Else claim a spot for it and trigger the load
-            var (id, gen) = assets.Add(new Asset
+            (var id, var gen) = assets.Add(new Asset
             {
                 State = LoadState.Loading,
                 Path = path,
-                HandleCount = 1,
+                HandleCount = 1
             });
             assignedHandles.Add(path, (id, gen));
             handle = CreateHandle<T>(id, gen);
@@ -167,7 +163,7 @@ public class AssetServer : IDisposable
     protected void LoadInternal<T>(int id, ushort gen, AssetPath path, IAssetLoader loader)
     {
         object? data = null;
-        bool valid = false;
+        var valid = false;
         try
         {
             data = loader.Load<T>(path);
@@ -216,10 +212,7 @@ public class AssetServer : IDisposable
         }
     }
 
-    public Handle<T> Load<T>(string path, bool async = true)
-    {
-        return Load<T>(new AssetPath(path), async);
-    }
+    public Handle<T> Load<T>(string path, bool async = true) => Load<T>(new AssetPath(path), async);
 
     public T? Get<T>(Handle<T> handle)
     {
@@ -250,10 +243,7 @@ public class AssetServer : IDisposable
         return default;
     }
 
-    public bool IsLoaded<T>(Handle<T> handle)
-    {
-        return GetState(handle) == LoadState.Loaded;
-    }
+    public bool IsLoaded<T>(Handle<T> handle) => GetState(handle) == LoadState.Loaded;
 
     public LoadState GetState<T>(Handle<T> handle)
     {
@@ -277,7 +267,7 @@ public class AssetServer : IDisposable
     }
 
     /// <summary>
-    /// Releases the given handle. If there are no more references to the asset, it will be unloaded.
+    ///     Releases the given handle. If there are no more references to the asset, it will be unloaded.
     /// </summary>
     /// <param name="handle"></param>
     /// <typeparam name="T"></typeparam>
@@ -365,9 +355,11 @@ public class AssetServer : IDisposable
         }
     }
 
-    public void Dispose()
+    public struct Asset
     {
-        handleLock.Dispose();
-        typeHooks.Clear();
+        public LoadState State;
+        public AssetPath Path;
+        public object? Value;
+        public int HandleCount;
     }
 }

@@ -1,35 +1,31 @@
-using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
-using PolyGame;
+using PolyGame.Assets;
 using PolyGame.Graphics.Sprites;
+using PolyGame.Transform;
 
 namespace Verse;
 
 public class SpawnTestSprites : ClassSystem<PolyWorld, ResMut<AssetServer>>
 {
+    private const int NumCols = 1;
+    private const int NumRows = 1;
+
     protected override (ISystemParam<PolyWorld>, ISystemParam<ResMut<AssetServer>>) CreateParams(PolyWorld world)
         => (Param.OfWorld(), Param.OfResMut<AssetServer>());
+
 
     public override void Run(PolyWorld world, ResMut<AssetServer> assets)
     {
         var assetServer = assets.Get();
-        for (int x = 0; x < 16; x++)
+        for (var x = 0; x < NumCols; x++)
         {
-            for (int y = 0; y < 16; y++)
+            for (var y = 0; y < NumRows; y++)
             {
                 var entity = world.Entity($"Sprite{x}_{y}");
-                var sb = new SpriteBundle
-                {
-                    Texture = assetServer.Load<Texture2D>("Content/Missing.png", true),
-                    Transform =
-                    {
-                        Position = new Vector2(x * 16, y * 16)
-                    }
-                };
-                sb.Apply(entity);
+                new SpriteBundle(assetServer.Load<Texture2D>("Content/Missing.png")).WithTransform(new TransformBundle(new Vector2(x, y) * 16)).Apply(entity);
             }
         }
     }

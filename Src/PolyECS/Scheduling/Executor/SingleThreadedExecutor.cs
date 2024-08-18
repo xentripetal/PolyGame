@@ -1,31 +1,26 @@
-using Flecs.NET.Core;
 using PolyECS.Systems;
-using PolyECS.Systems.Executor;
-using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Executor;
 
 public class SingleThreadedExecutor : IExecutor
 {
     /// <summary>
-    /// System sets whose conditions have been evaluated
+    ///     Applies deferred system buffers after all systems have ran
     /// </summary>
-    protected FixedBitSet EvaluatedSets;
+    protected bool ApplyFinalDeferred = true;
     /// <summary>
-    /// Systems that have run or been skipped
+    ///     Systems that have run or been skipped
     /// </summary>
     protected FixedBitSet CompletedSystems;
     /// <summary>
-    /// Applies deferred system buffers after all systems have ran
+    ///     System sets whose conditions have been evaluated
     /// </summary>
-    protected bool ApplyFinalDeferred = true;
-
-    public SingleThreadedExecutor() { }
+    protected FixedBitSet EvaluatedSets;
 
     public void Init(SystemSchedule schedule)
     {
-        int sysCount = schedule.SystemIds.Count;
-        int setCount = schedule.SetIds.Count;
+        var sysCount = schedule.SystemIds.Count;
+        var setCount = schedule.SetIds.Count;
         EvaluatedSets = new FixedBitSet(setCount);
         CompletedSystems = new FixedBitSet(sysCount);
     }
@@ -35,11 +30,6 @@ public class SingleThreadedExecutor : IExecutor
         ApplyFinalDeferred = apply;
     }
 
-    protected void ApplyDeferred(SystemSchedule schedule, PolyWorld world)
-    {
-        world.DeferEnd();
-    }
-
     public void Run(SystemSchedule schedule, PolyWorld world, FixedBitSet? skipSystems)
     {
         if (skipSystems != null)
@@ -47,7 +37,7 @@ public class SingleThreadedExecutor : IExecutor
             CompletedSystems.Or(skipSystems.Value);
         }
 
-        for (int systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
+        for (var systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
         {
             var shouldRun = !CompletedSystems.Contains(systemIndex);
             foreach (var setIdx in schedule.SetsWithConditionsOfSystems[systemIndex].Ones())
@@ -104,10 +94,15 @@ public class SingleThreadedExecutor : IExecutor
         CompletedSystems.Clear();
     }
 
+    protected void ApplyDeferred(SystemSchedule schedule, PolyWorld world)
+    {
+        world.DeferEnd();
+    }
+
     protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
-        bool met = true;
+        var met = true;
         foreach (var condition in conditions)
         {
             if (!condition.Evaluate(world))

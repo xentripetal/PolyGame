@@ -3,8 +3,6 @@ using PolyECS.Systems;
 
 namespace PolyECS.Tests.Systems;
 
-using static ActionSystem;
-
 public class LambdaTest
 {
     [Fact]
@@ -28,7 +26,7 @@ public class LambdaTest
         world.Set(0);
         var sys = (TQuery<int> q) => {
             Assert.Equal(1, q.Query.Count());
-            q.Query.Each(((ref int i) => i++));
+            q.Query.Each((ref int i) => i++);
         };
         world.RunSystemOnce(sys.IntoSystem());
         Assert.Equal(1, world.World.Get<int>());

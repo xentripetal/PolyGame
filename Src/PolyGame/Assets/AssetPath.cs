@@ -1,29 +1,29 @@
-namespace PolyGame;
+namespace PolyGame.Assets;
 
 public struct AssetPath : IEquatable<AssetPath>, IFormattable
 {
     /// <summary>
-    /// URI Scheme of the asset. file, http, etc.
+    ///     URI Scheme of the asset. file, http, etc.
     /// </summary>
     public string Scheme;
     /// <summary>
-    /// Path to the asset. 
+    ///     Path to the asset.
     /// </summary>
     public string Path;
     /// <summary>
-    /// File extension of the asset.
+    ///     File extension of the asset.
     /// </summary>
     public string Extension;
     /// <summary>
-    /// An optional label for referencing elements internal to the path asset.
+    ///     An optional label for referencing elements internal to the path asset.
     /// </summary>
     public string? Label;
 
     /// <summary>
-    /// Creates a separate asset path from the given full path.
-    /// resource.txt -> AssetPath(Path: "resource.txt")
-    /// http://example.com/resource.txt -> AssetPath(Source: "http://example.com", Path: "resource.txt")
-    /// Image/Sprites.Atlas#Sprite1 -> AssetPath(Path: "Image/Sprites.Atlas", Label: "Sprite1")
+    ///     Creates a separate asset path from the given full path.
+    ///     resource.txt -> AssetPath(Path: "resource.txt")
+    ///     http://example.com/resource.txt -> AssetPath(Source: "http://example.com", Path: "resource.txt")
+    ///     Image/Sprites.Atlas#Sprite1 -> AssetPath(Path: "Image/Sprites.Atlas", Label: "Sprite1")
     /// </summary>
     /// <param name="fullPath"></param>
     public AssetPath(string fullPath)
@@ -67,7 +67,8 @@ public struct AssetPath : IEquatable<AssetPath>, IFormattable
             if (ext.Length > 4)
             {
                 ext = "";
-            } else 
+            }
+            else
             {
                 foreach (var c in ext)
                 {
@@ -90,8 +91,5 @@ public struct AssetPath : IEquatable<AssetPath>, IFormattable
 
     public override string ToString() => $"{Scheme}://{Path}{(Label != null ? $"#{Label}" : "")}";
 
-    public string ToString(string? format, IFormatProvider? formatProvider)
-    {
-        return ToString().ToString(formatProvider);
-    }
+    public string ToString(string? format, IFormatProvider? formatProvider) => ToString().ToString(formatProvider);
 }

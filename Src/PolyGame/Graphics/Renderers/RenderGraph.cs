@@ -1,29 +1,27 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PolyGame.Components.Render;
-using PolyGame.Graphics;
+using PolyGame.Assets;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
-using PolyGame.Graphics.Renderers;
 using Serilog;
 
-namespace PolyGame.Systems.Render;
+namespace PolyGame.Graphics.Renderers;
 
 public class RenderGraph
 {
+    protected bool Active = true;
+    protected List<Renderer> AfterPostProcessorRenderers = new ();
+
+    protected List<Renderer> Renderers = new ();
+
     public RenderGraph(IEnumerable<Renderer> renderers)
     {
         foreach (var renderer in renderers)
             AddRenderer(renderer);
     }
 
-    protected bool Active = true;
-
-    // TODO should this be here?
-    public Screen Screen;
-
     /// <summary>
-    /// adds a Renderer to the scene
+    ///     adds a Renderer to the scene
     /// </summary>
     /// <returns>The renderer.</returns>
     /// <param name="renderer">Renderer.</param>
@@ -51,10 +49,16 @@ public class RenderGraph
         return renderer;
     }
 
-    protected List<Renderer> Renderers = new ();
-    protected List<Renderer> AfterPostProcessorRenderers = new ();
-
-    public void Render(DrawFuncRegistry registry, ref ComputedCamera cam, Batcher batch, GraphicsDevice device, Color clearColor, RenderTarget2D? target, RenderableList renderables)
+    public void Render(
+        AssetServer assets,
+        DrawFuncRegistry registry,
+        ref ComputedCamera cam,
+        Batcher batch,
+        GraphicsDevice device,
+        Color clearColor,
+        RenderTarget2D? target,
+        RenderableList renderables
+    )
     {
         if (Renderers.Count == 0)
         {
@@ -89,7 +93,7 @@ public class RenderGraph
                 Camera.ForceMatrixUpdate();
                 **/
             }
-            Renderers[i].Render(registry, ref cam, device, batch, renderables);
+            Renderers[i].Render(assets, registry, ref cam, device, batch, renderables);
             lastRendererHadRenderTarget = Renderers[i].RenderTexture != null;
         }
     }

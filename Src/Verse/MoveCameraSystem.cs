@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PolyECS;
 using PolyECS.Systems;
-using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
 using PolyGame.Transform;
 
@@ -43,7 +42,7 @@ public class MoveCameraSystem : ClassSystem<Query, Res<KeyboardState>, Res<GameT
         {
             move.X += 1;
         }
-        
+
         cameras.Each((ref Position2D pos) => {
             pos.Value += move * 100 * (float)delta;
         });

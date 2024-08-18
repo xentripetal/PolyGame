@@ -1,6 +1,4 @@
-using Flecs.NET.Core;
-
-namespace PolyECS.Systems;
+namespace PolyECS.Scheduling;
 
 public interface Condition
 {

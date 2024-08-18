@@ -1,20 +1,16 @@
 using Microsoft.Xna.Framework.Content;
 
-namespace PolyGame;
+namespace PolyGame.Assets;
 
 public class XNBAssetLoader : IAssetLoader
 {
-    public XNBAssetLoader(ContentManager manager)
-    {
-        Manager = manager;
-    }
+    protected Dictionary<string, int> _referenceCount = new ();
 
     protected ContentManager Manager;
-    protected Dictionary<string, int> _referenceCount = new Dictionary<string, int>();
-    public IEnumerable<string> SupportedExtensions
-    {
-        get => ["", "xnb"];
-    }
+
+    public XNBAssetLoader(ContentManager manager) => Manager = manager;
+
+    public IEnumerable<string> SupportedExtensions => ["", "xnb"];
 
     public T Load<T>(AssetPath path)
     {

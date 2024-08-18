@@ -1,6 +1,5 @@
-using System.Collections.Generic;
-using Flecs.NET.Core;
 using JetBrains.Annotations;
+using PolyECS.Scheduling;
 using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
 
@@ -9,29 +8,6 @@ namespace PolyECS.Tests.Scheduling;
 [TestSubject(typeof(Schedule))]
 public class ScheduleTest
 {
-    protected class TestSystem : ClassSystem<Empty>
-    {
-        public int InitCout = 0;
-        public int RunCount = 0;
-
-        protected override ISystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
-
-        public override void Run(Empty param)
-        {
-            RunCount++;
-        }
-
-        public void AssertCalled(int times)
-        {
-            Assert.Equal(times, RunCount);
-        }
-
-        public TestSystem(string name) : base(name)
-        {
-            Meta.HasDeferred = true;
-        }
-    }
-
     [Fact]
     public void EmptySchedule()
     {
@@ -67,5 +43,25 @@ public class ScheduleTest
     {
         var schedule = ScheduleAndRun(new TestSystem("A"), new TestSystem("B"));
         Assert.Equal(2, schedule.Executable.Systems.Count);
+    }
+
+    protected class TestSystem : ClassSystem<Empty>
+    {
+        public int InitCout = 0;
+        public int RunCount;
+
+        public TestSystem(string name) : base(name) => Meta.HasDeferred = true;
+
+        protected override ISystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
+
+        public override void Run(Empty param)
+        {
+            RunCount++;
+        }
+
+        public void AssertCalled(int times)
+        {
+            Assert.Equal(times, RunCount);
+        }
     }
 }

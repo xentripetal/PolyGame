@@ -1,5 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using Flecs.NET.Core;
 using PolyECS.Systems;
 
@@ -23,23 +21,19 @@ public static class QueryHelpers
 }
 
 /// <summary>
-/// A typed query for use in systems without having to manually build the query. 
+///     A typed query for use in systems without having to manually build the query.
 /// </summary>
 /// <typeparam name="TData"></typeparam>
 /// <typeparam name="TFilter"></typeparam>
 public class TQuery<TData, TFilter> : IIntoSystemParam<TQuery<TData, TFilter>> where TFilter : IIntoFilter
 {
-    public TQuery(PolyWorld world)
-    {
-        Query = Build(world);
-    }
+    public TQuery(PolyWorld world) => Query = Build(world);
 
-    internal TQuery(Query query)
-    {
-        Query = query;
-    }
+    internal TQuery(Query query) => Query = query;
 
     public Query Query { get; private set; }
+
+    public static ISystemParam<TQuery<TData, TFilter>> IntoParam(PolyWorld world) => new TQueryParam<TData, TFilter>(new TQuery<TData, TFilter>(world));
 
     public static Query Build(PolyWorld world)
     {
@@ -62,27 +56,19 @@ public class TQuery<TData, TFilter> : IIntoSystemParam<TQuery<TData, TFilter>> w
         }
         return qb.With<TData>();
     }
-
-    public static ISystemParam<TQuery<TData, TFilter>> IntoParam(PolyWorld world)
-    {
-        return new TQueryParam<TData, TFilter>(new TQuery<TData, TFilter>(world));
-    }
 }
 
 public class TQuery<TData> : TQuery<TData, VoidFilter>, IIntoSystemParam<TQuery<TData>>
 {
     public TQuery(PolyWorld world) : base(world) { }
 
-    public new static ISystemParam<TQuery<TData>> IntoParam(PolyWorld world)
-    {
-        return new TQueryParam<TData>(new TQuery<TData>(world));
-    }
+    public new static ISystemParam<TQuery<TData>> IntoParam(PolyWorld world) => new TQueryParam<TData>(new TQuery<TData>(world));
 }
 
 public interface IIntoData
 {
     /// <summary>
-    /// Expands any data requirements into the query builder. Not static since we 
+    ///     Expands any data requirements into the query builder. Not static since we
     /// </summary>
     /// <param name="qb"></param>
     /// <returns></returns>
@@ -91,15 +77,12 @@ public interface IIntoData
 
 public interface IIntoFilter
 {
-    public static abstract QueryBuilder ApplyFilter(QueryBuilder qb);
+    public abstract static QueryBuilder ApplyFilter(QueryBuilder qb);
 }
 
 public struct Components<T> : IIntoData
 {
-    public QueryBuilder ApplyData(QueryBuilder qb)
-    {
-        return QueryHelpers.ApplyData<T>(qb);
-    }
+    public QueryBuilder ApplyData(QueryBuilder qb) => QueryHelpers.ApplyData<T>(qb);
 }
 
 public struct Components<T1, T2> : IIntoData
@@ -111,29 +94,19 @@ public struct Components<T1, T2> : IIntoData
     }
 }
 
-
 public struct R<T> : IIntoData
 {
-    public QueryBuilder ApplyData(QueryBuilder qb)
-    {
-        return QueryHelpers.ApplyData<T>(qb).In();
-    }
+    public QueryBuilder ApplyData(QueryBuilder qb) => QueryHelpers.ApplyData<T>(qb).In();
 }
 
 public struct RW<T> : IIntoData
 {
-    public QueryBuilder ApplyData(QueryBuilder qb)
-    {
-        return QueryHelpers.ApplyData<T>(qb).InOut();
-    }
+    public QueryBuilder ApplyData(QueryBuilder qb) => QueryHelpers.ApplyData<T>(qb).InOut();
 }
 
 public struct W<T> : IIntoData
 {
-    public QueryBuilder ApplyData(QueryBuilder qb)
-    {
-        return QueryHelpers.ApplyData<T>(qb).Out();
-    }
+    public QueryBuilder ApplyData(QueryBuilder qb) => QueryHelpers.ApplyData<T>(qb).Out();
 }
 
 public struct VoidFilter : IIntoFilter
@@ -143,16 +116,10 @@ public struct VoidFilter : IIntoFilter
 
 public struct With<T> : IIntoFilter
 {
-    public static QueryBuilder ApplyFilter(QueryBuilder qb)
-    {
-        return qb.With<T>().InOutNone();
-    }
+    public static QueryBuilder ApplyFilter(QueryBuilder qb) => qb.With<T>().InOutNone();
 }
 
 public struct Without<T> : IIntoFilter
 {
-    public static QueryBuilder ApplyFilter(QueryBuilder qb)
-    {
-        return qb.Without<T>();
-    }
+    public static QueryBuilder ApplyFilter(QueryBuilder qb) => qb.Without<T>();
 }

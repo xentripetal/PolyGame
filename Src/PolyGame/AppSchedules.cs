@@ -1,5 +1,4 @@
-using System.Diagnostics.Contracts;
-using PolyECS.Queries;
+using PolyECS.Scheduling;
 using PolyECS.Scheduling.Configs;
 using PolyECS.Scheduling.Graph;
 using PolyECS.Systems;
@@ -48,10 +47,7 @@ public partial class App
         return this;
     }
 
-    public App ConfigureSet<T>(IIntoScheduleLabel label, T set) where T : struct, Enum
-    {
-        return ConfigureSets(label, SetConfigs.Of(set));
-    }
+    public App ConfigureSet<T>(IIntoScheduleLabel label, T set) where T : struct, Enum => ConfigureSets(label, SetConfigs.Of(set));
 
     public App ConfigureSchedules(ScheduleBuildSettings settings)
     {

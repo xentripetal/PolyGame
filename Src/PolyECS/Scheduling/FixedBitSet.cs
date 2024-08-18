@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace PolyECS.Systems;
+namespace PolyECS.Scheduling;
 
 public struct FixedBitSet
 {
@@ -18,22 +18,13 @@ public struct FixedBitSet
 
     /// Returns `true` if `self` has no elements in common with `other`. This
     /// is equivalent to checking for an empty intersection.
-    public bool IsDisjoint(FixedBitSet other)
-    {
-        return !Clone().And(other).HasAnySet();
-    }
-    
-    public bool HasAnySet()
-    {
-        return Data.HasAnySet();
-    }
+    public bool IsDisjoint(FixedBitSet other) => !Clone().And(other).HasAnySet();
+
+    public bool HasAnySet() => Data.HasAnySet();
 
     private static int GetInt32ArrayLengthFromBitLength(int n) => n - 1 + 32 >>> 5;
 
-    private static int RoundCapacity(int capacity)
-    {
-        return (capacity + 31) & ~31;
-    }
+    private static int RoundCapacity(int capacity) => capacity + 31 & ~31;
 
     public void EnsureCapacity(int capacity)
     {
@@ -66,10 +57,7 @@ public struct FixedBitSet
     /// Note: bits outside the capacity are always disabled.
     ///
     /// Note: Also available with index syntax: `bitset[bit]`.
-    public bool Contains(int bit)
-    {
-        return bit < Length && Data.Get(bit);
-    }
+    public bool Contains(int bit) => bit < Length && Data.Get(bit);
 
     public bool Get(int index)
     {
@@ -142,7 +130,7 @@ public struct FixedBitSet
     /// Iterator element is the index of the `1` bit, type `usize`.
     public IEnumerable<int> Ones()
     {
-        for (int i = 0; i < Length; i++)
+        for (var i = 0; i < Length; i++)
         {
             if (Data[i])
             {

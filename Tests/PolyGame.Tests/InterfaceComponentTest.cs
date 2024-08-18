@@ -1,9 +1,6 @@
-using System;
 using Flecs.NET.Core;
-using Xunit.Abstractions;
 
 namespace PolyGame.Tests;
-
 
 file interface ITest
 {
@@ -26,11 +23,8 @@ public class InterfaceComponentTest
 {
     private readonly ITestOutputHelper _out;
 
-    public InterfaceComponentTest(ITestOutputHelper testOutputHelper)
-    {
-        _out = testOutputHelper;
-    }
-    
+    public InterfaceComponentTest(ITestOutputHelper testOutputHelper) => _out = testOutputHelper;
+
     [Fact]
     public void Test()
     {

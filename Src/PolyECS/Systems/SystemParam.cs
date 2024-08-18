@@ -6,7 +6,7 @@ namespace PolyECS.Systems;
 
 public interface IIntoSystemParam<T>
 {
-    public static abstract ISystemParam<T> IntoParam(PolyWorld world);
+    public abstract static ISystemParam<T> IntoParam(PolyWorld world);
 }
 
 public interface ISystemParam<T>
@@ -25,14 +25,11 @@ public abstract class SystemParam<T> : ISystemParam<T>
 
 public class VoidParam : SystemParam<Empty>, IIntoSystemParam<Empty>
 {
+    public static ISystemParam<Empty> IntoParam(PolyWorld world) => new VoidParam();
+
     public override void Initialize(PolyWorld world, SystemMeta meta) { }
     public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGen) { }
     public override Empty Get(PolyWorld world, SystemMeta systemMeta) => Empty.Instance;
-
-    public static ISystemParam<Empty> IntoParam(PolyWorld world)
-    {
-        return new VoidParam();
-    }
 }
 
 public static class Param
@@ -46,6 +43,8 @@ public static class Param
 
 public class ResParam<T> : SystemParam<Res<T>>
 {
+    private Entity _globalEntity;
+
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
         unsafe
@@ -55,8 +54,6 @@ public class ResParam<T> : SystemParam<Res<T>>
             meta.ComponentAccessSet.AddUnfilteredRead(Type<T>.Id(world.World.Handle));
         }
     }
-
-    private Entity _globalEntity;
 
     public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
     {
@@ -74,6 +71,8 @@ public class ResParam<T> : SystemParam<Res<T>>
 
 public class ResMutParam<T> : SystemParam<ResMut<T>>
 {
+    private Entity _globalEntity;
+
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
         unsafe
@@ -83,8 +82,6 @@ public class ResMutParam<T> : SystemParam<ResMut<T>>
             meta.ComponentAccessSet.AddUnfilteredWrite(Type<T>.Id(world.World.Handle));
         }
     }
-
-    private Entity _globalEntity;
 
     public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
     {
@@ -102,6 +99,8 @@ public class ResMutParam<T> : SystemParam<ResMut<T>>
 
 public class PolyWorldParam : SystemParam<PolyWorld>
 {
+    private PolyWorld _world;
+
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
         meta.ComponentAccessSet.WriteAll();
@@ -110,25 +109,22 @@ public class PolyWorldParam : SystemParam<PolyWorld>
         _world = world;
     }
 
-    private PolyWorld _world;
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
-    {
-    }
+    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration) { }
 
     public override PolyWorld Get(PolyWorld world, SystemMeta systemMeta) => _world;
 }
 
 /// <summary>
-/// A wrapping <see cref="ISystemParam{T}"/> that has callbacks for initialization, evaluation and getting the value. Each hook will be called after the
-/// wrapped <see cref="ISystemParam{T}"/> has been called.
+///     A wrapping <see cref="ISystemParam{T}" /> that has callbacks for initialization, evaluation and getting the value.
+///     Each hook will be called after the
+///     wrapped <see cref="ISystemParam{T}" /> has been called.
 /// </summary>
 public class HookedParam<T>(ISystemParam<T> param, HookedParam<T>.OnInit? init, HookedParam<T>.OnEval? eval, HookedParam<T>.OnGet? get)
     : SystemParam<T>
 {
-    public delegate void OnInit(PolyWorld world, SystemMeta meta);
     public delegate void OnEval(SystemMeta meta, Table table, int tableGen);
     public delegate T OnGet(PolyWorld world, SystemMeta systemMeta, T childT);
+    public delegate void OnInit(PolyWorld world, SystemMeta meta);
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -155,15 +151,15 @@ public class HookedParam<T>(ISystemParam<T> param, HookedParam<T>.OnInit? init, 
 
 public class WriteAnnotatedParam<T> : SystemParam<T>
 {
-    private ISystemParam<T> _param;
+    private readonly ISystemParam<T> _param;
+
+    protected IEnumerable<ulong> Writes;
 
     public WriteAnnotatedParam(ISystemParam<T> param, IEnumerable<ulong> writes)
     {
         Writes = writes;
         _param = param;
     }
-
-    protected IEnumerable<ulong> Writes;
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -193,6 +189,8 @@ public class WriteAnnotatedParam<T> : SystemParam<T>
 
 public class WorldParam : SystemParam<PolyWorld>
 {
+    private PolyWorld _world;
+
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
         meta.ComponentAccessSet.WriteAll();
@@ -201,28 +199,24 @@ public class WorldParam : SystemParam<PolyWorld>
         _world = world;
     }
 
-    private PolyWorld _world;
-
     public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration) { }
 
     public override PolyWorld Get(PolyWorld world, SystemMeta systemMeta) => _world;
 
-    public static implicit operator WorldParam(PolyWorld world)
-    {
-        return new WorldParam();
-    }
+    public static implicit operator WorldParam(PolyWorld world) => new ();
 }
 
 public class TQueryParam<TData> : SystemParam<TQuery<TData>>
 {
+    protected readonly QueryParam Param;
+
+    protected TQuery<TData> Query;
+
     public TQueryParam(TQuery<TData> query)
     {
         Param = new QueryParam(query.Query);
         Query = query;
     }
-
-    protected TQuery<TData> Query;
-    protected readonly QueryParam Param;
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -239,14 +233,15 @@ public class TQueryParam<TData> : SystemParam<TQuery<TData>>
 
 public class TQueryParam<TData, TFilter> : SystemParam<TQuery<TData, TFilter>> where TFilter : IIntoFilter
 {
+    protected readonly QueryParam Param;
+
+    protected TQuery<TData, TFilter> Query;
+
     public TQueryParam(TQuery<TData, TFilter> query)
     {
         Param = new QueryParam(query.Query);
         Query = query;
     }
-
-    protected TQuery<TData, TFilter> Query;
-    protected readonly QueryParam Param;
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -258,16 +253,13 @@ public class TQueryParam<TData, TFilter> : SystemParam<TQuery<TData, TFilter>> w
         Param.EvaluateNewTable(meta, table, tableGeneration);
     }
 
-    public override TQuery<TData, TFilter> Get(PolyWorld world, SystemMeta systemMeta)
-    {
-        return Query;
-    }
+    public override TQuery<TData, TFilter> Get(PolyWorld world, SystemMeta systemMeta) => Query;
 }
 
 public class QueryParam : SystemParam<Query>
 {
-    public QueryParam(Query query) => _query = query;
     private readonly Query _query;
+    public QueryParam(Query query) => _query = query;
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -279,7 +271,7 @@ public class QueryParam : SystemParam<Query>
             }
         }
         var access = new FilteredAccess<ulong>();
-        for (int i = 0; i < _query.TermCount(); i++)
+        for (var i = 0; i < _query.TermCount(); i++)
         {
             var term = _query.Term(i);
             switch (term.Oper())
@@ -369,25 +361,16 @@ public class QueryParam : SystemParam<Query>
 
     public override Query Get(PolyWorld world, SystemMeta systemMeta) => _query;
 
-    public static implicit operator QueryParam(Query query)
-    {
-        return new QueryParam(query);
-    }
+    public static implicit operator QueryParam(Query query) => new (query);
 }
 
 public class LocalParam<T> : SystemParam<T>
 {
     protected T Value;
 
-    public LocalParam()
-    {
-        Value = default;
-    }
+    public LocalParam() => Value = default;
 
-    public LocalParam(T value)
-    {
-        Value = value;
-    }
+    public LocalParam(T value) => Value = value;
 
     public override void Initialize(PolyWorld world, SystemMeta meta) { }
 
@@ -397,7 +380,8 @@ public class LocalParam<T> : SystemParam<T>
 }
 
 /// <summary>
-/// A simple parameter that access a world singleton. <see cref="Res"/> and <see cref="ResMut{T}"/> should be used in actual applications. 
+///     A simple parameter that access a world singleton. <see cref="Res" /> and <see cref="ResMut{T}" /> should be used in
+///     actual applications.
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public class SingletonParam<T> : SystemParam<Ref<T>>
@@ -426,8 +410,8 @@ public class SingletonParam<T> : SystemParam<Ref<T>>
 
 public class BiParam<T1, T2> : SystemParam<(T1, T2)>
 {
-    public BiParam(ISystemParam<T1> p1, ISystemParam<T2> p2) => _params = (p1, p2);
     private readonly (ISystemParam<T1>, ISystemParam<T2>) _params;
+    public BiParam(ISystemParam<T1> p1, ISystemParam<T2> p2) => _params = (p1, p2);
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -441,21 +425,15 @@ public class BiParam<T1, T2> : SystemParam<(T1, T2)>
         _params.Item2.EvaluateNewTable(meta, table, tableGen);
     }
 
-    public override (T1, T2) Get(PolyWorld world, SystemMeta systemMeta)
-    {
-        return (_params.Item1.Get(world, systemMeta), _params.Item2.Get(world, systemMeta));
-    }
+    public override (T1, T2) Get(PolyWorld world, SystemMeta systemMeta) => (_params.Item1.Get(world, systemMeta), _params.Item2.Get(world, systemMeta));
 
-    public static implicit operator BiParam<T1, T2>((ISystemParam<T1>, ISystemParam<T2>) tuple)
-    {
-        return new BiParam<T1, T2>(tuple.Item1, tuple.Item2);
-    }
+    public static implicit operator BiParam<T1, T2>((ISystemParam<T1>, ISystemParam<T2>) tuple) => new (tuple.Item1, tuple.Item2);
 }
 
 public class TriParam<T1, T2, T3> : SystemParam<(T1, T2, T3)>
 {
-    public TriParam(ISystemParam<T1> p1, ISystemParam<T2> p2, ISystemParam<T3> p3) => _params = (p1, p2, p3);
     private readonly (ISystemParam<T1>, ISystemParam<T2>, ISystemParam<T3>) _params;
+    public TriParam(ISystemParam<T1> p1, ISystemParam<T2> p2, ISystemParam<T3> p3) => _params = (p1, p2, p3);
 
     public override void Initialize(PolyWorld world, SystemMeta meta)
     {
@@ -471,8 +449,6 @@ public class TriParam<T1, T2, T3> : SystemParam<(T1, T2, T3)>
         _params.Item3.EvaluateNewTable(meta, table, tableGen);
     }
 
-    public override (T1, T2, T3) Get(PolyWorld world, SystemMeta systemMeta)
-    {
-        return (_params.Item1.Get(world, systemMeta), _params.Item2.Get(world, systemMeta), _params.Item3.Get(world, systemMeta));
-    }
+    public override (T1, T2, T3) Get(PolyWorld world, SystemMeta systemMeta) => (_params.Item1.Get(world, systemMeta), _params.Item2.Get(world, systemMeta),
+        _params.Item3.Get(world, systemMeta));
 }

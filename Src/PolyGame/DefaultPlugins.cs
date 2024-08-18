@@ -1,7 +1,7 @@
-using PolyGame.Components.Transform;
+using PolyGame.Assets;
+using PolyGame.Graphics;
 using PolyGame.Graphics.Camera;
 using PolyGame.Input;
-using PolyGame.Systems.Render;
 using PolyGame.Transform;
 
 namespace PolyGame;

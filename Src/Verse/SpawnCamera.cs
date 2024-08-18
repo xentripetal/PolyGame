@@ -1,7 +1,6 @@
 using PolyECS;
 using PolyECS.Systems;
 using PolyGame;
-using PolyGame.Components.Transform;
 using PolyGame.Graphics.Camera;
 using PolyGame.Transform;
 
@@ -20,13 +19,13 @@ public class SpawnCamera : ClassSystem<PolyWorld>
                 PositionZ3D = 0,
                 NearClipPlane3D = 0,
                 FarClipPlane3D = 0,
-                RawZoom = 4,
+                RawZoom = 1,
                 Origin = default,
-                Zoom = 1,
+                Zoom = 0,
                 ZoomBounds = new Range<float>(1, 4)
             },
             Inset = new CameraInset(),
-            Transform = new TransformBundle(),
+            Transform = new TransformBundle()
         };
         cb.Apply(world.Entity("TestCamera"));
     }

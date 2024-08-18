@@ -1,14 +1,12 @@
-using System.Runtime.CompilerServices;
-
 namespace PolyGame;
 
 public class ListPool<T>
 {
+    protected Stack<int> _freeIndices = new ();
     protected T[] Buffer;
     protected ushort[] Generations;
-    protected Stack<int> _freeIndices = new Stack<int>();
 
-    protected int Length = 0;
+    protected int Length;
 
     public ListPool(int capacity)
     {
@@ -16,10 +14,10 @@ public class ListPool<T>
         Generations = new ushort[capacity];
     }
 
+    public ListPool() : this(5) { }
+
     public int Count => Length - _freeIndices.Count;
     public int Capacity => Buffer.Length;
-
-    public ListPool() : this(5) { }
 
     public T this[int index]
     {

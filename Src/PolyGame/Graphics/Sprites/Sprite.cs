@@ -1,7 +1,8 @@
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PolyGame.Components.Transform;
+using PolyGame.Assets;
+using PolyGame.Graphics.Materials;
 using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Sprites;
@@ -10,15 +11,11 @@ public struct Sprite
 {
     public Color Color = Color.White;
     public SpriteEffects Effects = SpriteEffects.None;
-    // TODO
-    // - An optional custom size for the sprite that will be used when rendering, instead of the sizeof the sprite's image
-    // - An optional rectangle representing the region of the sprite's image to render, instead of rendering
-    //   the full image. This is an easy one-off alternative to using a [`TextureAtlas`](crate::TextureAtlas).
-    //
-    //   When used with a [`TextureAtlas`](crate::TextureAtlas), the rect
-    //   is offset by the atlas's minimal (top-left) corner position.
-    // [`Anchor`] point of the sprite in the world
-    public Anchor Anchor;
+
+    /// <summary>
+    ///     <see cref="Anchor" /> point of the sprite in the world
+    /// </summary>
+    public Anchor Anchor = Anchor.Center;
 
     public Sprite() { }
 }
@@ -34,24 +31,85 @@ public struct Anchor
         Y = y;
     }
 
-    public static Anchor Center => new Anchor(0.5f, 0.5f);
-    public static Anchor TopLeft => new Anchor(0.0f, 0.0f);
-    public static Anchor TopRight => new Anchor(1.0f, 0.0f);
-    public static Anchor BottomLeft => new Anchor(0.0f, 1.0f);
-    public static Anchor BottomRight => new Anchor(1.0f, 1.0f);
-    public static implicit operator Vector2(Anchor anchor) => new Vector2(anchor.X, anchor.Y);
+    public static Anchor Center => new (0.5f, 0.5f);
+    public static Anchor TopLeft => new (0.0f, 0.0f);
+    public static Anchor TopRight => new (1.0f, 0.0f);
+    public static Anchor BottomLeft => new (0.0f, 1.0f);
+    public static Anchor BottomRight => new (1.0f, 1.0f);
+    public static implicit operator Vector2(Anchor anchor) => new (anchor.X, anchor.Y);
+}
+
+public record struct ZIndex(int Value, bool Relative = false)
+{
+    public static implicit operator int(ZIndex z) => z.Value;
+}
+
+public record struct GlobalZIndex(int Value)
+{
+    public static implicit operator int(GlobalZIndex z) => z.Value;
+}
+
+public record struct SortLayer(uint Value)
+{
+    public static implicit operator uint(SortLayer z) => z.Value;
 }
 
 public class SpriteBundle
 {
-    public Sprite Sprite = new Sprite();
+    public Sprite Sprite = new ();
     public Handle<Texture2D> Texture = default;
-    public TransformBundle Transform = new TransformBundle();
+    public TransformBundle Transform = new ();
+    public Material? Material = null;
+    public ZIndex ZIndex = new ();
+    public SortLayer Layer = new ();
 
-    public void Apply(Entity entity)
+    public SpriteBundle WithMaterial(Material material)
+    {
+        Material = material;
+        return this;
+    }
+    
+    public SpriteBundle WithLayer(uint layer)
+    {
+        Layer = new SortLayer(layer);
+        return this;
+    }
+
+    public SpriteBundle WithZIndex(int index)
+    {
+        ZIndex = new ZIndex(index);
+        return this;
+    }
+
+    public SpriteBundle WithTransform(TransformBundle transform)
+    {
+        Transform = transform;
+        return this;
+    }
+
+    public SpriteBundle WithSprite(Sprite sprite)
+    {
+        Sprite = sprite;
+        return this;
+    }
+
+
+    public SpriteBundle(Handle<Texture2D> texture)
+    {
+        Texture = texture;
+    }
+
+    public Entity Apply(Entity entity)
     {
         Transform.Apply(entity);
-        entity.Set(Sprite)
-            .Set(Texture);
+        if (Material != null)
+        {
+            entity.Set(Material);
+        }
+        return entity.Set(Sprite)
+            .Set(Texture)
+            .Set(ZIndex)
+            .Set(Layer)
+            .Add<GlobalZIndex>();
     }
 }

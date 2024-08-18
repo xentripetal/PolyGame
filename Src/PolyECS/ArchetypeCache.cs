@@ -1,25 +1,19 @@
 using System.Runtime.CompilerServices;
-using Flecs.NET.Bindings;
 using Flecs.NET.Core;
 
 namespace PolyECS;
 
 /// <summary>
-/// A cache of all the tables in the world, indexed by component type. This is used to quickly find tables that match a given set of component types.
+///     A cache of all the tables in the world, indexed by component type. This is used to quickly find tables that match a
+///     given set of component types.
 /// </summary>
 public class TableCache
 {
-    protected Query tableQuery;
     protected readonly Dictionary<Id, HashSet<Table>> exactTableLookup = new ();
     protected readonly HashSet<Table> tableSet = new ();
+    protected Query tableQuery;
     protected List<Table> Tables = new ();
     protected World world;
-
-    /// <summary>
-    /// The current generation of the cache, will increase each time a new table is added on <see cref="Update"/>.
-    /// Used for tracking the addition of new tables by consumers of the cache. 
-    /// </summary>
-    public int Generation { get; protected set; }
 
     public TableCache(World world)
     {
@@ -27,23 +21,23 @@ public class TableCache
         this.world = world;
     }
 
+    /// <summary>
+    ///     The current generation of the cache, will increase each time a new table is added on <see cref="Update" />.
+    ///     Used for tracking the addition of new tables by consumers of the cache.
+    /// </summary>
+    public int Generation { get; protected set; }
+
     public Table this[int index]
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Tables[index];
     }
 
-    public IEnumerable<Table> GetRange(int start, int count)
-    {
-        return Tables.GetRange(start, count);
-    }
+    public IEnumerable<Table> GetRange(int start, int count) => Tables.GetRange(start, count);
 
 
 
-    public IEnumerable<Table> TablesForType(UntypedComponent component)
-    {
-        return TablesForType(component.Id);
-    }
+    public IEnumerable<Table> TablesForType(UntypedComponent component) => TablesForType(component.Id);
 
     public IEnumerable<Table> TablesForType(Id type)
     {

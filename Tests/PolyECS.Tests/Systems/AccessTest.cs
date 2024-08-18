@@ -95,7 +95,7 @@ public class AccessTest
         a.Extend(b);
 
         var expected = new FilteredAccess<int>().AddWrite(0).AddWrite(1);
-        expected.FilterSets = new List<AccessFilters<int>>()
+        expected.FilterSets = new List<AccessFilters<int>>
         {
             new ()
             {

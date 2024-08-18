@@ -4,42 +4,52 @@ namespace PolyGame.Graphics.Renderable;
 
 public struct RenderableReference : IComparable<RenderableReference>
 {
-    public float SortKey;
+    public int SortKey;
+    public float SubSortKey;
     public int DrawFuncIndex;
     public Entity Entity;
 
-    public int CompareTo(RenderableReference other) => SortKey.CompareTo(other.SortKey);
+    public int CompareTo(RenderableReference other)
+    {
+        if (SortKey == other.SortKey)
+        {
+            return SubSortKey.CompareTo(other.SubSortKey);
+        }
+        return SortKey.CompareTo(other.SortKey);
+    } 
 }
 
 /// <summary>
-/// Container of all renderables to be rendered. 
+///     Container of all renderables to be rendered.
 /// </summary>
 public class RenderableList
 {
+    protected FastList<FastList<RenderableReference>> _renderables;
+
     /// <summary>
-    /// Creates a new RenderableList with the given capacity.
+    ///     Creates a new RenderableList with the given capacity.
     /// </summary>
     /// <param name="initialLayers">How many initial layers to buffer for</param>
     /// <param name="layerCapacity">Initial capacity for each render layer</param>
     public RenderableList(int initialLayers = 16, int layerCapacity = 1024)
     {
         _renderables = new FastList<FastList<RenderableReference>>(initialLayers);
-        for (int i = 0; i < layerCapacity; i++)
+        for (var i = 0; i < layerCapacity; i++)
         {
             _renderables.Add(new FastList<RenderableReference>(layerCapacity));
         }
 
     }
 
-    protected FastList<FastList<RenderableReference>> _renderables;
-
     public int Count { get; protected set; }
+
+    public int NumLayers => _renderables.Length;
 
 
     public void Add(RenderableReference renderable, uint layer = 0)
     {
         Count++;
-        int neededCapacity = (int)(layer - _renderables.Length + 1);
+        var neededCapacity = (int)(layer - _renderables.Length + 1);
         if (neededCapacity > 0)
         {
             _renderables.EnsureCapacity(neededCapacity);
@@ -47,11 +57,9 @@ public class RenderableList
         _renderables.Buffer[layer].Add(renderable);
     }
 
-    public int NumLayers => _renderables.Length;
-
     public IEnumerable<int> GetLayers()
     {
-        for (int i = 0; i < _renderables.Length; i++)
+        for (var i = 0; i < _renderables.Length; i++)
         {
             if (_renderables.Buffer[i].Length > 0)
                 yield return i;
@@ -72,7 +80,7 @@ public class RenderableList
 
     public void Sort()
     {
-        for (int i = 0; i < _renderables.Length; i++)
+        for (var i = 0; i < _renderables.Length; i++)
         {
             _renderables.Buffer[i].Sort();
         }
@@ -80,11 +88,11 @@ public class RenderableList
 
 
     /// <summary>
-    /// Clears out added renderables. This does not clear out the draw funcs.
+    ///     Clears out added renderables. This does not clear out the draw funcs.
     /// </summary>
     public void Clear()
     {
-        for (int i = 0; i < _renderables.Length; i++)
+        for (var i = 0; i < _renderables.Length; i++)
         {
             _renderables.Buffer[i].Clear();
         }

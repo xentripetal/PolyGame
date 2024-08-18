@@ -1,7 +1,4 @@
-using Flecs.NET.Core;
-using PolyECS.Systems.Graph;
-
-namespace PolyECS.Systems.Executor;
+namespace PolyECS.Scheduling.Executor;
 
 public interface IExecutor
 {

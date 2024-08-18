@@ -1,14 +1,15 @@
 using DotNext;
 using Flecs.NET.Core;
+using PolyECS.Scheduling;
 using PolyECS.Systems;
 using Serilog;
 
 namespace PolyECS;
 
 /// <summary>
-/// A wrapper around <see cref="World"/> with some helper methods.
+///     A wrapper around <see cref="World" /> with some helper methods.
 /// </summary>
-public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
+public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
 {
     public PolyWorld(World world)
     {
@@ -26,9 +27,20 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         TableCache.Update();
     }
 
+    public World World { get; }
+    public TableCache TableCache { get; }
+
+    public void Dispose()
+    {
+        World.Dispose();
+    }
+
+    public static ISystemParam<PolyWorld> IntoParam(PolyWorld world) => new PolyWorldParam();
+
     /// <summary>
-    /// Temporarily removes the schedule associated with label from the <see cref="ScheduleContainer"/>, passes it to the provided fn, and finally re-adds it
-    /// to the container. 
+    ///     Temporarily removes the schedule associated with label from the <see cref="ScheduleContainer" />, passes it to the
+    ///     provided fn, and finally re-adds it
+    ///     to the container.
     /// </summary>
     /// <param name="label">Label of schedule to scope</param>
     /// <param name="fn">Function to invoke with the schedule</param>
@@ -58,7 +70,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
     }
 
     /// <summary>
-    /// Runs the <see cref="Schedule"/> associated with the label a single time
+    ///     Runs the <see cref="Schedule" /> associated with the label a single time
     /// </summary>
     /// <param name="label"></param>
     public Result<Empty> RunSchedule(ScheduleLabel label)
@@ -70,10 +82,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
     }
 
 
-    public bool DeferBegin()
-    {
-        return World.DeferBegin();
-    }
+    public bool DeferBegin() => World.DeferBegin();
 
     public bool DeferEnd()
     {
@@ -84,9 +93,6 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         TableCache.Update();
         return true;
     }
-
-    public World World { get; private set; }
-    public TableCache TableCache { get; private set; }
 
     public void RunSystemOnce<T>(T system) where T : RunSystem
     {
@@ -107,17 +113,12 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
 
     public void SetResource<T>(T resource)
     {
-        World.Set<T>(resource);
+        World.Set(resource);
     }
 
     public void RegisterResource<T>()
     {
         World.Add<T>();
-    }
-
-    public void Dispose()
-    {
-        World.Dispose();
     }
 
     public Component<T> Register<T>()
@@ -134,8 +135,8 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         T.Register(c.UntypedComponent);
     }
 
-    public Res<T> GetResource<T>() => new Res<T>(World);
-    public ResMut<T> GetResourceMut<T>() => new ResMut<T>(World);
+    public Res<T> GetResource<T>() => new (World);
+    public ResMut<T> GetResourceMut<T>() => new (World);
 
 
     #region Flecs.World Proxies
@@ -167,6 +168,4 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
     public Query Query<T1, T2, T3, T4, T5, T6>() => World.Query<T1, T2, T3, T4, T5, T6>();
 
     #endregion
-
-    public static ISystemParam<PolyWorld> IntoParam(PolyWorld world) => new PolyWorldParam();
 }

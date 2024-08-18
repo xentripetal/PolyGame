@@ -1,3 +1,5 @@
+using PolyGame.Assets;
+
 namespace PolyGame.Tests.Assets;
 
 public class AssetPathTests
@@ -12,6 +14,7 @@ public class AssetPathTests
         Assert.Null(path.Label);
         Assert.Equal("file://example.test", path.ToString());
     }
+
     [Fact]
     public void TestAssetPathLabel()
     {
@@ -22,7 +25,7 @@ public class AssetPathTests
         Assert.Equal("label", path.Label);
         Assert.Equal("file://example.a.b#label", path.ToString());
     }
-    
+
     [Fact]
     public void TestAssetPathScheme()
     {

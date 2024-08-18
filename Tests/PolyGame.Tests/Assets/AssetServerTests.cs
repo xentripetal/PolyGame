@@ -1,51 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Threading;
 using Flecs.NET.Core;
+using PolyGame.Assets;
 
 namespace PolyGame.Tests.Assets;
 
 public class AssetServerTests
 {
-    private class MockLoader : IAssetLoader
-    {
-        public IEnumerable<string> SupportedExtensions
-        {
-            get => new[]
-            {
-                "test"
-            };
-        }
-
-        public T Load<T>(AssetPath path)
-        {
-            if (typeof(T) == typeof(DisposableComponent))
-            {
-                return (T)(object)new DisposableComponent();
-            }
-            return default;
-        }
-
-        public void Unload(AssetPath path, object asset)
-        {
-            if (asset is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-        }
-    }
-
-    private class DisposableComponent : IDisposable
-    {
-        public bool Disposed { get; private set; }
-
-        public void Dispose()
-        {
-            Disposed = true;
-        }
-    }
-
     [Fact]
     public void DisposesHandles()
     {
@@ -89,7 +51,7 @@ public class AssetServerTests
         Assert.False(server.IsLoaded(h1));
         Assert.True(component.Disposed);
     }
-    
+
     [Fact]
     public void MultiWorldDisposesComponentHandles()
     {
@@ -125,5 +87,40 @@ public class AssetServerTests
         Assert.False(server.IsLoaded(h1));
         Assert.Equal(AssetServer.LoadState.Unloaded, server.GetState(h1));
         Assert.False(server.Release(h1));
+    }
+
+    private class MockLoader : IAssetLoader
+    {
+        public IEnumerable<string> SupportedExtensions => new[]
+        {
+            "test"
+        };
+
+        public T Load<T>(AssetPath path)
+        {
+            if (typeof(T) == typeof(DisposableComponent))
+            {
+                return (T)(object)new DisposableComponent();
+            }
+            return default;
+        }
+
+        public void Unload(AssetPath path, object asset)
+        {
+            if (asset is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+    }
+
+    private class DisposableComponent : IDisposable
+    {
+        public bool Disposed { get; private set; }
+
+        public void Dispose()
+        {
+            Disposed = true;
+        }
     }
 }

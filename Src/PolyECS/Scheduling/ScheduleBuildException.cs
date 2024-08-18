@@ -1,6 +1,6 @@
-namespace PolyECS.Systems;
+namespace PolyECS.Scheduling;
 
-public class ScheduleBuildException : ArgumentException 
+public class ScheduleBuildException : ArgumentException
 {
     public ScheduleBuildException(string message) : base(message) { }
 
@@ -35,7 +35,7 @@ public class ScheduleBuildException : ArgumentException
     {
         public HierarchyCycle(string a) : base($"System set `{a}` contains a cycle.") { }
     }
-    
+
     public class HierarchyRedundancy : ScheduleBuildException
     {
         public HierarchyRedundancy(string message) : base($"System set hierarchy contains redundant edges.\n{message}") { }
@@ -54,4 +54,5 @@ public class ScheduleBuildException : ArgumentException
     public class Uninitialized : ScheduleBuildException
     {
         public Uninitialized() : base("Systems in schedule have not been initialized.") { }
-    }}
+    }
+}

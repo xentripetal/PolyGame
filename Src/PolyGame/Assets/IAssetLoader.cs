@@ -1,7 +1,7 @@
-namespace PolyGame;
+namespace PolyGame.Assets;
 
 /// <summary>
-/// System for loading assets from a <see cref="AssetPath"/>. Each loader is responsible for caching its own assets.
+///     System for loading assets from a <see cref="AssetPath" />. Each loader is responsible for caching its own assets.
 /// </summary>
 public interface IAssetLoader
 {

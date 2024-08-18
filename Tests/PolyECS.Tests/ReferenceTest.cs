@@ -8,14 +8,14 @@ namespace PolyECS.Tests;
 // Components
 file record struct Position(float X, float Y)
 {
-    public static Position operator +(Position a, Position b) => new Position(a.X + b.X, a.Y + b.Y);
-    public static Position operator *(Position a, Position b) => new Position(a.X * b.X, a.Y * b.Y);
+    public static Position operator +(Position a, Position b) => new (a.X + b.X, a.Y + b.Y);
+    public static Position operator *(Position a, Position b) => new (a.X * b.X, a.Y * b.Y);
 }
 
 file record struct Scale(float X, float Y)
 {
-    public static Scale operator +(Scale a, Scale b) => new Scale(a.X + b.X, a.Y + b.Y);
-    public static Scale operator *(Scale a, Scale b) => new Scale(a.X * b.X, a.Y * b.Y);
+    public static Scale operator +(Scale a, Scale b) => new (a.X + b.X, a.Y + b.Y);
+    public static Scale operator *(Scale a, Scale b) => new (a.X * b.X, a.Y * b.Y);
 }
 
 // Tags
@@ -26,10 +26,7 @@ public class ReferenceTest
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
-    public ReferenceTest(ITestOutputHelper testOutputHelper)
-    {
-        _testOutputHelper = testOutputHelper;
-    }
+    public ReferenceTest(ITestOutputHelper testOutputHelper) => _testOutputHelper = testOutputHelper;
 
     [Fact]
     public void TestWhatIsReference()
@@ -43,7 +40,7 @@ public class ReferenceTest
     {
         using var world = World.Create();
         // Create a hierarchy. For an explanation see the entities/hierarchy example
-        Entity sun = world.Entity("Sun")
+        var sun = world.Entity("Sun")
             .Add<Position, Global>()
             .Add<Scale, Global>()
             .Set<Position, Local>(new Position(1, 1))
@@ -63,7 +60,7 @@ public class ReferenceTest
             .Set<Position, Local>(new Position(2, 2))
             .Set<Scale, Local>(new Scale(1, 1));
 
-        Entity earth = world.Entity("Earth")
+        var earth = world.Entity("Earth")
             .ChildOf(sun)
             .Add<Position, Global>()
             .Add<Scale, Global>()
@@ -79,7 +76,7 @@ public class ReferenceTest
 
         // Create a hierarchical query to compute the global position from the
         // local position and the parent position.
-        using Query q = world.QueryBuilder()
+        using var q = world.QueryBuilder()
             .With<Position, Local>().In() // Self local position
             .With<Scale, Local>().In() // Self local position
             .With<Position, Global>().Out() // Self global position
@@ -91,7 +88,15 @@ public class ReferenceTest
         {
             throw new Exception("Query creation failed");
         }
-        q.Each((Entity e, ref Position localPos, ref Scale localScale, ref Position globalPos, ref Scale globalScale, ref Position parentPos, ref Scale parentScale) => {
+        q.Each((
+            Entity e,
+            ref Position localPos,
+            ref Scale localScale,
+            ref Position globalPos,
+            ref Scale globalScale,
+            ref Position parentPos,
+            ref Scale parentScale
+        ) => {
             globalPos = localPos;
             globalScale = localScale;
             _testOutputHelper.WriteLine(e.Name());

@@ -1,7 +1,5 @@
-using Flecs.NET.Core;
 using Microsoft.Xna.Framework.Input;
 using PolyECS;
-using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
 
 namespace PolyGame.Input;
