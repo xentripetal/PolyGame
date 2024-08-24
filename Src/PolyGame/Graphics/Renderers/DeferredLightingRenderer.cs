@@ -125,16 +125,17 @@ public class DeferredLightingRenderer : Renderer
         ref ComputedCamera cam,
         GraphicsDevice device,
         Batcher batch,
-        RenderableList renderables
+        RenderableList renderables,
+        RenderTarget2D cameraTarget
     )
     {
         ClearRenderTargets();
         RenderSprites(assets, registry, ref cam, device, batch, renderables);
         RenderLights(assets, registry, ref cam, device, batch, renderables);
-        RenderFinalCombine();
+        RenderFinalCombine(cameraTarget);
 
         if (EnableDebugBufferRender)
-            RenderAllBuffers(batch);
+            RenderAllBuffers(cameraTarget, batch);
     }
 
 
@@ -255,9 +256,9 @@ public class DeferredLightingRenderer : Renderer
         }
     }
 
-    void RenderFinalCombine()
+    void RenderFinalCombine(RenderTarget2D cameraTarget)
     {
-        GraphicsDevice.SetRenderTarget(RenderTexture?.RenderTarget);
+        GraphicsDevice.SetRenderTarget(cameraTarget);
         GraphicsDevice.BlendState = BlendState.Opaque;
         GraphicsDevice.DepthStencilState = DepthStencilState.None;
 
@@ -266,7 +267,7 @@ public class DeferredLightingRenderer : Renderer
         _quadMesh.Render(GraphicsDevice);
     }
 
-    void RenderAllBuffers(Batcher batcher)
+    void RenderAllBuffers(RenderTarget2D cameraTarget, Batcher batcher)
     {
         GraphicsDevice.SetRenderTarget(CombinedRT);
 
@@ -277,11 +278,10 @@ public class DeferredLightingRenderer : Renderer
         batcher.Draw(LightRT, new Rectangle(0, 0, halfWidth, halfHeight));
         batcher.Draw(DiffuseRT, new Rectangle(halfWidth, 0, halfWidth, halfHeight));
         batcher.Draw(NormalRT, new Rectangle(0, halfHeight, halfWidth, halfHeight));
-        // TODO make RenderTexture required
-        batcher.Draw(RenderTexture, new Rectangle(halfWidth, halfHeight, halfWidth, halfHeight));
+        batcher.Draw(cameraTarget, new Rectangle(halfWidth, halfHeight, halfWidth, halfHeight));
         batcher.End();
 
-        GraphicsDevice.SetRenderTarget(RenderTexture?.RenderTarget);
+        GraphicsDevice.SetRenderTarget(cameraTarget);
         batcher.Begin(BlendState.Opaque);
         batcher.Draw(CombinedRT, Vector2.Zero);
         batcher.End();
@@ -320,24 +320,23 @@ public class DeferredLightingRenderer : Renderer
     #endregion
 
 
-    /**
-    public override void OnSceneBackBufferSizeChanged(int newWidth, int newHeight)
+    public override void OnSceneBackBufferSizeChanged(Screen screen, int newWidth, int newHeight)
     {
         // create our RenderTextures if we havent and resize them if we have
         if (DiffuseRT == null)
         {
-            DiffuseRT = new RenderTexture(newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
-            NormalRT = new RenderTexture(newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
-            LightRT = new RenderTexture(newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
+            DiffuseRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
+            NormalRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
+            LightRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
         }
         else
         {
-            DiffuseRT.OnSceneBackBufferSizeChanged(newWidth, newHeight);
-            NormalRT.OnSceneBackBufferSizeChanged(newWidth, newHeight);
-            LightRT.OnSceneBackBufferSizeChanged(newWidth, newHeight);
+            DiffuseRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
+            NormalRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
+            LightRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
         }
     }
-    **/
+    
     public override void Unload()
     {
         _lightEffect.Dispose();

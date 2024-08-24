@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Flecs.NET.Core;
 using Xunit.Abstractions;
@@ -32,6 +33,21 @@ public class ReferenceTest
     public void TestWhatIsReference()
     {
         Assert.False(RuntimeHelpers.IsReferenceOrContainsReferences<int>());
+    }
+    
+    public class TestClassComponent
+    {
+        public List<bool> Value;
+    }
+
+    [Fact]
+    public void ReferenceClone()
+    {
+        using var world = World.Create();
+        var e1 = world.Entity().Set<TestClassComponent>(new TestClassComponent());
+        world.Progress();
+        var e2 = e1.Clone();
+        world.Progress();
     }
 
 

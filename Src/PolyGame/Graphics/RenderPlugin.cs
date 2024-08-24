@@ -22,6 +22,7 @@ public class RenderPlugin : IPlugin
         var registry = new DrawFuncRegistry();
 
         app.SetResource(registry)
+            .SetResource(new FinalRenderTarget(app.GetResource<Screen>()))
             .SetResource(new RenderableList())
             .SetResource(new ClearColor(Color.CornflowerBlue))
             .ConfigureSets(Schedules.Render, SetConfigs.Of(RenderSets.PropagateZIndex, RenderSets.Queue, RenderSets.Sort, RenderSets.Render).Chained())

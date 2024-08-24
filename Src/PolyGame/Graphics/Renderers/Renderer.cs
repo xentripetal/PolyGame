@@ -79,7 +79,7 @@ public abstract class Renderer : IComparable<Renderer>
         batch.Begin(CurrentMaterial, cam.TransformMatrix);
     }
 
-    public abstract void Render(AssetServer assets, DrawFuncRegistry registry, ref ComputedCamera cam, GraphicsDevice device, Batcher batch, RenderableList renderables);
+    public abstract void Render(AssetServer assets, DrawFuncRegistry registry, ref ComputedCamera cam, GraphicsDevice device, Batcher batch, RenderableList renderables, RenderTarget2D cameraTarget);
 
     /// <summary>
     ///     renders the RenderableComponent flushing the Batcher and resetting current material if necessary
@@ -108,7 +108,7 @@ public abstract class Renderer : IComparable<Renderer>
     }
 
     /// ends the Batcher and clears the RenderTarget if it had a RenderTarget
-    /// </summary>
+    /// </summary
     protected virtual void EndRender(Batcher batch) => batch.End();
 
     /// <summary>

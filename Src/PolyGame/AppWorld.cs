@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using DotNext;
 using Flecs.NET.Core;
 using PolyECS;
 
@@ -19,6 +20,8 @@ public partial class App
         World.RegisterResource<T>();
         return this;
     }
+    
+    public Res<T> GetResource<T>() => World.GetResource<T>();
 
     public App SetResource<T>(T resource)
     {

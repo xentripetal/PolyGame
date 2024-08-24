@@ -265,7 +265,7 @@ public class QueryParam : SystemParam<Query>
     {
         unsafe
         {
-            if (_query.World != world.World)
+            if (_query.World() != world.World)
             {
                 throw new InvalidOperationException("Query was created with a different world than the one it is being used with.");
             }

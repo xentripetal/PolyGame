@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using PolyECS.Queries;
 
 namespace PolyGame.Graphics.Lights;
 
@@ -17,7 +18,7 @@ public struct PointLight
     /// </summary>
     public float Height;
 
-    public PointLight(float radius = 1f, float intensity = 3f, Color? color = null, float Height = 140f)
+    public PointLight(float radius = 400f, float intensity = 3f, Color? color = null, float Height = 140f)
     {
         Radius = radius;
         Intensity = intensity;
@@ -28,16 +29,16 @@ public struct PointLight
 
 public struct SpotLight
 {
-    public float Radius;
-    public float Intensity;
-    public Color Color;
-    public float ConeAngle;
+    public float Radius = 400f;
+    public float Intensity = 3f;
+    public Color Color = Color.White;
+    public float ConeAngle = 90f;
 
     /// <summary>
     /// Virtual height of the light. 
     /// </summary>
-    public float Height;
-
+    public float Height = 140f;
+    
     public SpotLight(float radius = 1f, float intensity = 3f, Color? color = null, float coneAngle = 90f, float height = 140f)
     {
         Radius = radius;
@@ -46,6 +47,9 @@ public struct SpotLight
         ConeAngle = coneAngle;
         Height = height;
     }
+    
+    public SpotLight()
+    {}
 }
 
 public struct AreaLight
@@ -56,7 +60,17 @@ public struct AreaLight
     public float Intensity = 12f;
     public Color Color = Color.White;
 
-    public AreaLight() { }
+    public AreaLight(float width = 200, float height = 200, Vector3? direction = null, float intensity = 12f, Color? color = null)
+    {
+        Width = width;
+        Height = height;
+        Direction = direction ?? new Vector3(500, 500, 50);
+        Intensity = intensity;
+        Color = color ?? Color.White;
+    }
+
+    public AreaLight()
+    {}
 }
 
 public struct DirLight

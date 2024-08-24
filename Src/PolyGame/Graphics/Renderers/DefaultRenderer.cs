@@ -21,7 +21,8 @@ public class DefaultRenderer : Renderer
         ref ComputedCamera cam,
         GraphicsDevice device,
         Batcher batch,
-        RenderableList renderables
+        RenderableList renderables,
+        RenderTarget2D cameraTarget
     )
     {
         BeginRender(ref cam, device, batch);

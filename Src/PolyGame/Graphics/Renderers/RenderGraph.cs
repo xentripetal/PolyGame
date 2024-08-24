@@ -9,7 +9,6 @@ namespace PolyGame.Graphics.Renderers;
 
 public class RenderGraph
 {
-    protected bool Active = true;
     protected List<Renderer> AfterPostProcessorRenderers = new ();
 
     protected List<Renderer> Renderers = new ();
@@ -18,6 +17,14 @@ public class RenderGraph
     {
         foreach (var renderer in renderers)
             AddRenderer(renderer);
+    }
+    
+    public void OnSceneBackBufferSizeChanged(Screen screen, int width, int height)
+    {
+        foreach (var renderer in Renderers)
+            renderer.OnSceneBackBufferSizeChanged(screen, width, height);
+        foreach (var renderer in AfterPostProcessorRenderers)
+            renderer.OnSceneBackBufferSizeChanged(screen, width, height);
     }
 
     /// <summary>
@@ -93,7 +100,7 @@ public class RenderGraph
                 Camera.ForceMatrixUpdate();
                 **/
             }
-            Renderers[i].Render(assets, registry, ref cam, device, batch, renderables);
+            Renderers[i].Render(assets, registry, ref cam, device, batch, renderables, target);
             lastRendererHadRenderTarget = Renderers[i].RenderTexture != null;
         }
     }

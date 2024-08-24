@@ -2,4 +2,11 @@
 using Serilog;
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
 
-DeferredLighting.Run();
+try
+{
+    DeferredLighting.Run();
+}
+catch (Exception e)
+{
+    Log.Error(e, "Error in DeferredLighting");
+}
