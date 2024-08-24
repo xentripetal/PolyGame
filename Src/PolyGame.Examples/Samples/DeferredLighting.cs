@@ -38,13 +38,17 @@ public class DeferredLighting : ISample
         {
             var renderTarget = renderTargetRes.Get();
             var screen = world.Get<Screen>();
+            var renderGraph = world.Entity("MainCamera").Get<CameraRenderGraph>();
+            // TODO hack
+            var renderer = new DeferredLightingRenderer(screen, 0, 2, 0);
+            //renderer.EnableDebugBufferRender = true;
+            renderGraph.Graph.ClearRenderers().AddRenderer(renderer);
+            renderTarget.OnSceneBackBufferSizeChanged += renderGraph.Graph.OnSceneBackBufferSizeChanged;
+            
             screen.SetSize(137 * 9, 89 * 9);
             renderTarget.SetDesignResolution(screen, 137*9, 89*9, FinalRenderTarget.ResolutionPolicy.ShowAllPixelPerfect);
-            // todo design resolution
             world.SetResource(new ClearColor(Color.DarkGray));
 
-            var renderGraph = world.Entity("MainCamera").Get<CameraRenderGraph>();
-            renderGraph.Graph.AddRenderer(new DeferredLightingRenderer(screen, 0, 2, 0));
 
             var assets = resAssets.Get();
             var moonTex = assets.Load<Texture2D>("Content/DeferredLighting/moon.png");
@@ -60,7 +64,7 @@ public class DeferredLighting : ISample
 
             var moon = new SpriteBundle(moonTex).WithMaterial(material: moonMat).WithTransform(new TransformBundle(new Vector2(100, 400)))
                 .Apply(world.Entity("Moon"));
-            var orange = new SpriteBundle(orangeTex).WithMaterial(orangeMat).WithTransform(new TransformBundle(screen.Center)).Apply(world.Entity("Orange"));
+            var orange = new SpriteBundle(orangeTex).WithMaterial(orangeMat).WithTransform(new TransformBundle(screen.Center).WithScale(0.5f)).Apply(world.Entity("Orange"));
             new SpotLightBundle(2).Apply(world.Entity("OrangeLight")).ChildOf(orange);
 
             var otherOrange = orange.Clone().Set(new Position2D(new Vector2(200, 200)));
@@ -80,16 +84,16 @@ public class DeferredLighting : ISample
         }
     }
 
-    public class MouseFollow : ClassSystem<Query, Res<MouseState>>
+    public class MouseFollow : ClassSystem<Query, Res<MouseState>, Res<FinalRenderTarget>>
     {
-        protected override (ISystemParam<Query>, ISystemParam<Res<MouseState>>) CreateParams(PolyWorld world)
-            => (Param.Of(world.Query<Position2D, MouseFollowTag>()), Param.OfRes<MouseState>());
+        protected override (ISystemParam<Query>, ISystemParam<Res<MouseState>>, ISystemParam<Res<FinalRenderTarget>>) CreateParams(PolyWorld world)
+            => (Param.Of(world.Query<Position2D, MouseFollowTag>()), Param.OfRes<MouseState>(), Param.OfRes<FinalRenderTarget>());
 
-        public override void Run(Query query, Res<MouseState> mouseRes)
+        public override void Run(Query query, Res<MouseState> mouseRes, Res<FinalRenderTarget> renderTargetRes)
         {
+            var renderTarget = renderTargetRes.Get();
             query.Each((ref Position2D pos) => {
-                // TODO resolution scaling
-                pos.Value = mouseRes.Get().Position.ToVector2();
+                pos.Value = (mouseRes.Get().Position - renderTarget.FinalRenderDestinationRect.Location).ToVector2() * renderTarget.Scale;
             });
         }
     }

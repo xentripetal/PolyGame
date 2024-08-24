@@ -26,6 +26,13 @@ public class RenderGraph
         foreach (var renderer in AfterPostProcessorRenderers)
             renderer.OnSceneBackBufferSizeChanged(screen, width, height);
     }
+    
+    public RenderGraph ClearRenderers()
+    {
+        Renderers.Clear();
+        AfterPostProcessorRenderers.Clear();
+        return this;
+    }
 
     /// <summary>
     ///     adds a Renderer to the scene

@@ -271,8 +271,8 @@ public class DeferredLightingRenderer : Renderer
     {
         GraphicsDevice.SetRenderTarget(CombinedRT);
 
-        var halfWidth = CombinedRT.RenderTarget.Width / 2;
-        var halfHeight = CombinedRT.RenderTarget.Height / 2;
+        var halfWidth = cameraTarget.Width/ 2;
+        var halfHeight = cameraTarget.Height / 2;
 
         batcher.Begin(BlendState.Opaque);
         batcher.Draw(LightRT, new Rectangle(0, 0, halfWidth, halfHeight));
@@ -328,12 +328,14 @@ public class DeferredLightingRenderer : Renderer
             DiffuseRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
             NormalRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
             LightRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
+            CombinedRT = new RenderTexture(screen, newWidth, newHeight, SurfaceFormat.Color, DepthFormat.None);
         }
         else
         {
             DiffuseRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
             NormalRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
             LightRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
+            CombinedRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
         }
     }
     

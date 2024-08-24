@@ -81,7 +81,6 @@ public partial class App : Game, IDisposable
         var screen = new Screen(_manager);
         screen.SetSize(1280, 720);
         World.SetResource(screen);
-        World.SetResource(_manager.GraphicsDevice.Viewport);
         ApplyPlugins();
 
         // Run any startup systems
