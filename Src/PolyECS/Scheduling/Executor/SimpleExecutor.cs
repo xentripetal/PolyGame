@@ -1,8 +1,4 @@
-using Flecs.NET.Core;
-using PolyECS;
 using PolyECS.Systems;
-using PolyECS.Systems.Executor;
-using PolyECS.Systems.Graph;
 using Serilog;
 
 namespace PolyECS.Scheduling.Executor;
@@ -10,20 +6,18 @@ namespace PolyECS.Scheduling.Executor;
 public class SimpleExecutor : IExecutor
 {
     /// <summary>
-    /// System sets whose conditions have been evaluated
-    /// </summary>
-    protected FixedBitSet EvaluatedSets;
-    /// <summary>
-    /// Systems that have run or been skipped
+    ///     Systems that have run or been skipped
     /// </summary>
     protected FixedBitSet CompletedSystems;
-
-    public SimpleExecutor() { }
+    /// <summary>
+    ///     System sets whose conditions have been evaluated
+    /// </summary>
+    protected FixedBitSet EvaluatedSets;
 
     public void Init(SystemSchedule schedule)
     {
-        int sysCount = schedule.SystemIds.Count;
-        int setCount = schedule.SetIds.Count;
+        var sysCount = schedule.SystemIds.Count;
+        var setCount = schedule.SetIds.Count;
         EvaluatedSets = new FixedBitSet(setCount);
         CompletedSystems = new FixedBitSet(sysCount);
     }
@@ -39,7 +33,7 @@ public class SimpleExecutor : IExecutor
         {
             CompletedSystems.Or(skipSystems.Value);
         }
-        for (int systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
+        for (var systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
         {
             var shouldRun = !CompletedSystems.Contains(systemIndex);
             foreach (var setIdx in schedule.SetsWithConditionsOfSystems[systemIndex].Ones())
@@ -93,7 +87,7 @@ public class SimpleExecutor : IExecutor
     protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
-        bool met = true;
+        var met = true;
         foreach (var condition in conditions)
         {
             // TODO refactor conditions

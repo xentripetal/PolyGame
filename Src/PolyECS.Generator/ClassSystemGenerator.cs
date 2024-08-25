@@ -1,7 +1,5 @@
 using CodeGenHelpers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PolyECS.Generator;
 
@@ -20,17 +18,17 @@ public sealed class ClassSystemGenerator : IIncrementalGenerator
         var builder = CodeBuilder.Create("PolyECS.Systems")
             .AddNamespaceImport("Flecs.NET.Core");
 
-        for (int i = startCount; i < endCount; i++)
+        for (var i = startCount; i < endCount; i++)
         {
             BuildMultiParam(builder, i);
         }
         return builder.Build();
     }
 
-    void BuildMultiParam(CodeBuilder file, int numParams)
+    private void BuildMultiParam(CodeBuilder file, int numParams)
     {
-        var Class = file.AddClass($"ClassSystem").WithAccessModifier(Accessibility.Public).Abstract();
-        for (int i = 1; i <= numParams; i++)
+        var Class = file.AddClass("ClassSystem").WithAccessModifier(Accessibility.Public).Abstract();
+        for (var i = 1; i <= numParams; i++)
         {
             Class.AddGeneric($"T{i}");
         }
@@ -38,7 +36,7 @@ public sealed class ClassSystemGenerator : IIncrementalGenerator
         Class.SetBaseClass($"ClassSystem<({typeString})>");
         Class.AddConstructor()
             .WithBaseCall(new Dictionary<string, string>([KeyValuePair.Create("string", "name")]));
-        
+
         Class.AddConstructor().WithBaseCall();
 
         Class.AddMethod("Run", Accessibility.Public).Override()
@@ -48,7 +46,7 @@ public sealed class ClassSystemGenerator : IIncrementalGenerator
             });
 
         var runMethod = Class.AddMethod("Run", Accessibility.Public).Abstract();
-        for (int i = 1; i <= numParams; i++)
+        for (var i = 1; i <= numParams; i++)
         {
             runMethod.AddParameter($"T{i}", $"param{i}");
         }

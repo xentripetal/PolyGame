@@ -3,10 +3,19 @@ using Microsoft.Xna.Framework.Graphics;
 namespace PolyGame.Graphics;
 
 /// <summary>
-/// this class exists only so that we can sneak the Batcher through and have it work just like SpriteBatch with regard to resource handling.
+///     this class exists only so that we can sneak the Batcher through and have it work just like SpriteBatch with regard
+///     to resource handling.
 /// </summary>
 public abstract class GraphicsResource : IDisposable
 {
+    // The GraphicsDevice property should only be accessed in Dispose(bool) if the disposing
+    // parameter is true. If disposing is false, the GraphicsDevice may or may not be disposed yet.
+    private GraphicsDevice _graphicsDevice;
+
+    private WeakReference _selfReference;
+
+
+    internal GraphicsResource() { }
     public GraphicsDevice GraphicsDevice
     {
         get => _graphicsDevice;
@@ -34,22 +43,6 @@ public abstract class GraphicsResource : IDisposable
 
     public bool IsDisposed { get; private set; }
 
-    // The GraphicsDevice property should only be accessed in Dispose(bool) if the disposing
-    // parameter is true. If disposing is false, the GraphicsDevice may or may not be disposed yet.
-    GraphicsDevice _graphicsDevice;
-
-    WeakReference _selfReference;
-
-
-    internal GraphicsResource() { }
-
-
-    ~GraphicsResource()
-    {
-        // Pass false so the managed objects are not released
-        Dispose(false);
-    }
-
 
     public void Dispose()
     {
@@ -61,8 +54,15 @@ public abstract class GraphicsResource : IDisposable
     }
 
 
+    ~GraphicsResource()
+    {
+        // Pass false so the managed objects are not released
+        Dispose(false);
+    }
+
+
     /// <summary>
-    /// The method that derived classes should override to implement disposing of managed and native resources.
+    ///     The method that derived classes should override to implement disposing of managed and native resources.
     /// </summary>
     /// <param name="disposing">True if managed objects should be disposed.</param>
     /// <remarks>Native resources should always be released regardless of the value of the disposing parameter.</remarks>
@@ -86,7 +86,7 @@ public abstract class GraphicsResource : IDisposable
     }
 
 
-    void UpdateResourceReference(bool shouldAdd)
+    private void UpdateResourceReference(bool shouldAdd)
     {
         // TODO this breaks NativeAOT
         var method = shouldAdd ? "AddResourceReference" : "RemoveResourceReference";

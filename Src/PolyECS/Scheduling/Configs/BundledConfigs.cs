@@ -1,6 +1,5 @@
 using PolyECS.Scheduling.Graph;
 using PolyECS.Systems;
-using PolyECS.Systems.Graph;
 
 namespace PolyECS.Scheduling.Configs;
 
@@ -20,22 +19,50 @@ public abstract class SetConfigs : NodeConfigs<ISystemSet>
 }
 
 /// <summary>
-/// A collection of generic <see cref="NodeConfig{T}"/>s
-///
-/// A port of bevy_ecs::schedule::config::NodeConfigs
+///     A collection of generic <see cref="NodeConfig{T}" />s
+///     A port of bevy_ecs::schedule::config::NodeConfigs
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
 {
-    public static NodeConfigs<T> Of(NodeConfig<T> config)
-    {
-        return new Node(config);
-    }
+    public NodeConfigs<T> IntoConfigs() => this;
 
-    public static NodeConfigs<T> Of(params IIntoNodeConfigs<T>[] configs)
-    {
-        return Of(configs, null, Chain.No);
-    }
+    /// <summary>
+    ///     Adds a system set to the systems
+    /// </summary>
+    /// <param name="set"></param>
+    public abstract NodeConfigs<T> InSet(IIntoSystemSet set);
+
+    /// <summary>
+    ///     Adds a system to the set represented by the enum
+    /// </summary>
+    /// <param name="set"></param>
+    /// <typeparam name="TEnum"></typeparam>
+    public NodeConfigs<T> InSet<TEnum>(TEnum set) where TEnum : struct, Enum => InSet(new EnumSystemSet<TEnum>(set));
+
+    public abstract NodeConfigs<T> Before(IIntoSystemSet set);
+
+    public abstract NodeConfigs<T> After(IIntoSystemSet set);
+
+    public abstract NodeConfigs<T> BeforeIgnoreDeferred(IIntoSystemSet set);
+
+    public abstract NodeConfigs<T> AfterIgnoreDeferred(IIntoSystemSet set);
+
+    public abstract NodeConfigs<T> DistributiveRunIf(Condition condition);
+
+    public abstract NodeConfigs<T> AmbiguousWith(IIntoSystemSet set);
+
+    public abstract NodeConfigs<T> AmbiguousWithAll();
+
+    public abstract NodeConfigs<T> RunIf(Condition condition);
+
+    public abstract NodeConfigs<T> Chained();
+
+    public abstract NodeConfigs<T> ChainedIgnoreDeferred();
+
+    public static NodeConfigs<T> Of(NodeConfig<T> config) => new Node(config);
+
+    public static NodeConfigs<T> Of(params IIntoNodeConfigs<T>[] configs) => Of(configs, null);
 
     public static NodeConfigs<T> Of(IIntoNodeConfigs<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
     {
@@ -112,33 +139,29 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> Chained()
-        {
+        public override NodeConfigs<T> Chained() =>
             //no-op
-            return this;
-        }
+            this;
 
-        public override NodeConfigs<T> ChainedIgnoreDeferred()
-        {
+        public override NodeConfigs<T> ChainedIgnoreDeferred() =>
             //no-op
-            return this;
-        }
+            this;
     }
 
     public class Configs : NodeConfigs<T>
     {
         /// <summary>
-        /// Configurations for each element of the tuple
+        ///     Configurations for each element of the tuple
         /// </summary>
         public readonly NodeConfigs<T>[] NodeConfigs;
         /// <summary>
-        /// Run conditions applied to everything in the tuple.
-        /// </summary>
-        public List<Condition> CollectiveConditions;
-        /// <summary>
-        /// See <see cref="Chain"/> for usage.
+        ///     See <see cref="Chain" /> for usage.
         /// </summary>
         public Chain Chain;
+        /// <summary>
+        ///     Run conditions applied to everything in the tuple.
+        /// </summary>
+        public List<Condition> CollectiveConditions;
 
         public Configs(NodeConfigs<T>[] nodeConfigs, Condition[]? collectiveConditions, Chain chain)
         {
@@ -245,54 +268,16 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
     }
-
-    public NodeConfigs<T> IntoConfigs() => this;
-
-    /// <summary>
-    /// Adds a system set to the systems
-    /// </summary>
-    /// <param name="set"></param>
-    public abstract NodeConfigs<T> InSet(IIntoSystemSet set);
-
-    /// <summary>
-    /// Adds a system to the set represented by the enum
-    /// </summary>
-    /// <param name="set"></param>
-    /// <typeparam name="TEnum"></typeparam>
-    public NodeConfigs<T> InSet<TEnum>(TEnum set) where TEnum : struct, Enum
-    {
-        return InSet(new EnumSystemSet<TEnum>(set));
-    }
-
-    public abstract NodeConfigs<T> Before(IIntoSystemSet set);
-
-    public abstract NodeConfigs<T> After(IIntoSystemSet set);
-
-    public abstract NodeConfigs<T> BeforeIgnoreDeferred(IIntoSystemSet set);
-
-    public abstract NodeConfigs<T> AfterIgnoreDeferred(IIntoSystemSet set);
-
-    public abstract NodeConfigs<T> DistributiveRunIf(Condition condition);
-
-    public abstract NodeConfigs<T> AmbiguousWith(IIntoSystemSet set);
-
-    public abstract NodeConfigs<T> AmbiguousWithAll();
-
-    public abstract NodeConfigs<T> RunIf(Condition condition);
-
-    public abstract NodeConfigs<T> Chained();
-
-    public abstract NodeConfigs<T> ChainedIgnoreDeferred();
 }
 
 public enum Chain
 {
     /// <summary>
-    /// Run nodes in order. If there are deferred parameters in preceding systems a ApplyDeferred will be added on the edge
+    ///     Run nodes in order. If there are deferred parameters in preceding systems a ApplyDeferred will be added on the edge
     /// </summary>
     Yes,
     /// <summary>
-    /// Run nodes in order. This will not add ApplyDeferred on the edge
+    ///     Run nodes in order. This will not add ApplyDeferred on the edge
     /// </summary>
     YesIgnoreDeferred,
     // Nodes are allowed to run in any order

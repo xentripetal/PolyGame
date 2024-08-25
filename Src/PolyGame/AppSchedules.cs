@@ -1,5 +1,4 @@
-using System.Diagnostics.Contracts;
-using PolyECS.Queries;
+using PolyECS.Scheduling;
 using PolyECS.Scheduling.Configs;
 using PolyECS.Scheduling.Graph;
 using PolyECS.Systems;
@@ -19,7 +18,16 @@ public partial class App
         schedule.AddSystems(systems);
         return this;
     }
-    
+
+    public App AddSystem<T>(IIntoScheduleLabel label, Func<T, IIntoNodeConfigs<RunSystem>>? cfg = null) where T : IIntoNodeConfigs<RunSystem>, new()
+    {
+        if (cfg != null)
+        {
+            return AddSystems(label, cfg(new T()));
+        }
+        return AddSystems(label, new T());
+    }
+
     public App AddSchedule(Schedule schedule)
     {
         var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
@@ -38,6 +46,8 @@ public partial class App
         schedule.ConfigureSets(sets);
         return this;
     }
+
+    public App ConfigureSet<T>(IIntoScheduleLabel label, T set) where T : struct, Enum => ConfigureSets(label, SetConfigs.Of(set));
 
     public App ConfigureSchedules(ScheduleBuildSettings settings)
     {

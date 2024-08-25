@@ -3,7 +3,7 @@ using PolyECS.Scheduling.Configs;
 namespace PolyECS.Systems;
 
 /// <summary>
-/// A <see cref="RunSystem"/> that takes in a parameter
+///     A <see cref="RunSystem" /> that takes in a parameter
 /// </summary>
 /// <typeparam name="T">Parameter type</typeparam>
 public abstract class ClassSystem<T> : RunnableSystem<T>
@@ -13,7 +13,7 @@ public abstract class ClassSystem<T> : RunnableSystem<T>
         DefaultSets.Add(new SystemTypeSet(GetType()));
     }
 
-    protected ClassSystem() : base()
+    protected ClassSystem()
     {
         DefaultSets.Add(new SystemTypeSet(GetType()));
     }
@@ -27,13 +27,7 @@ public abstract class ClassSystem<T> : RunnableSystem<T>
 
     public abstract void Run(T param);
 
-    public static implicit operator NodeConfig<RunSystem>(ClassSystem<T> system)
-    {
-        return new SystemConfig(system);
-    }
+    public static implicit operator NodeConfig<RunSystem>(ClassSystem<T> system) => new SystemConfig(system);
 
-    public static implicit operator NodeConfigs<RunSystem>(ClassSystem<T> system)
-    {
-        return new SystemConfig(system);
-    }
+    public static implicit operator NodeConfigs<RunSystem>(ClassSystem<T> system) => new SystemConfig(system);
 }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace PolyGame;
 
 /// <summary>
-/// Assertertion helpers for debug mode
+///     Assertertion helpers for debug mode
 /// </summary>
 /// <remarks>Copy of Nez.Insist</remarks>
 public static class Insist
@@ -12,7 +12,7 @@ public static class Insist
     [DebuggerHidden]
     public static void Fail()
     {
-        System.Diagnostics.Debug.Assert(false);
+        Debug.Assert(false);
         Debugger.Break();
     }
 
@@ -21,7 +21,7 @@ public static class Insist
     [DebuggerHidden]
     public static void Fail(string message, params object[] args)
     {
-        System.Diagnostics.Debug.Assert(false, string.Format(message, args));
+        Debug.Assert(false, string.Format(message, args));
         Debugger.Break();
     }
 
@@ -65,7 +65,7 @@ public static class Insist
 
 
     /// <summary>
-    /// asserts that obj is null
+    ///     asserts that obj is null
     /// </summary>
     /// <param name="obj">Object.</param>
     /// <param name="message">Message.</param>
@@ -79,7 +79,7 @@ public static class Insist
 
 
     /// <summary>
-    /// asserts that obj is null
+    ///     asserts that obj is null
     /// </summary>
     /// <param name="obj">Object.</param>
     /// <param name="message">Message.</param>
@@ -93,7 +93,7 @@ public static class Insist
 
 
     /// <summary>
-    /// asserts that obj is not null
+    ///     asserts that obj is not null
     /// </summary>
     /// <param name="obj">Object.</param>
     /// <param name="message">Message.</param>
@@ -107,7 +107,7 @@ public static class Insist
 
 
     /// <summary>
-    /// asserts that obj is not null
+    ///     asserts that obj is not null
     /// </summary>
     /// <param name="obj">Object.</param>
     /// <param name="message">Message.</param>
@@ -121,7 +121,7 @@ public static class Insist
 
 
     /// <summary>
-    /// asserts that first is equal to second
+    ///     asserts that first is equal to second
     /// </summary>
     /// <param name="first">First.</param>
     /// <param name="second">Second.</param>
@@ -137,7 +137,7 @@ public static class Insist
 
 
     /// <summary>
-    /// asserts that first is not equal to second
+    ///     asserts that first is not equal to second
     /// </summary>
     /// <param name="first">First.</param>
     /// <param name="second">Second.</param>

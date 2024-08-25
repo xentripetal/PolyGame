@@ -1,24 +1,21 @@
-using Flecs.NET.Core;
 using PolyECS.Scheduling.Configs;
 using PolyECS.Scheduling.Executor;
 using PolyECS.Scheduling.Graph;
-using PolyECS.Systems.Executor;
-using PolyECS.Systems.Graph;
+using PolyECS.Systems;
 using QuikGraph;
 
-namespace PolyECS.Systems;
+namespace PolyECS.Scheduling;
 
 /// <summary>
-/// A collection of systems, and the metadata and executor needed to run them
-/// in a certain order under certain conditions.
+///     A collection of systems, and the metadata and executor needed to run them
+///     in a certain order under certain conditions.
 /// </summary>
 public class Schedule
 {
-    public ScheduleLabel Label { get; protected set; }
-    internal SystemGraph Graph;
     internal SystemSchedule Executable;
     internal IExecutor Executor;
     protected bool ExecutorInitialized;
+    internal SystemGraph Graph;
 
     public Schedule(ScheduleLabel label)
     {
@@ -28,10 +25,9 @@ public class Schedule
         Executor = new SimpleExecutor();
     }
 
-    public ScheduleLabel GetLabel()
-    {
-        return Label;
-    }
+    public ScheduleLabel Label { get; protected set; }
+
+    public ScheduleLabel GetLabel() => Label;
 
     public Schedule AddSystems(params IIntoNodeConfigs<RunSystem>[] configs)
     {
@@ -43,7 +39,8 @@ public class Schedule
     }
 
     /// <summary>
-    /// Suppress warnings and errors that would result from systems in these sets having ambiguities (Conflicting access but indeterminate order) with systems in set.
+    ///     Suppress warnings and errors that would result from systems in these sets having ambiguities (Conflicting access
+    ///     but indeterminate order) with systems in set.
     /// </summary>
     /// <param name="a"></param>
     /// <param name="b"></param>
@@ -73,10 +70,7 @@ public class Schedule
         return this;
     }
 
-    public ScheduleBuildSettings GetBuildSettings()
-    {
-        return Graph.Config;
-    }
+    public ScheduleBuildSettings GetBuildSettings() => Graph.Config;
 
     public Schedule SetExecutor(IExecutor executor)
     {
@@ -84,15 +78,12 @@ public class Schedule
         return this;
     }
 
-    public IExecutor GetExecutor()
-    {
-        return this.Executor;
-    }
+    public IExecutor GetExecutor() => Executor;
 
     /// <summary>
-    /// Set whether the schedule applies deferred system buffers on final time or not. This is a catch-all
-    /// in case a system uses commands but was not explicitly ordered before an instance of
-    /// [`apply_deferred`]. By default this setting is true, but may be disabled if needed.
+    ///     Set whether the schedule applies deferred system buffers on final time or not. This is a catch-all
+    ///     in case a system uses commands but was not explicitly ordered before an instance of
+    ///     [`apply_deferred`]. By default this setting is true, but may be disabled if needed.
     /// </summary>
     /// <param name="apply"></param>
     /// <returns></returns>

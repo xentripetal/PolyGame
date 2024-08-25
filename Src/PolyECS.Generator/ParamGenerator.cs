@@ -1,7 +1,5 @@
 using CodeGenHelpers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace PolyECS.Generator;
 
@@ -15,29 +13,29 @@ public sealed class ParamGenerator : IIncrementalGenerator
         });
     }
 
-    string GenerateParams(int startCount, int endCount)
+    private string GenerateParams(int startCount, int endCount)
     {
         var builder = CodeBuilder.Create("PolyECS.Systems")
             .AddNamespaceImport("Flecs.NET.Core");
 
-        for (int i = startCount; i < endCount; i++)
+        for (var i = startCount; i < endCount; i++)
         {
             BuildMultiParam(builder, i);
         }
         return builder.Build();
     }
 
-    void BuildMultiParam(CodeBuilder file, int numParams)
+    private void BuildMultiParam(CodeBuilder file, int numParams)
     {
         var Class = file.AddClass($"MultiParam{numParams}").WithAccessModifier(Accessibility.Public);
-        for (int i = 1; i <= numParams; i++)
+        for (var i = 1; i <= numParams; i++)
         {
             Class.AddGeneric($"T{i}");
         }
         var typeString = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"T{i}"));
         Class.SetBaseClass($"SystemParam<({typeString})>");
         var ctor = Class.AddConstructor();
-        for (int i = 1; i <= numParams; i++)
+        for (var i = 1; i <= numParams; i++)
         {
             ctor.AddParameter($"ISystemParam<T{i}>", $"p{i}");
         }
@@ -53,7 +51,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
             .AddParameter("PolyWorld", "world")
             .AddParameter("SystemMeta", "meta")
             .WithBody(b => {
-                for (int i = 1; i <= numParams; i++)
+                for (var i = 1; i <= numParams; i++)
                 {
                     b.AppendLine($"_params.Item{i}.Initialize(world, meta);");
                 }
@@ -64,7 +62,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
             .AddParameter("Table", "table")
             .AddParameter("int", "tableGen")
             .WithBody(b => {
-                for (int i = 1; i <= numParams; i++)
+                for (var i = 1; i <= numParams; i++)
                 {
                     b.AppendLine($"_params.Item{i}.EvaluateNewTable(meta, table, tableGen);");
                 }

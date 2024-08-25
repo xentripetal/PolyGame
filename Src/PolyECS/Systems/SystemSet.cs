@@ -12,11 +12,6 @@ public readonly record struct NamedSet(string Name) : ISystemSet
 {
     public Type? SystemType() => null;
 
-    public override int GetHashCode()
-    {
-        return Name.GetHashCode();
-    }
-
     public bool Equals(ISystemSet? other)
     {
         if (other is NamedSet otherNamed)
@@ -25,10 +20,12 @@ public readonly record struct NamedSet(string Name) : ISystemSet
         }
         return false;
     }
-    
+
     public string GetName() => Name;
     public ISystemSet IntoSystemSet() => this;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+
+    public override int GetHashCode() => Name.GetHashCode();
 }
 
 public readonly struct AnonymousSet(ulong id) : ISystemSet
@@ -43,11 +40,8 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
         }
         return false;
     }
-    
-    public override int GetHashCode()
-    {
-        return Id.GetHashCode();
-    }
+
+    public override int GetHashCode() => Id.GetHashCode();
 
     public Type? SystemType() => null;
 
@@ -57,14 +51,13 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
 }
 
 /// <summary>
-/// A <see cref="ISystemSet"/> grouping instances of the same <see cref="BaseSystem{TIn,TOut}"/>.
-///
-/// This kind of set is automatically populated and thus has some special rules:
-/// <list type="bullet">
-/// <item>You cannot manually add members</item>
-/// <item>You cannot configure them</item>
-/// <item>You cannot order something relative to one if it has more than one member</item>
-/// </list>
+///     A <see cref="ISystemSet" /> grouping instances of the same <see cref="BaseSystem{TIn,TOut}" />.
+///     This kind of set is automatically populated and thus has some special rules:
+///     <list type="bullet">
+///         <item>You cannot manually add members</item>
+///         <item>You cannot configure them</item>
+///         <item>You cannot order something relative to one if it has more than one member</item>
+///     </list>
 /// </summary>
 public class SystemReferenceSet(RunSystem sys) : ISystemSet
 {
@@ -78,21 +71,15 @@ public class SystemReferenceSet(RunSystem sys) : ISystemSet
         }
         return false;
     }
-    
-    public override int GetHashCode()
-    {
-        return System.GetHashCode();
-    }
 
     public string GetName() => $"SystemReferenceSet {System.GetType().Name}";
 
-    public Type SystemType()
-    {
-        return System.GetType();
-    }
+    public Type SystemType() => System.GetType();
 
     public ISystemSet IntoSystemSet() => this;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+
+    public override int GetHashCode() => System.GetHashCode();
 }
 
 public class SystemTypeSet : ISystemSet
@@ -116,11 +103,6 @@ public class SystemTypeSet : ISystemSet
         }
         return false;
     }
-    
-    public override int GetHashCode()
-    {
-        return Type.GetHashCode();
-    }
 
     public ISystemSet IntoSystemSet() => this;
 
@@ -128,6 +110,8 @@ public class SystemTypeSet : ISystemSet
 
     public Type? SystemType() => Type;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+
+    public override int GetHashCode() => Type.GetHashCode();
 }
 
 public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
@@ -141,7 +125,7 @@ public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
         }
         return base.Equals(other);
     }
-    
+
     public new string GetName() => $"SystemTypeSet {typeof(T).Name}";
 
     public new ISystemSet IntoSystemSet() => this;
@@ -149,10 +133,7 @@ public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
 
 public class EnumSystemSet<T> : ISystemSet where T : struct, Enum
 {
-    public EnumSystemSet(T set)
-    {
-        Value = set;
-    }
+    public EnumSystemSet(T set) => Value = set;
 
     public T Value { get; }
 
@@ -164,11 +145,6 @@ public class EnumSystemSet<T> : ISystemSet where T : struct, Enum
         }
         return false;
     }
-    
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(typeof(T), Value);
-    }
 
     public ISystemSet IntoSystemSet() => this;
 
@@ -176,29 +152,22 @@ public class EnumSystemSet<T> : ISystemSet where T : struct, Enum
 
     public Type? SystemType() => null;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+
+    public override int GetHashCode() => HashCode.Combine(typeof(T), Value);
 }
 
 /// <summary>
-/// A system set that is defined by its type. All instances of the same type are part of the same set.
+///     A system set that is defined by its type. All instances of the same type are part of the same set.
 /// </summary>
 public abstract class StaticSystemSet : ISystemSet
 {
-    public bool Equals(ISystemSet? other)
-    {
-        return other is StaticSystemSet && other.GetType() == GetType();
-    }
+    public bool Equals(ISystemSet? other) => other is StaticSystemSet && other.GetType() == GetType();
 
-    public string GetName()
-    {
-        return GetType().Name;
-    }
-    
-    public override int GetHashCode()
-    {
-        return GetType().GetHashCode();
-    }
+    public string GetName() => GetType().Name;
 
     public Type? SystemType() => null;
     public ISystemSet IntoSystemSet() => this;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
+
+    public override int GetHashCode() => GetType().GetHashCode();
 }

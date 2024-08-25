@@ -1,39 +1,50 @@
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 
-namespace PolyGame.Components.Transform;
+namespace PolyGame.Transform;
 
-public struct TransformBundle
+public class TransformBundle
 {
-    public Vector3 Position = Vector3.Zero;
-    public Quaternion Rotation = Quaternion.Identity;
-    public Vector3 Scale = Vector3.One;
+    public Vector2 Position;
+    public float Rotation;
+    public Vector2 Scale;
 
-    public TransformBundle() { }
-
-    public void Apply(Entity entity)
+    public TransformBundle(Vector2 position = default, float degrees = 0, Vector2? scale = null)
     {
-        entity.Set(new Position(Position))
-            .Set(new Rotation(Rotation))
-            .Set(new Scale(Scale));
+        Position = position;
+        Rotation = degrees;
+        Scale = scale ?? Vector2.One;
     }
-}
-
-public struct TransformBundle2D
-{
-    public Vector2 Position = Vector2.Zero;
-    public float Rotation = 0;
-    public Vector2 Scale = Vector2.One;
-
-    public TransformBundle2D() { }
-
-    public void Apply(Entity entity)
+    
+    public TransformBundle WithScale(Vector2 scale)
     {
-        entity.Set(new Position2D(Position))
+        Scale = scale;
+        return this;
+    }
+    
+    public TransformBundle WithScale(float scale)
+    {
+        Scale = new Vector2(scale, scale);
+        return this;
+    }
+    
+    public TransformBundle WithRotation(float degrees)
+    {
+        Rotation = degrees;
+        return this;
+    }
+    
+    public TransformBundle WithPosition(Vector2 position)
+    {
+        Position = position;
+        return this;
+    }
+
+    public Entity Apply(Entity entity)
+    {
+        return entity.Set(new Position2D(Position))
             .Set(new Rotation2D(Rotation))
             .Set(new Scale2D(Scale))
-            .Set(new GlobalPosition2D(Position))
-            .Set(new GlobalRotation2D(Rotation))
-            .Set(new GlobalScale2D(Scale));
+            .Add<GlobalTransform2D>();
     }
 }

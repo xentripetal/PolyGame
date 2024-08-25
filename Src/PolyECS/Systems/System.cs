@@ -1,19 +1,15 @@
-using Flecs.NET.Core;
-using PolyECS.Scheduling.Graph;
-
 namespace PolyECS.Systems;
 
 public abstract class BaseSystem<TIn, TOut>
 {
-    public abstract void Initialize(PolyWorld world);
-    public abstract TOut Run(TIn i, PolyWorld world);
-
     /// <summary>
-    /// Returns `true` if the system performs any deferrable operations
+    ///     Returns `true` if the system performs any deferrable operations
     /// </summary>
     public virtual bool HasDeferred { get; }
 
     public virtual bool IsExclusive { get; }
+    public abstract void Initialize(PolyWorld world);
+    public abstract TOut Run(TIn i, PolyWorld world);
 
     public abstract Access<ulong> GetAccess();
 
@@ -23,4 +19,3 @@ public abstract class BaseSystem<TIn, TOut>
 
     public abstract void UpdateTableComponentAccess(TableCache cache);
 }
-

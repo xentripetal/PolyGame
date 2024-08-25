@@ -1,29 +1,28 @@
-namespace PolyGame.Graphics;
-
-using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+namespace PolyGame.Graphics;
+
 /// <summary>
-/// batcher that draws vertex colored triangles
+///     batcher that draws vertex colored triangles
 /// </summary>
 /// <remarks>Copy of Nez.PrimitiveBatch </remarks>
 public class PrimitiveBatch : IDisposable
 {
-    BasicEffect _basicEffect;
+    private readonly BasicEffect _basicEffect;
+
+    private readonly GraphicsDevice _device;
 
     // hasBegun is flipped to true once Begin is called, and is used to make
     // sure users don't call End before Begin is called.
-    bool _hasBegun;
+    private bool _hasBegun;
 
-    bool _isDisposed;
-    VertexPositionColor[] _lineVertices;
-    int _lineVertsCount;
-    VertexPositionColor[] _triangleVertices;
-    int _triangleVertsCount;
-    Vector2[] _rectangleVerts;
-
-    private GraphicsDevice _device;
+    private bool _isDisposed;
+    private readonly VertexPositionColor[] _lineVertices;
+    private int _lineVertsCount;
+    private readonly Vector2[] _rectangleVerts;
+    private readonly VertexPositionColor[] _triangleVertices;
+    private int _triangleVertsCount;
 
     public PrimitiveBatch(GraphicsDevice device, int bufferSize = 500)
     {
@@ -52,7 +51,7 @@ public class PrimitiveBatch : IDisposable
     }
 
     /// <summary>
-    /// draws directly in screen space at full viewport size
+    ///     draws directly in screen space at full viewport size
     /// </summary>
     public void Begin()
     {
@@ -64,8 +63,9 @@ public class PrimitiveBatch : IDisposable
     }
 
     /// <summary>
-    /// Begin is called to tell the PrimitiveBatch what kind of primitives will be drawn, and to prepare the graphics card to render those primitives.
-    /// Use camera.projectionMatrix and camera.transformMatrix if the batch should be in camera space.
+    ///     Begin is called to tell the PrimitiveBatch what kind of primitives will be drawn, and to prepare the graphics card
+    ///     to render those primitives.
+    ///     Use camera.projectionMatrix and camera.transformMatrix if the batch should be in camera space.
     /// </summary>
     /// <param name="projection">The projection.</param>
     /// <param name="view">The view.</param>
@@ -83,17 +83,18 @@ public class PrimitiveBatch : IDisposable
     }
 
     /// <summary>
-    /// Begin is called to tell the PrimitiveBatch what kind of primitives will be drawn, and to prepare the graphics card to render those primitives.
-    /// Use camera.projectionMatrix and camera.transformMatrix if the batch should be in camera space.
+    ///     Begin is called to tell the PrimitiveBatch what kind of primitives will be drawn, and to prepare the graphics card
+    ///     to render those primitives.
+    ///     Use camera.projectionMatrix and camera.transformMatrix if the batch should be in camera space.
     /// </summary>
     /// <param name="projection">The projection.</param>
     /// <param name="view">The view.</param>
     public void Begin(Matrix projection, Matrix view) => Begin(ref projection, ref view);
 
     /// <summary>
-    /// End is called once all the primitives have been drawn using AddVertex.
-    /// it will call Flush to actually submit the draw call to the graphics card, and
-    /// then tell the basic effect to end.
+    ///     End is called once all the primitives have been drawn using AddVertex.
+    ///     it will call Flush to actually submit the draw call to the graphics card, and
+    ///     then tell the basic effect to end.
     /// </summary>
     public void End()
     {
@@ -133,7 +134,7 @@ public class PrimitiveBatch : IDisposable
         }
     }
 
-    void FlushTriangles()
+    private void FlushTriangles()
     {
         if (!_hasBegun)
             throw new InvalidOperationException("Begin must be called before Flush can be called.");
@@ -149,14 +150,14 @@ public class PrimitiveBatch : IDisposable
         }
     }
 
-    void FlushLines()
+    private void FlushLines()
     {
         if (!_hasBegun)
             throw new InvalidOperationException("Begin must be called before Flush can be called.");
 
         if (_lineVertsCount >= 2)
         {
-            int primitiveCount = _lineVertsCount / 2;
+            var primitiveCount = _lineVertsCount / 2;
 
             // submit the draw call to the graphics card
             _device.SamplerStates[0] = SamplerState.AnisotropicClamp;
@@ -189,7 +190,7 @@ public class PrimitiveBatch : IDisposable
 
     public void DrawPolygon(Vector2[] vertices, int count, Color color)
     {
-        for (int i = 1; i < count - 1; i++)
+        for (var i = 1; i < count - 1; i++)
         {
             AddVertex(vertices[0], color, PrimitiveType.TriangleList);
             AddVertex(vertices[i], color, PrimitiveType.TriangleList);
@@ -226,7 +227,7 @@ public class PrimitiveBatch : IDisposable
         var v0 = center + radius * new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta));
         theta += increment;
 
-        for (int i = 1; i < circleSegments - 1; i++)
+        for (var i = 1; i < circleSegments - 1; i++)
         {
             var v1 = center + radius * new Vector2((float)Math.Cos(theta), (float)Math.Sin(theta));
             var v2 = center + radius * new Vector2((float)Math.Cos(theta + increment),
@@ -249,20 +250,20 @@ public class PrimitiveBatch : IDisposable
         var halfWidth = width / 2;
 
         // Create directional reference
-        Vector2 rotation = (start - end);
+        var rotation = start - end;
         rotation.Normalize();
 
         // Calculate angle of directional vector
-        float angle = (float)Math.Atan2(rotation.X, -rotation.Y);
+        var angle = (float)Math.Atan2(rotation.X, -rotation.Y);
 
         // Create matrix for rotation
-        Matrix2D rotMatrix = Matrix2D.CreateRotation(angle);
+        var rotMatrix = Matrix2D.CreateRotation(angle);
 
         // Create translation matrix for end-point
-        Matrix2D endMatrix = Matrix2D.CreateTranslation(end.X, end.Y);
+        var endMatrix = Matrix2D.CreateTranslation(end.X, end.Y);
 
         // Setup arrow end shape
-        Vector2[] verts = new Vector2[3];
+        var verts = new Vector2[3];
         verts[0] = new Vector2(0, 0);
         verts[1] = new Vector2(-halfWidth, -length);
         verts[2] = new Vector2(halfWidth, -length);
@@ -279,10 +280,10 @@ public class PrimitiveBatch : IDisposable
         if (drawStartIndicator)
         {
             // Create translation matrix for start
-            Matrix2D startMatrix = Matrix2D.CreateTranslation(start.X, start.Y);
+            var startMatrix = Matrix2D.CreateTranslation(start.X, start.Y);
 
             // Setup arrow start shape
-            Vector2[] baseVerts = new Vector2[4];
+            var baseVerts = new Vector2[4];
             baseVerts[0] = new Vector2(-halfWidth, length / 4);
             baseVerts[1] = new Vector2(halfWidth, length / 4);
             baseVerts[2] = new Vector2(halfWidth, 0);

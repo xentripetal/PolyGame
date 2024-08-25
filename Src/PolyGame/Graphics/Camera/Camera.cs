@@ -2,10 +2,9 @@ using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
-using PolyGame.Components.Transform;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
-using PolyGame.Systems.Render;
+using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Camera;
 
@@ -15,6 +14,7 @@ public struct CameraInset : IComponent
     public float Right;
     public float Top;
     public float Bottom;
+
     public static void Register(UntypedComponent component)
     {
         component
@@ -27,10 +27,10 @@ public struct CameraInset : IComponent
 
 public class CameraBundle
 {
-    public Camera Camera = new Camera();
+    public Camera Camera = new ();
     public CameraInset Inset;
-    public RenderGraph RenderGraph = new RenderGraph([new DefaultRenderer()]);
-    public TransformBundle2D Transform = new TransformBundle2D();
+    public RenderGraph RenderGraph = new ([new DefaultRenderer()]);
+    public TransformBundle Transform = new ();
 
     public void Apply(Entity entity)
     {
@@ -46,29 +46,29 @@ public class CameraBundle
 public struct ComputedCamera : IComponent
 {
     /// <summary>
-    /// Used to convert from world coordinates to screen
+    ///     Used to convert from world coordinates to screen
     /// </summary>
     public Matrix2D TransformMatrix;
     /// <summary>
-    /// Used to convert from screen coordinates to world
+    ///     Used to convert from screen coordinates to world
     /// </summary>
     public Matrix2D InverseTransformMatrix;
     /// <summary>
-    /// the 2D Cameras projection matrix
+    ///     the 2D Cameras projection matrix
     /// </summary>
     public Matrix ProjectionMatrix;
     /// <summary>
-    /// The view-projection matrix which is the transformMatrix * the projection matrix
+    ///     The view-projection matrix which is the transformMatrix * the projection matrix
     /// </summary>
     public Matrix ViewProjectionMatrix;
     /// <summary>
-    /// A perspective projection for this camera for use when rendering 3D objects
+    ///     A perspective projection for this camera for use when rendering 3D objects
     /// </summary>
     public Matrix ProjectionMatrix3D;
     public RectangleF Bounds;
 
     /// <summary>
-    /// converts a point from screen coordinates to world
+    ///     converts a point from screen coordinates to world
     /// </summary>
     /// <returns>The to world point.</returns>
     /// <param name="screenPosition">Screen position.</param>
@@ -144,25 +144,26 @@ public struct Camera : IComponent
     public float PositionZ3D = 2000f;
 
     /// <summary>
-    /// near clip plane of the 3D camera projection
+    ///     near clip plane of the 3D camera projection
     /// </summary>
     public float NearClipPlane3D = 0.0001f;
 
     /// <summary>
-    /// far clip plane of the 3D camera projection
+    ///     far clip plane of the 3D camera projection
     /// </summary>
     public float FarClipPlane3D = 5000f;
 
     /// <summary>
-    /// Raw zoom value for the camera. 
+    ///     Raw zoom value for the camera.
     /// </summary>
     public float RawZoom = 1f;
 
     public Vector2 Origin;
 
     /// <summary>
-    /// the zoom value should be between -1 and 1. This value is then translated to be from minimumZoom to maximumZoom. This lets you set
-    /// appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
+    ///     the zoom value should be between -1 and 1. This value is then translated to be from minimumZoom to maximumZoom.
+    ///     This lets you set
+    ///     appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
     /// </summary>
     /// <value>The zoom.</value>
     public float Zoom
@@ -179,14 +180,16 @@ public struct Camera : IComponent
     }
 
     /// <summary>
-    /// Minimum and Maximum bounds for the zoom level. Default is 0.3 to 3. This is only enforced if you use <see cref="SetZoom"/>.
+    ///     Minimum and Maximum bounds for the zoom level. Default is 0.3 to 3. This is only enforced if you use
+    ///     <see cref="SetZoom" />.
     /// </summary>
     public Range<float> ZoomBounds = new (0.3f, 3f);
 
 
     /// <summary>
-    /// sets the the zoom value which should be between -1 and 1. This value is then translated to be from minimumZoom to maximumZoom.
-    /// This lets you set appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
+    ///     sets the the zoom value which should be between -1 and 1. This value is then translated to be from minimumZoom to
+    ///     maximumZoom.
+    ///     This lets you set appropriate minimum/maximum values then use a more intuitive -1 to 1 mapping to change the zoom.
     /// </summary>
     /// <param name="zoom">Zoom.</param>
     public void SetZoom(float zoom)
@@ -208,7 +211,7 @@ public struct Camera : IComponent
 
 
     /// <summary>
-    /// Gets the 2D cameras projection matrix
+    ///     Gets the 2D cameras projection matrix
     /// </summary>
     /// <param name="width">Viewport width</param>
     /// <param name="height">Viewport height</param>

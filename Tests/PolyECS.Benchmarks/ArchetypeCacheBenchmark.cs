@@ -4,6 +4,9 @@ namespace PolyECS.Benchmarks;
 
 public class ArchetypeCacheBenchmark : IDisposable
 {
+    protected World _world;
+    protected TableCache cache;
+
     public ArchetypeCacheBenchmark()
     {
         _world = World.Create();
@@ -11,9 +14,6 @@ public class ArchetypeCacheBenchmark : IDisposable
         cache.Update();
     }
 
-    protected World _world;
-    protected TableCache cache;
-    
     public void Dispose()
     {
         _world.Dispose();

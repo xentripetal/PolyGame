@@ -1,28 +1,26 @@
 using Microsoft.Xna.Framework.Graphics;
 
-namespace PolyGame;
+namespace PolyGame.Assets;
 
 public class ImageLoader : IAssetLoader
 {
-    public ImageLoader(GraphicsDevice graphicsDevice)
-    {
-        this.GraphicsDevice = graphicsDevice;
-    }
-    
+    protected Dictionary<string, Texture2D> _textures = new ();
+
     protected GraphicsDevice GraphicsDevice;
-    
+
+    public ImageLoader(GraphicsDevice graphicsDevice) => GraphicsDevice = graphicsDevice;
+
     public IEnumerable<string> SupportedExtensions { get; } = new[]
     {
         "png"
     };
-    
-    protected Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>();
 
     public T Load<T>(AssetPath path)
     {
         if (path.Scheme != "file")
         {
-            throw new NotSupportedException($"Attempted to load image from unsupported scheme {path.Scheme}");;
+            throw new NotSupportedException($"Attempted to load image from unsupported scheme {path.Scheme}");
+            ;
         }
         if (typeof(T) != typeof(Texture2D))
         {
@@ -43,12 +41,12 @@ public class ImageLoader : IAssetLoader
         {
             throw new NotSupportedException($"Attempted to unload image from unsupported scheme {path.Scheme}");
         }
-        
+
         if (asset is not Texture2D tex)
         {
             throw new NotSupportedException($"Attempted to unload image as unsupported type {asset.GetType()}");
         }
-        
+
         if (_textures.TryGetValue(path.Path, out var texture) && texture == tex)
         {
             _textures.Remove(path.Path);

@@ -1,6 +1,5 @@
-
 using System.Diagnostics.CodeAnalysis;
-using DotNext.Runtime;
+using DotNext;
 using Flecs.NET.Core;
 using PolyECS;
 
@@ -14,21 +13,19 @@ public partial class App
         return this;
     }
 
-    public Component<T> RegisterType<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>()
-    {
-        return World.Register<T>();
-    }
-    
+    public Component<T> RegisterType<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() => World.Register<T>();
+
     public App RegisterResource<T>()
     {
         World.RegisterResource<T>();
         return this;
     }
     
+    public Res<T> GetResource<T>() => World.GetResource<T>();
+
     public App SetResource<T>(T resource)
     {
         World.SetResource(resource);
         return this;
     }
-    
 }

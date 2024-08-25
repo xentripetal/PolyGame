@@ -1,18 +1,38 @@
-using Microsoft.Xna.Framework.Graphics;
-using PolyGame.Components.Render;
+using PolyGame.Assets;
+using PolyGame.Graphics.Renderers;
+using Serilog;
 
 namespace PolyGame.Graphics.Renderable;
 
 public class DrawFuncRegistry
 {
-    public delegate void DrawFunc(RenderableReference renderable, Batcher batch);
-    protected FastList<DrawFunc> drawFuncs = new ();
+    public delegate void DrawFunc(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch);
     protected Dictionary<DrawFunc, int> drawFuncIndices = new ();
+    protected FastList<DrawFunc> drawFuncs = new ();
+
+    public DrawFuncRegistry()
+    {
+        RegisterDrawFunc(NoopDraw);
+    }
 
     /// <summary>
-    /// Registers a draw function to be called when rendering a renderable.
+    /// A no-op draw function that does nothing. This is always registered as index 0.
     /// </summary>
-    /// <param name="drawFunc">Index of registered draw func. This should be used when adding a renderable you want to use this draw func</param>
+    /// <param name="assets"></param>
+    /// <param name="renderable"></param>
+    /// <param name="batch"></param>
+    public void NoopDraw(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
+    {
+        Log.Debug("Noop draw function called for renderable {Renderable}", renderable.Entity);
+    }
+
+    /// <summary>
+    ///     Registers a draw function to be called when rendering a renderable.
+    /// </summary>
+    /// <param name="drawFunc">
+    ///     Index of registered draw func. This should be used when adding a renderable you want to use this
+    ///     draw func
+    /// </param>
     /// <returns></returns>
     public int RegisterDrawFunc(DrawFunc drawFunc)
     {

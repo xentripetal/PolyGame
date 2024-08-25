@@ -1,29 +1,41 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using PolyGame.Components.Render;
-using PolyGame.Graphics;
+using PolyGame.Assets;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
-using PolyGame.Graphics.Renderers;
 using Serilog;
 
-namespace PolyGame.Systems.Render;
+namespace PolyGame.Graphics.Renderers;
 
 public class RenderGraph
 {
+    protected List<Renderer> AfterPostProcessorRenderers = new ();
+
+    protected List<Renderer> Renderers = new ();
+
     public RenderGraph(IEnumerable<Renderer> renderers)
     {
         foreach (var renderer in renderers)
             AddRenderer(renderer);
     }
-
-    protected bool Active = true;
-
-    // TODO should this be here?
-    public Screen Screen;
+    
+    public void OnSceneBackBufferSizeChanged(Screen screen, int width, int height)
+    {
+        foreach (var renderer in Renderers)
+            renderer.OnSceneBackBufferSizeChanged(screen, width, height);
+        foreach (var renderer in AfterPostProcessorRenderers)
+            renderer.OnSceneBackBufferSizeChanged(screen, width, height);
+    }
+    
+    public RenderGraph ClearRenderers()
+    {
+        Renderers.Clear();
+        AfterPostProcessorRenderers.Clear();
+        return this;
+    }
 
     /// <summary>
-    /// adds a Renderer to the scene
+    ///     adds a Renderer to the scene
     /// </summary>
     /// <returns>The renderer.</returns>
     /// <param name="renderer">Renderer.</param>
@@ -51,10 +63,16 @@ public class RenderGraph
         return renderer;
     }
 
-    protected List<Renderer> Renderers = new ();
-    protected List<Renderer> AfterPostProcessorRenderers = new ();
-
-    public void Render(DrawFuncRegistry registry, ref ComputedCamera cam, Batcher batch, GraphicsDevice device, Color clearColor, RenderTarget2D? target, RenderableList renderables)
+    public void Render(
+        AssetServer assets,
+        DrawFuncRegistry registry,
+        ref ComputedCamera cam,
+        Batcher batch,
+        GraphicsDevice device,
+        Color clearColor,
+        RenderTarget2D? target,
+        RenderableList renderables
+    )
     {
         if (Renderers.Count == 0)
         {
@@ -64,7 +82,7 @@ public class RenderGraph
 
         // Renderers should always have those that require a RenderTarget first. They clear themselves and set themselves as
         // the current RenderTarget when they render. If the first Renderer wants the sceneRenderTarget we set and clear it now.
-        if (Renderers[0].WantsToRenderToGraphRenderTarget)
+        if (Renderers[0].WantsToRenderToCameraTarget)
         {
             device.SetRenderTarget(target);
             device.Clear(clearColor);
@@ -76,7 +94,7 @@ public class RenderGraph
         {
             // MonoGame follows the XNA implementation so it will clear the entire buffer if we change the render target even if null.
             // Because of that, we track when we are done with our RenderTargets and clear the scene at that time.
-            if (lastRendererHadRenderTarget && Renderers[i].WantsToRenderToGraphRenderTarget)
+            if (lastRendererHadRenderTarget && Renderers[i].WantsToRenderToCameraTarget)
             {
                 device.SetRenderTarget(target);
                 device.Clear(clearColor);
@@ -89,7 +107,7 @@ public class RenderGraph
                 Camera.ForceMatrixUpdate();
                 **/
             }
-            Renderers[i].Render(registry, ref cam, device, batch, renderables);
+            Renderers[i].Render(assets, registry, ref cam, device, batch, renderables, target);
             lastRendererHadRenderTarget = Renderers[i].RenderTexture != null;
         }
     }

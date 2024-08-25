@@ -1,6 +1,4 @@
-using System;
 using System.Linq;
-using System.Runtime.InteropServices.Marshalling;
 using Flecs.NET.Core;
 
 namespace PolyECS.Tests;
@@ -22,7 +20,7 @@ public class TableCacheTest
     }
 
     /// <summary>
-    /// Simple test for verifying my understanding of Flecs.NET's query behavior
+    ///     Simple test for verifying my understanding of Flecs.NET's query behavior
     /// </summary>
     [Fact]
     public void TestRelationshipQueryBehavior()

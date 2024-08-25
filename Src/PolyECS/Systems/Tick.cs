@@ -1,5 +1,3 @@
-using System.Dynamic;
-
 namespace PolyECS.Systems;
 
 public struct Tick

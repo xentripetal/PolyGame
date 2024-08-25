@@ -1,20 +1,24 @@
 ﻿using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using PolyECS;
-using PolyECS.Systems;
-using PolyGame.Components.Render;
+using PolyECS.Scheduling;
+using PolyGame.Assets;
 using PolyGame.Graphics;
 
 namespace PolyGame;
 
 public partial class App : Game, IDisposable
 {
-    public PolyWorld World;
-    public AssetServer Assets;
+    private bool _hasRenderState;
     protected GraphicsDeviceManager _manager;
+    public AssetServer Assets;
+
+    protected Batcher Batcher;
+
+    protected List<IExtractor> Extractors = new ();
     public MainScheduleOrder MainScheduleOrder = new ();
+    public PolyWorld World;
 
     public App(
         int width = 1280,
@@ -23,7 +27,7 @@ public partial class App : Game, IDisposable
         string windowTitle = "PolyGame",
         string contentDirectory = "Content",
         bool hardwareModeSwitch = true
-    ) : base()
+    )
     {
         _manager = new GraphicsDeviceManager(this)
         {
@@ -32,9 +36,10 @@ public partial class App : Game, IDisposable
             IsFullScreen = isFullScreen,
             SynchronizeWithVerticalRetrace = true,
             HardwareModeSwitch = hardwareModeSwitch,
-            PreferHalfPixelOffset = true,
+            PreferHalfPixelOffset = true
         };
         Window.Title = windowTitle;
+        Window.AllowUserResizing = true;
 
         _manager.PreferredDepthStencilFormat = DepthFormat.Depth24Stencil8;
 
@@ -56,7 +61,13 @@ public partial class App : Game, IDisposable
         }
     }
 
-    protected Batcher Batcher;
+    public new void Dispose()
+    {
+        GC.SuppressFinalize(this);
+        World.Dispose();
+        Assets.Dispose();
+        base.Dispose();
+    }
 
     protected override void Initialize()
     {
@@ -70,7 +81,6 @@ public partial class App : Game, IDisposable
         var screen = new Screen(_manager);
         screen.SetSize(1280, 720);
         World.SetResource(screen);
-        World.SetResource(_manager.GraphicsDevice.Viewport);
         ApplyPlugins();
 
         // Run any startup systems
@@ -102,20 +112,9 @@ public partial class App : Game, IDisposable
         }
     }
 
-    protected List<IExtractor> Extractors = new ();
-    private bool _hasRenderState;
-
     ~App()
     {
         Dispose();
-    }
-
-    public new void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        World.Dispose();
-        Assets.Dispose();
-        base.Dispose();
     }
 }
 
