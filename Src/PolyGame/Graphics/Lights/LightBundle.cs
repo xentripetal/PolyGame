@@ -9,6 +9,7 @@ public abstract class BaseLightBundle
 {
     public TransformBundle Transform;
     public ZIndex ZIndex;
+    public RenderBounds Bounds;
     public uint Layer;
 
     /// <param name="sortLayer">Layer the light should be on. Required since this is defined in the cameras rendergraph</param>

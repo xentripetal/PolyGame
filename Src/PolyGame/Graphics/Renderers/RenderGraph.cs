@@ -82,7 +82,7 @@ public class RenderGraph
 
         // Renderers should always have those that require a RenderTarget first. They clear themselves and set themselves as
         // the current RenderTarget when they render. If the first Renderer wants the sceneRenderTarget we set and clear it now.
-        if (Renderers[0].WantsToRenderToGraphRenderTarget)
+        if (Renderers[0].WantsToRenderToCameraTarget)
         {
             device.SetRenderTarget(target);
             device.Clear(clearColor);
@@ -94,7 +94,7 @@ public class RenderGraph
         {
             // MonoGame follows the XNA implementation so it will clear the entire buffer if we change the render target even if null.
             // Because of that, we track when we are done with our RenderTargets and clear the scene at that time.
-            if (lastRendererHadRenderTarget && Renderers[i].WantsToRenderToGraphRenderTarget)
+            if (lastRendererHadRenderTarget && Renderers[i].WantsToRenderToCameraTarget)
             {
                 device.SetRenderTarget(target);
                 device.Clear(clearColor);

@@ -24,7 +24,7 @@ public class DeferredLightingRenderer : Renderer
     /// </summary>
     /// <value>true</value>
     /// <c>false</c>
-    public override bool WantsToRenderToGraphRenderTarget => false;
+    public override bool WantsToRenderToCameraTarget => false;
 
     /// <summary>
     /// the renderLayers this Renderer will render
@@ -209,6 +209,8 @@ public class DeferredLightingRenderer : Renderer
         EndRender(batch);
     }
 
+    private int prevNumLights = 0;
+
     void RenderLights(
         AssetServer assets,
         DrawFuncRegistry registry,
@@ -232,27 +234,7 @@ public class DeferredLightingRenderer : Renderer
 
         foreach (var renderable in layer)
         {
-            // TODO this is pretty bad. This should be handled by the draw funcs.
-            if (renderable.Entity.Has<SpotLight>())
-            {
-                RenderLight(renderable.Entity.Get<GlobalTransform2D>().Value, renderable.Entity.Get<SpotLight>());
-            }
-            else if (renderable.Entity.Has<DirLight>())
-            {
-                RenderLight(renderable.Entity.Get<DirLight>());
-            }
-            else if (renderable.Entity.Has<PointLight>())
-            {
-                RenderLight(renderable.Entity.Get<GlobalTransform2D>().Value, renderable.Entity.Get<PointLight>());
-            }
-            else if (renderable.Entity.Has<AreaLight>())
-            {
-                RenderLight(renderable.Entity.Get<GlobalTransform2D>().Value, renderable.Entity.Get<AreaLight>());
-            }
-            else
-            {
-                Log.Warning("DeferredLightingRenderer found a Renderable with no Light component");
-            }
+            registry.GetDrawFunc(renderable.DrawFuncIndex)(this, assets, renderable, batch);
         }
     }
 
@@ -271,7 +253,7 @@ public class DeferredLightingRenderer : Renderer
     {
         GraphicsDevice.SetRenderTarget(CombinedRT);
 
-        var halfWidth = cameraTarget.Width/ 2;
+        var halfWidth = cameraTarget.Width / 2;
         var halfHeight = cameraTarget.Height / 2;
 
         batcher.Begin(BlendState.Opaque);
@@ -293,25 +275,25 @@ public class DeferredLightingRenderer : Renderer
 
     #region Light rendering
 
-    void RenderLight(DirLight light)
+    public void RenderLight(DirLight light)
     {
         _lightEffect.UpdateForLight(light);
         _quadMesh.Render(GraphicsDevice);
     }
 
-    void RenderLight(Affine2 transform, PointLight light)
+    public void RenderLight(Affine2 transform, PointLight light)
     {
         _lightEffect.UpdateForLight(transform, light);
         _polygonMesh.Render(GraphicsDevice);
     }
 
-    void RenderLight(Affine2 transform, SpotLight light)
+    public void RenderLight(Affine2 transform, SpotLight light)
     {
         _lightEffect.UpdateForLight(transform, light);
         _polygonMesh.Render(GraphicsDevice);
     }
 
-    void RenderLight(Affine2 transform, AreaLight light)
+    public void RenderLight(Affine2 transform, AreaLight light)
     {
         _lightEffect.UpdateForLight(transform, light);
         _quadPolygonMesh.Render(GraphicsDevice);
@@ -338,7 +320,7 @@ public class DeferredLightingRenderer : Renderer
             CombinedRT.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
         }
     }
-    
+
     public override void Unload()
     {
         _lightEffect.Dispose();

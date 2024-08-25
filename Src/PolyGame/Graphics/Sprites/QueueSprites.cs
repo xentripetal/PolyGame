@@ -7,6 +7,7 @@ using PolyECS.Systems;
 using PolyGame.Assets;
 using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
+using PolyGame.Graphics.Renderers;
 using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Sprites;
@@ -93,7 +94,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
         });
     }
 
-    public void DrawSprite(AssetServer assets, RenderableReference renderable, Batcher batch)
+    public void DrawSprite(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         var sprite = renderable.Entity.Get<Sprite>();
         var imageHandle = renderable.Entity.Get<Handle<Texture2D>>();

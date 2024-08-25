@@ -1,11 +1,12 @@
 using PolyGame.Assets;
+using PolyGame.Graphics.Renderers;
 using Serilog;
 
 namespace PolyGame.Graphics.Renderable;
 
 public class DrawFuncRegistry
 {
-    public delegate void DrawFunc(AssetServer assets, RenderableReference renderable, Batcher batch);
+    public delegate void DrawFunc(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch);
     protected Dictionary<DrawFunc, int> drawFuncIndices = new ();
     protected FastList<DrawFunc> drawFuncs = new ();
 
@@ -20,7 +21,7 @@ public class DrawFuncRegistry
     /// <param name="assets"></param>
     /// <param name="renderable"></param>
     /// <param name="batch"></param>
-    public void NoopDraw(AssetServer assets, RenderableReference renderable, Batcher batch)
+    public void NoopDraw(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         Log.Debug("Noop draw function called for renderable {Renderable}", renderable.Entity);
     }

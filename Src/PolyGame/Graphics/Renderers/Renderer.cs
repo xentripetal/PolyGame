@@ -60,7 +60,7 @@ public abstract class Renderer : IComparable<Renderer>
     ///     has a renderTexture
     /// </summary>
     /// <value><c>true</c> if wants to render to scene render target; otherwise, <c>false</c>.</value>
-    public virtual bool WantsToRenderToGraphRenderTarget => RenderTexture == null;
+    public virtual bool WantsToRenderToCameraTarget => RenderTexture == null;
 
     public int CompareTo(Renderer other) => RenderOrder.CompareTo(other.RenderOrder);
 
@@ -98,7 +98,7 @@ public abstract class Renderer : IComparable<Renderer>
             batch.End();
             batch.Begin(CurrentMaterial, cam.TransformMatrix);
         }
-        registry.GetDrawFunc(renderable.DrawFuncIndex).Invoke(assets, renderable, batch);
+        registry.GetDrawFunc(renderable.DrawFuncIndex).Invoke(this, assets, renderable, batch);
     }
 
     private void FlushBatch(ComputedCamera cam, Batcher batch)
