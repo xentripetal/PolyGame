@@ -41,6 +41,8 @@ public class RendererSystem : ClassSystem<Query, Res<ClearColor>, ResMut<Graphic
             return;
         }
         var finalRenderTarget = finalRenderTargetRes.Get();
+        var device = graphicsDevice.Get();
+        device.SetRenderTarget(finalRenderTarget.SceneRenderTarget);
         var hadCamera = false;
         Cameras.Each((
             Entity en,
@@ -66,7 +68,6 @@ public class RendererSystem : ClassSystem<Query, Res<ClearColor>, ResMut<Graphic
             Log.Warning("No Camera found in the world!");
         }
         var batcher = batch.Get();
-        var device = graphicsDevice.Get();
         
         device.SetRenderTarget(null);
         device.Clear(clearColor.Get().Color);

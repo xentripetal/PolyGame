@@ -1,3 +1,4 @@
+using System.Runtime.Loader;
 using Microsoft.Xna.Framework;
 using PolyECS.Scheduling.Configs;
 using PolyGame.Graphics.Lights;
@@ -20,12 +21,17 @@ public class RenderPlugin : IPlugin
     public void Apply(App app)
     {
         var registry = new DrawFuncRegistry();
+        var screen = app.GetResource<Screen>().Get();
+        var finalTarget = new FinalRenderTarget(app.Window, screen);
+
+
 
         app.SetResource(registry)
-            .SetResource(new FinalRenderTarget(app.GetResource<Screen>()))
+            .SetResource(finalTarget)
             .SetResource(new RenderableList())
             .SetResource(new ClearColor(Color.CornflowerBlue))
             .ConfigureSets(Schedules.Render, SetConfigs.Of(RenderSets.PropagateZIndex, RenderSets.Queue, RenderSets.Sort, RenderSets.Render).Chained())
+            .AddSystems(Schedules.PreUpdate, new SetViewport())
             .AddSystems(Schedules.Render,
                 new PropagateZIndex().InSet(RenderSets.PropagateZIndex),
                 new QueueSprites(registry).InSet(RenderSets.Queue),

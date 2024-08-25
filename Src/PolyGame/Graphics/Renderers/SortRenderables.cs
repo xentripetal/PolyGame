@@ -1,11 +1,7 @@
 using Flecs.NET.Core;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
-using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
-using Serilog;
 
 namespace PolyGame.Graphics.Renderers;
 
