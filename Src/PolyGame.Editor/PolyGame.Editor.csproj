@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PolyGame.ImGui\PolyGame.ImGui.csproj" />
+      <ProjectReference Include="..\PolyGame.Myra\PolyGame.Myra.csproj" />
+      <ProjectReference Include="..\PolyGame\PolyGame.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <PublishAot>false</PublishAot>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>PolyGame.ImGuiNet</AssemblyName>
+        <RootNamespace>PolyGame.ImGuiNet</RootNamespace> <!-- ImGui.NET does not support AOT due to reflection. This should only be used for local dev -->
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\PolyGame\PolyGame.csproj" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <IsOSX Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsOSX>
+        <IsLinux Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' == 'true'">true</IsLinux>
+    </PropertyGroup>
+
+
+    <!-- Copy ImGui native code to output -->
+    <PropertyGroup>
+        <ImGuiRuntimes>$(NuGetPackageRoot)\imgui.net\**\runtimes\</ImGuiRuntimes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="$(ImGuiRuntimes)win-x86\native\*.dll" Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)' != 'x64'">
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="$(ImGuiRuntimes)win-x64\native\*.dll" Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)' != 'x86'">
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="$(ImGuiRuntimes)osx-x64\native\*.dylib" Condition="'$(OS)' != 'Windows_NT' AND $(IsOSX) == 'true'">
+            <Link>libcimgui.dylib</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include=".$(ImGuiRuntimes)linux-x64\native\*.so" Condition="'$(OS)' != 'Windows_NT' AND $(IsLinux) == 'true'">
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Hexa.NET.ImGui" Version="2.1.1" />
+      <PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.1.11" />
+      <PackageReference Include="Hexa.NET.ImNodes" Version="2.1.1" />
+      <PackageReference Include="Hexa.NET.ImPlot" Version="2.1.1" />
+    </ItemGroup>
+
+</Project>

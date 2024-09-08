@@ -24,8 +24,6 @@ public class RenderPlugin : IPlugin
         var screen = app.GetResource<Screen>().Get();
         var finalTarget = new FinalRenderTarget(app.Window, screen);
 
-
-
         app.SetResource(registry)
             .SetResource(finalTarget)
             .SetResource(new RenderableList())

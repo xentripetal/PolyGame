@@ -41,6 +41,20 @@ public class ReferenceTest
     }
 
     [Fact]
+    public void ReflectionTest()
+    {
+        using var world = World.Create();
+        var e1 = world.Entity().Set<TestClassComponent>(new TestClassComponent());
+        var tTypes = e1.Table().Type();
+        foreach (var tType in tTypes)
+        {
+            _testOutputHelper.WriteLine(tType.ToString());
+            var componentEntityType = world.Entity(tType).Get<Type>();
+            _testOutputHelper.WriteLine(componentEntityType.Name);
+        }
+    }
+
+    [Fact]
     public void ReferenceClone()
     {
         using var world = World.Create();

@@ -3,6 +3,13 @@ using PolyECS.Scheduling.Configs;
 
 namespace PolyECS.Systems;
 
+public abstract class RunnableSystem : RunnableSystem<Empty>
+{
+    protected RunnableSystem(string name) : base(name) { }
+
+    protected RunnableSystem() { }
+}
+
 /// <summary>
 ///     A parameter based system that takes no input and returns no output. Runnable denotes that it is the standard system
 ///     type that is ran by the scheduler <see cref="RunSystem" />

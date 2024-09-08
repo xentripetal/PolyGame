@@ -8,6 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\PolyGame.Editor\PolyGame.Editor.csproj" />
+        <ProjectReference Include="..\PolyGame.ImGui\PolyGame.ImGui.csproj" />
+        <ProjectReference Include="..\PolyGame.Myra\PolyGame.Myra.csproj" />
         <ProjectReference Include="..\PolyGame\PolyGame.csproj"/>
     </ItemGroup>
 
