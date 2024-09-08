@@ -30,6 +30,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flecs.NET.Native", "lib\Fle
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flecs.NET.Codegen", "lib\Flecs.NET\src\Flecs.NET.Codegen\Flecs.NET.Codegen.csproj", "{2D451CF1-6FA2-46B1-A0DA-6E1D2F672427}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyGame.Myra", "Src\PolyGame.Myra\PolyGame.Myra.csproj", "{3A6098AC-9DE9-400F-A9A7-6F1D629BC051}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyGame.ImGui", "Src\PolyGame.ImGui\PolyGame.ImGui.csproj", "{6D0F0BF5-3745-4BE8-B2B6-C81139789C53}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PolyGame.Editor", "Src\PolyGame.Editor\PolyGame.Editor.csproj", "{B2E92B32-9D75-4495-A760-8E629828395E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -88,6 +94,18 @@ Global
 		{2D451CF1-6FA2-46B1-A0DA-6E1D2F672427}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D451CF1-6FA2-46B1-A0DA-6E1D2F672427}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D451CF1-6FA2-46B1-A0DA-6E1D2F672427}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A6098AC-9DE9-400F-A9A7-6F1D629BC051}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A6098AC-9DE9-400F-A9A7-6F1D629BC051}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A6098AC-9DE9-400F-A9A7-6F1D629BC051}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A6098AC-9DE9-400F-A9A7-6F1D629BC051}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D0F0BF5-3745-4BE8-B2B6-C81139789C53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D0F0BF5-3745-4BE8-B2B6-C81139789C53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D0F0BF5-3745-4BE8-B2B6-C81139789C53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D0F0BF5-3745-4BE8-B2B6-C81139789C53}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2E92B32-9D75-4495-A760-8E629828395E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2E92B32-9D75-4495-A760-8E629828395E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2E92B32-9D75-4495-A760-8E629828395E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2E92B32-9D75-4495-A760-8E629828395E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2B183769-047E-4A0C-BA52-F7F1095C0C8C} = {F66B30B7-D2F1-492A-9923-5BF91A27E52A}
