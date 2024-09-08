@@ -11,3 +11,4 @@ while using a lot of the features present in Nez.
 - [FlecsNet](https://github.com/BeanCheeseBurrito/Flecs.NET/) - A C# port of the Flecs ECS library. For now I'm using 
 this but I have a bad habit of switching ECS libraries every month. Potentially looking at switching to 
 [TinyECS](https://github.com/andreakarasho/TinyEcs)
+- [HexaEngine](https://github.com/HexaEngine/HexaEngine) - Another C# game engine with great ImGui integration. I'm using this as a reference for the Editor/ImGUI
