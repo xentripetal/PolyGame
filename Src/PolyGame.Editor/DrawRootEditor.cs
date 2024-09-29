@@ -7,7 +7,7 @@ namespace PolyGame.Editor;
 
 public class InitEditor : ClassSystem<PolyWorld, ResMut<GraphicsDevice>>
 {
-    protected override (ISystemParam<PolyWorld>, ISystemParam<ResMut<GraphicsDevice>>) CreateParams(PolyWorld world)
+    protected override (ITSystemParam<PolyWorld>, ITSystemParam<ResMut<GraphicsDevice>>) CreateParams(PolyWorld world)
         => (Param.OfWorld(), Param.OfResMut<GraphicsDevice>());
 
     public override void Run(PolyWorld world, ResMut<GraphicsDevice> deviceRes)
@@ -18,7 +18,7 @@ public class InitEditor : ClassSystem<PolyWorld, ResMut<GraphicsDevice>>
 
 public class DrawEditor : ClassSystem<PolyWorld, ResMut<GraphicsDevice>>
 {
-    protected override (ISystemParam<PolyWorld>, ISystemParam<ResMut<GraphicsDevice>>) CreateParams(PolyWorld world)
+    protected override (ITSystemParam<PolyWorld>, ITSystemParam<ResMut<GraphicsDevice>>) CreateParams(PolyWorld world)
         => (Param.OfWorld(), Param.OfResMut<GraphicsDevice>());
 
     public override void Run(PolyWorld world, ResMut<GraphicsDevice> deviceRes)

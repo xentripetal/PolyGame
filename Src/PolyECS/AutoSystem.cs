@@ -1,26 +1,21 @@
 using PolyECS.Scheduling;
 using PolyECS.Scheduling.Configs;
+using PolyECS.Systems;
 
-namespace PolyECS.Systems;
-
-public abstract class RunnableSystem : RunnableSystem<Empty>
-{
-    protected RunnableSystem(string name) : base(name) { }
-
-    protected RunnableSystem() { }
-}
+namespace PolyECS;
 
 /// <summary>
-///     A parameter based system that takes no input and returns no output. Runnable denotes that it is the standard system
-///     type that is ran by the scheduler <see cref="RunSystem" />
+/// An AutoSystem is a system that uses PolyECS.Generator to generate its plumbing to be used in the ECS system.
 /// </summary>
-/// <typeparam name="T">Parameter type</typeparam>
-public abstract class RunnableSystem<T> : TParameterSystem<T, Empty, Empty>, IIntoSystemConfigs, IIntoSystemSet
+public abstract class AutoSystem : ParameterSystem<Empty, Empty>, IIntoSystemConfigs
 {
-    protected RunnableSystem(string name) : base(name) { }
+    public override void Initialize(PolyWorld world)
+    {
+        Params = GetParams(world);
+        base.Initialize(world);
+    }
 
-    protected RunnableSystem() { }
-
+    public abstract ISystemParam[] GetParams(PolyWorld world);
     public NodeConfigs<RunSystem> IntoConfigs()
     {
         IIntoNodeConfigs<RunSystem> baseConfig = NodeConfigs<RunSystem>.Of(new SystemConfig(this));

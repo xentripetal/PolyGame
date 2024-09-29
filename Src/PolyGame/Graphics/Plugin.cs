@@ -1,2 +1,0 @@
-namespace PolyGame.Graphics;
-

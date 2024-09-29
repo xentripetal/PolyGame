@@ -16,7 +16,6 @@ public partial class App : Game, IDisposable
 
     protected Batcher Batcher;
 
-    protected List<IExtractor> Extractors = new ();
     public MainScheduleOrder MainScheduleOrder = new ();
     public PolyWorld World;
 
@@ -116,9 +115,4 @@ public partial class App : Game, IDisposable
     {
         Dispose();
     }
-}
-
-public interface IExtractor
-{
-    public void Extract(World sourceWorld, World targetWorld);
 }

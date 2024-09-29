@@ -21,7 +21,7 @@ public class ImGuiPlugin : IPlugin
 
 public class StartImGuiFrame : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>>
 {
-    protected override (ISystemParam<ResMut<ImGuiRenderer>>, ISystemParam<Res<GameTime>>) CreateParams(PolyWorld world)
+    protected override (ITSystemParam<ResMut<ImGuiRenderer>>, ITSystemParam<Res<GameTime>>) CreateParams(PolyWorld world)
         => (Param.OfResMut<ImGuiRenderer>(), Param.OfRes<GameTime>());
 
     int frameCount = 0;
@@ -40,7 +40,7 @@ public class StartImGuiFrame : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>>
 
 public class EndImGuiFrame : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>>
 {
-    protected override (ISystemParam<ResMut<ImGuiRenderer>>, ISystemParam<Res<GameTime>>) CreateParams(PolyWorld world)
+    protected override (ITSystemParam<ResMut<ImGuiRenderer>>, ITSystemParam<Res<GameTime>>) CreateParams(PolyWorld world)
         => (Param.OfResMut<ImGuiRenderer>(), Param.OfRes<GameTime>());
 
     public override void Run(ResMut<ImGuiRenderer> param1, Res<GameTime> param2)
@@ -83,7 +83,7 @@ public class TestImGuiRender : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>,
         return texture;
     }
 
-    protected override (ISystemParam<ResMut<ImGuiRenderer>>, ISystemParam<Res<GameTime>>, ISystemParam<PolyWorld>) CreateParams(PolyWorld world)
+    protected override (ITSystemParam<ResMut<ImGuiRenderer>>, ITSystemParam<Res<GameTime>>, ITSystemParam<PolyWorld>) CreateParams(PolyWorld world)
         => (Param.OfResMut<ImGuiRenderer>(), Param.OfRes<GameTime>(), Param.OfWorld());
 
     private Texture2D _xnaTexture;

@@ -13,7 +13,7 @@ public class ActionSystem : RunnableSystem<Empty>
         DefaultSets.Add(new SystemReferenceSet(this));
     }
 
-    protected override ISystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
+    protected override ITSystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
 
     public override Empty Run(Empty input, Empty param)
     {
@@ -34,7 +34,7 @@ public class ActionSystem<T> : RunnableSystem<T> where T : IIntoSystemParam<T>
         DefaultSets.Add(new SystemReferenceSet(this));
     }
 
-    protected override ISystemParam<T> CreateParam(PolyWorld world) => T.IntoParam(world);
+    protected override ITSystemParam<T> CreateParam(PolyWorld world) => T.IntoParam(world);
 
     public override Empty Run(Empty input, T param)
     {

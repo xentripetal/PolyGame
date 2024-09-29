@@ -64,7 +64,7 @@ public class CoreRenderingTests
 
     protected class FrameIncSystem : ClassSystem<Query>
     {
-        protected override ISystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<CurrentFrame>());
+        protected override ITSystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<CurrentFrame>());
 
         public override void Run(Query param)
         {
@@ -78,7 +78,7 @@ public class CoreRenderingTests
     {
         public CurrentFrame RenderFrame = new (0);
 
-        protected override ISystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<CurrentFrame>());
+        protected override ITSystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<CurrentFrame>());
 
         public override void Run(Query param)
         {

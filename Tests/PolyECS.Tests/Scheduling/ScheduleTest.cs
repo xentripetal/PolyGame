@@ -52,7 +52,7 @@ public class ScheduleTest
 
         public TestSystem(string name) : base(name) => Meta.HasDeferred = true;
 
-        protected override ISystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
+        protected override ITSystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
 
         public override void Run(Empty param)
         {

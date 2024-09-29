@@ -5,11 +5,10 @@ using PolyECS.Systems;
 
 namespace Verse;
 
-public class SpawnGuiTest : ClassSystem<ResMut<Desktop>>
+public partial class SpawnGuiTest : AutoSystem
 {
-    protected override ISystemParam<ResMut<Desktop>> CreateParam(PolyWorld world) => Param.OfResMut<Desktop>();
-
-    public override void Run(ResMut<Desktop> desktop)
+    [AutoRunMethod]
+    public void Run(Desktop desktop)
     {
         
         var grid = new Grid
@@ -54,7 +53,7 @@ public class SpawnGuiTest : ClassSystem<ResMut<Desktop>>
         button.Click += (s, a) =>
         {
             var messageBox = Dialog.CreateMessageBox("Message", "Some message!");
-            messageBox.ShowModal(desktop.Get());
+            messageBox.ShowModal(desktop);
         };
 
         grid.Widgets.Add(button);
@@ -69,6 +68,6 @@ public class SpawnGuiTest : ClassSystem<ResMut<Desktop>>
         Grid.SetRow(spinButton, 1);
 
         grid.Widgets.Add(spinButton);
-        desktop.Get().Root = grid;
+        desktop.Root = grid;
     }
 }

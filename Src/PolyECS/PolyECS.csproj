@@ -35,7 +35,7 @@
     
 
     <ItemGroup>
-        <ProjectReference Include="..\PolyECS.Generator\PolyECS.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+        <ProjectReference Include="..\..\Generators\PolyECS.Internal.Generator\PolyECS.Internal.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

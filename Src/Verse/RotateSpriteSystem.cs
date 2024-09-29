@@ -8,23 +8,18 @@ using PolyGame.Transform;
 
 namespace Verse;
 
-public class RotateSpriteSystem : ClassSystem<Query, Res<KeyboardState>, Res<GameTime>>
+public partial class RotateSpriteSystem : AutoSystem
 {
-    protected override (ISystemParam<Query>, ISystemParam<Res<KeyboardState>>, ISystemParam<Res<GameTime>>) CreateParams(PolyWorld world) => (
-        Param.Of(world.QueryBuilder().With<Rotation2D>().InOut().With<Scale2D>().InOut().With<Sprite>().InOutNone().Build()),
-        Param.OfRes<KeyboardState>(),
-        Param.OfRes<GameTime>()
-    );
-
-    public override void Run(Query sprites, Res<KeyboardState> kbState, Res<GameTime> gameTime)
+    [ParamProvider("sprites")]
+    protected QueryParam BuildSpritesQuery(PolyWorld world)
     {
-        var optState = kbState.TryGet();
-        if (!optState.HasValue)
-        {
-            return;
-        }
-        var delta = gameTime.Get().ElapsedGameTime.TotalSeconds;
-        var state = optState.Value;
+        return Param.Of(world.QueryBuilder().With<Rotation2D>().InOut().With<Scale2D>().InOut().Build());
+    }
+
+    [AutoRunMethod]
+    public void Run(Query sprites, KeyboardState state, GameTime gameTime)
+    {
+        var delta = gameTime.ElapsedGameTime.TotalSeconds;
         var rotChange = 0f;
         var scaleChange = 0f;
         if (state.IsKeyDown(Keys.Q))
@@ -43,7 +38,6 @@ public class RotateSpriteSystem : ClassSystem<Query, Res<KeyboardState>, Res<Gam
         {
             scaleChange += 1;
         }
-
 
 
         sprites.Each((ref Rotation2D rotation, ref Scale2D scale) => {

@@ -31,7 +31,7 @@ public class DeferredLighting : ISample
 
     public class Spawn : ClassSystem<PolyWorld, ResMut<AssetServer>, ResMut<FinalRenderTarget>>
     {
-        protected override (ISystemParam<PolyWorld>, ISystemParam<ResMut<AssetServer>>, ISystemParam<ResMut<FinalRenderTarget>>) CreateParams(PolyWorld world)
+        protected override (ITSystemParam<PolyWorld>, ITSystemParam<ResMut<AssetServer>>, ITSystemParam<ResMut<FinalRenderTarget>>) CreateParams(PolyWorld world)
             => (Param.OfWorld(), Param.OfResMut<AssetServer>(), Param.OfResMut<FinalRenderTarget>());
 
         public override void Run(PolyWorld world, ResMut<AssetServer> resAssets, ResMut<FinalRenderTarget> renderTargetRes)
@@ -86,7 +86,7 @@ public class DeferredLighting : ISample
 
     public class MouseFollow : ClassSystem<Query, Res<MouseState>, Res<FinalRenderTarget>>
     {
-        protected override (ISystemParam<Query>, ISystemParam<Res<MouseState>>, ISystemParam<Res<FinalRenderTarget>>) CreateParams(PolyWorld world)
+        protected override (ITSystemParam<Query>, ITSystemParam<Res<MouseState>>, ITSystemParam<Res<FinalRenderTarget>>) CreateParams(PolyWorld world)
             => (Param.Of(world.Query<Position2D, MouseFollowTag>()), Param.OfRes<MouseState>(), Param.OfRes<FinalRenderTarget>());
 
         public override void Run(Query query, Res<MouseState> mouseRes, Res<FinalRenderTarget> renderTargetRes)
