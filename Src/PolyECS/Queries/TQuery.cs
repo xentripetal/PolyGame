@@ -33,7 +33,7 @@ public class TQuery<TData, TFilter> : IIntoSystemParam<TQuery<TData, TFilter>> w
 
     public Query Query { get; private set; }
 
-    public static ISystemParam<TQuery<TData, TFilter>> IntoParam(PolyWorld world) => new TQueryParam<TData, TFilter>(new TQuery<TData, TFilter>(world));
+    public static ITSystemParam<TQuery<TData, TFilter>> IntoParam(PolyWorld world) => new TQueryParam<TData, TFilter>(new TQuery<TData, TFilter>(world));
 
     public static Query Build(PolyWorld world)
     {
@@ -62,7 +62,7 @@ public class TQuery<TData> : TQuery<TData, VoidFilter>, IIntoSystemParam<TQuery<
 {
     public TQuery(PolyWorld world) : base(world) { }
 
-    public new static ISystemParam<TQuery<TData>> IntoParam(PolyWorld world) => new TQueryParam<TData>(new TQuery<TData>(world));
+    public new static ITSystemParam<TQuery<TData>> IntoParam(PolyWorld world) => new TQueryParam<TData>(new TQuery<TData>(world));
 }
 
 public interface IIntoData
@@ -91,6 +91,27 @@ public struct Components<T1, T2> : IIntoData
     {
         qb = QueryHelpers.ApplyData<T1>(qb);
         return QueryHelpers.ApplyData<T2>(qb);
+    }
+}
+
+public struct Components<T1, T2, T3> : IIntoData
+{
+    public QueryBuilder ApplyData(QueryBuilder qb)
+    {
+        qb = QueryHelpers.ApplyData<T1>(qb);
+        qb = QueryHelpers.ApplyData<T2>(qb);
+        return QueryHelpers.ApplyData<T2>(qb);
+    }
+}
+
+public struct Components<T1, T2, T3, T4> : IIntoData
+{
+    public QueryBuilder ApplyData(QueryBuilder qb)
+    {
+        qb = QueryHelpers.ApplyData<T1>(qb);
+        qb = QueryHelpers.ApplyData<T2>(qb);
+        qb = QueryHelpers.ApplyData<T3>(qb);
+        return QueryHelpers.ApplyData<T4>(qb);
     }
 }
 

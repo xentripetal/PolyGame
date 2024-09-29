@@ -12,6 +12,11 @@
         <ProjectReference Include="..\PolyGame.ImGui\PolyGame.ImGui.csproj" />
         <ProjectReference Include="..\PolyGame.Myra\PolyGame.Myra.csproj" />
         <ProjectReference Include="..\PolyGame\PolyGame.csproj"/>
+
+        <ProjectReference Include="..\..\Generators\PolyECS.Generator\PolyECS.Generator.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Analyzer</OutputItemType>
+        </ProjectReference>
     </ItemGroup>
 
     <ItemGroup>

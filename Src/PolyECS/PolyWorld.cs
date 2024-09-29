@@ -35,7 +35,7 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         World.Dispose();
     }
 
-    public static ISystemParam<PolyWorld> IntoParam(PolyWorld world) => new PolyWorldParam();
+    public static ITSystemParam<PolyWorld> IntoParam(PolyWorld world) => new PolyWorldParam();
 
     /// <summary>
     ///     Temporarily removes the schedule associated with label from the <see cref="ScheduleContainer" />, passes it to the

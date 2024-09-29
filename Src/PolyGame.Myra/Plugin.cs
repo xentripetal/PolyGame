@@ -25,7 +25,7 @@ public class MyraPlugin : IPlugin
     /// </summary>
     public class DrawMyraSystem : ClassSystem<ResMut<Desktop>, PolyWorld>
     {
-        protected override (ISystemParam<ResMut<Desktop>>, ISystemParam<PolyWorld>) CreateParams(PolyWorld world)
+        protected override (ITSystemParam<ResMut<Desktop>>, ITSystemParam<PolyWorld>) CreateParams(PolyWorld world)
             => (Param.OfResMut<Desktop>(), Param.OfWorld());
 
         public override void Run(ResMut<Desktop> desktop, PolyWorld world)

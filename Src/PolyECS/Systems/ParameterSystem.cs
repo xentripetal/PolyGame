@@ -1,9 +1,43 @@
+using Flecs.NET.Core;
+
 namespace PolyECS.Systems;
 
-public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>, IMetaSystem
+public abstract class TParameterSystem<TParam, TIn, TOut> : ParameterSystem<TIn, TOut>
 {
-    private ISystemParam<TParam>? _parameter;
+    protected TParameterSystem(string name) : base(name) { }
+    protected TParameterSystem() { }
+    private ITSystemParam<TParam>? _parameter;
 
+    /// <summary>
+    ///     Lets the system declare its parameter after constructor
+    /// </summary>
+    /// <param name="world"></param>
+    /// <returns></returns>
+    protected abstract ITSystemParam<TParam> CreateParam(PolyWorld world);
+
+    public override void Initialize(PolyWorld world)
+    {
+        _parameter = CreateParam(world);
+        Params = new ISystemParam[]
+        {
+            _parameter
+        };
+        base.Initialize(world);
+    }
+
+
+    public override TOut Run(TIn i, PolyWorld world)
+    {
+        var p = _parameter!.Get(world, Meta);
+        return Run(i, p);
+    }
+
+    public abstract TOut Run(TIn input, TParam param);
+}
+
+public abstract class ParameterSystem<TIn, TOut> : BaseSystem<TIn, TOut>, IMetaSystem
+{
+    protected ISystemParam[] Params;
     private PolyWorld? _world;
 
     protected List<ISystemSet> DefaultSets = new ();
@@ -13,13 +47,12 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
     protected ParameterSystem(string name)
     {
         Meta = new SystemMeta(name);
-        _parameter = null;
+        Params = new ISystemParam[0];
     }
 
     protected ParameterSystem()
     {
         Meta = new SystemMeta(GetType().Name);
-        _parameter = null;
     }
 
     public override bool HasDeferred => Meta.HasDeferred;
@@ -27,13 +60,6 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
     public override bool IsExclusive => Meta.ComponentAccessSet.CombinedAccess.WritesAll;
 
     public SystemMeta GetMeta() => Meta;
-
-    /// <summary>
-    ///     Lets the system declare its parameter after constructor
-    /// </summary>
-    /// <param name="world"></param>
-    /// <returns></returns>
-    protected abstract ISystemParam<TParam> CreateParam(PolyWorld world);
 
     public override void Initialize(PolyWorld world)
     {
@@ -49,17 +75,11 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
             _world = world;
         }
 
-        _parameter = CreateParam(world);
-        _parameter.Initialize(world, Meta);
+        foreach (var param in Params)
+        {
+            param.Initialize(world, Meta);
+        }
     }
-
-    public override TOut Run(TIn i, PolyWorld world)
-    {
-        var p = _parameter!.Get(world, Meta);
-        return Run(i, p);
-    }
-
-    public abstract TOut Run(TIn input, TParam param);
 
     public override Access<ulong> GetAccess() => Meta.ComponentAccessSet.CombinedAccess;
 
@@ -72,7 +92,10 @@ public abstract class ParameterSystem<TParam, TIn, TOut> : BaseSystem<TIn, TOut>
         (var oldGeneration, TableGeneration) = (TableGeneration, cache.Generation);
         for (var i = oldGeneration; i < TableGeneration; i++)
         {
-            _parameter.EvaluateNewTable(Meta, cache[i], i);
+            foreach (var parameter in Params)
+            {
+                parameter.EvaluateNewTable(Meta, cache[i], i);
+            }
         }
     }
 }

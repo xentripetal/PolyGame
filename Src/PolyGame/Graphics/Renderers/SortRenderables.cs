@@ -1,16 +1,16 @@
 using Flecs.NET.Core;
 using PolyECS;
+using PolyECS.Queries;
 using PolyECS.Systems;
 using PolyGame.Graphics.Renderable;
 
 namespace PolyGame.Graphics.Renderers;
 
-public class SortRenderablesSystem : ClassSystem<Query>
+public partial class SortRenderablesSystem : AutoSystem
 {
-    protected override ISystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<RenderableList>());
-
-    public override void Run(Query renderables)
+    [AutoRunMethod]
+    public void Run(TQuery<RenderableList> renderables)
     {
-        renderables.Each((ref RenderableList list) => list.Sort());
+        renderables.Query.Each((ref RenderableList list) => list.Sort());
     }
 }

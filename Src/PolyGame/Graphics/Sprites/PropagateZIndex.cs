@@ -4,15 +4,17 @@ using PolyECS.Systems;
 
 namespace PolyGame.Graphics.Sprites;
 
-public class PropagateZIndex : ClassSystem<Query>
+public partial class PropagateZIndex : AutoSystem
 {
-    protected override ISystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.QueryBuilder()
+    [ParamProvider("q")]
+    protected QueryParam BuildQuery(PolyWorld world) => new(world.QueryBuilder()
         .With<ZIndex>().In().With<GlobalZIndex>().Out()
         .With<GlobalZIndex>().Optional().Parent().Cascade().In()
         .Cached().Build()
     );
 
-    public override void Run(Query q)
+    [AutoRunMethod]
+    public void Run(Query q)
     {
         q.Run(it => {
             while (it.Next())

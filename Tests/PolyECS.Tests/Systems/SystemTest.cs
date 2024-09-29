@@ -40,7 +40,7 @@ public class ParamTest
     {
         public CountUpSystem() : base("CountUpSystem") { }
 
-        protected override ISystemParam<Ref<int>> CreateParam(PolyWorld world) => new SingletonParam<int>();
+        protected override ITSystemParam<Ref<int>> CreateParam(PolyWorld world) => new SingletonParam<int>();
 
         public override void Run(Ref<int> param)
         {
@@ -59,7 +59,7 @@ public class ParamTest
             _query = query;
         }
 
-        protected override ISystemParam<Query> CreateParam(PolyWorld world) => new QueryParam(_query);
+        protected override ITSystemParam<Query> CreateParam(PolyWorld world) => new QueryParam(_query);
 
         public override void Run(Query param)
         {

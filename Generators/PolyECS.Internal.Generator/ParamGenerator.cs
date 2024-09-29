@@ -1,7 +1,7 @@
 using CodeGenHelpers;
 using Microsoft.CodeAnalysis;
 
-namespace PolyECS.Generator;
+namespace PolyECS.Internal.Generator;
 
 [Generator]
 public sealed class ParamGenerator : IIncrementalGenerator
@@ -9,7 +9,7 @@ public sealed class ParamGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(postContext => {
-            postContext.AddSource("PolyECS.Systems.SystemParams.g.cs", GenerateParams(4, 10));
+            postContext.AddSource("PolyECS.Systems.SystemParams.g.cs", GenerateParams(2, 10));
         });
     }
 
@@ -37,14 +37,14 @@ public sealed class ParamGenerator : IIncrementalGenerator
         var ctor = Class.AddConstructor();
         for (var i = 1; i <= numParams; i++)
         {
-            ctor.AddParameter($"ISystemParam<T{i}>", $"p{i}");
+            ctor.AddParameter($"ITSystemParam<T{i}>", $"p{i}");
         }
         ctor.WithBody(b => {
             var paramText = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"p{i}"));
             b.AppendLine($"_params = ({paramText});");
         });
 
-        var paramType = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"ISystemParam<T{i}>"));
+        var paramType = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"ITSystemParam<T{i}>"));
         Class.AddProperty("_params", Accessibility.Private).SetType($"({paramType})");
 
         Class.AddMethod("Initialize", Accessibility.Public).Override()
@@ -74,6 +74,15 @@ public sealed class ParamGenerator : IIncrementalGenerator
             .AddParameter("SystemMeta", "meta")
             .WithBody(b => {
                 var paramText = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"_params.Item{i}.Get(world, meta)"));
+                b.AppendLine($"return ({paramText});");
+            });
+        
+        Class.AddMethod("IsGettable", Accessibility.Public).Override()
+            .WithReturnType("bool")
+            .AddParameter("PolyWorld", "world")
+            .AddParameter("SystemMeta", "meta")
+            .WithBody(b => {
+                var paramText = string.Join(" && ", Enumerable.Range(1, numParams).Select(i => $"_params.Item{i}.IsGettable(world, meta)"));
                 b.AppendLine($"return ({paramText});");
             });
     }

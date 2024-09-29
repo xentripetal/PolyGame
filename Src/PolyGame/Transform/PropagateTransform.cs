@@ -4,15 +4,18 @@ using PolyECS.Systems;
 
 namespace PolyGame.Transform;
 
-public class PropagateTransform : ClassSystem<Query>
+public partial class PropagateTransform : AutoSystem
 {
-    protected override ISystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.QueryBuilder()
+    [ParamProvider("q")]
+    public QueryParam BuildQuery(PolyWorld world) => Param.Of(world.QueryBuilder()
         .With<Position2D>().In().With<Rotation2D>().In().With<Scale2D>().In()
         .With<GlobalTransform2D>().Out()
         .With<GlobalTransform2D>().Optional().Parent().Cascade().In()
         .Cached().Build());
 
-    public override void Run(Query q)
+
+    [AutoRunMethod]
+    public void Run(Query q)
     {
         q.Run(it => {
             while (it.Next())

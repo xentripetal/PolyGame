@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using DotNext;
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,36 +16,33 @@ namespace PolyGame.Graphics.Sprites;
 /**
  * Example class for what I want a system to look like
  */
-public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res<AssetServer>>
+public partial class QueueSprites : AutoSystem 
 {
     protected int DrawSpriteIndex;
-
     protected Texture2D? MissingTexture;
 
     public QueueSprites(DrawFuncRegistry registry) => DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
 
-    protected override (ISystemParam<Query>, ISystemParam<Query>, ISystemParam<Res<MissingTexture2D>>, ISystemParam<Res<AssetServer>>) CreateParams(
-        PolyWorld world
-    )
+    [ParamProvider("cameras")]
+    public QueryParam BuildCamerasQuery(PolyWorld world)
     {
-        var cameraQuery = world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build();
-        var renderableQuery = world.QueryBuilder().With<Sprite>().With<GlobalZIndex>().In().With<SortLayer>().With<Handle<Texture2D>>().In().With<GlobalTransform2D>()
-            .In().Build();
-        return (Param.Of(cameraQuery), Param.Of(renderableQuery), Param.OfRes<MissingTexture2D>(), Param.OfRes<AssetServer>());
+        return Param.Of(world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build());
+    }
+    
+    [ParamProvider("sprites")]
+    public QueryParam BuildRenderableQuery(PolyWorld world)
+    {
+        return Param.Of(world.QueryBuilder().With<Sprite>().With<GlobalZIndex>().In().With<SortLayer>().With<Handle<Texture2D>>().In().With<GlobalTransform2D>().In().Build());
     }
 
-    public override void Run(Query cameras, Query sprites, Res<MissingTexture2D> missingTexture, Res<AssetServer> server)
+    [AutoRunMethod]
+    public void Run(Query cameras, Query sprites, MissingTexture2D? missingTexture, AssetServer assets)
     {
-        if (!server.HasValue)
-        {
-            return;
-        }
         MissingTexture = null;
         // Check the missing texture resource every frame
         if (missingTexture.HasValue)
         {
-            var missingTextureHandle = missingTexture.Get().Value;
-            var tex = server.Get().Get(missingTextureHandle);
+            var tex = assets.Get(missingTexture.Value.Value);
             if (tex != null)
             {
                 MissingTexture = tex;
@@ -54,7 +52,6 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
             // can't pass ref to lambda
             var renderables = renderablesRef;
-            var s = server.Get();
             var bounds = cCam.Bounds;
             sprites.Each((
                 Entity en,
@@ -64,7 +61,7 @@ public class QueueSprites : ClassSystem<Query, Query, Res<MissingTexture2D>, Res
                 ref Handle<Texture2D> texHandle,
                 ref GlobalTransform2D trans
             ) => {
-                var tex = s.Get(texHandle);
+                var tex = assets.Get(texHandle);
                 if (tex == null)
                 {
                     if (MissingTexture == null)

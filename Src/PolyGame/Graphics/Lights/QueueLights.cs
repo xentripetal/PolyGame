@@ -11,19 +11,17 @@ using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Lights;
 
-public abstract class CameraQueueBaseSystem : ClassSystem<Query, Query>
+public abstract partial class CameraQueueBaseSystem : AutoSystem
 {
     protected abstract Query CreateRenderableQuery(PolyWorld world);
 
-    protected override (ISystemParam<Query>, ISystemParam<Query>) CreateParams(
-        PolyWorld world
-    )
-    {
-        var cameraQuery = world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build();
-        return (Param.Of(cameraQuery), Param.Of(CreateRenderableQuery(world)));
-    }
+    [ParamProvider("cameras")]
+    protected QueryParam BuildCamerasQuery(PolyWorld world) => Param.Of(world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build());
+    [ParamProvider("lights")]
+    protected QueryParam BuildLightsQuery(PolyWorld world) => Param.Of(CreateRenderableQuery(world));
 
-    public override void Run(Query cameras, Query lights)
+    [AutoRunMethod]
+    public void Run(Query cameras, Query lights)
     {
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
             // can't pass ref to lambda

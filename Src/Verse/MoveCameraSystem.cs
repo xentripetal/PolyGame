@@ -8,23 +8,18 @@ using PolyGame.Transform;
 
 namespace Verse;
 
-public class MoveCameraSystem : ClassSystem<Query, Res<KeyboardState>, Res<GameTime>>
+public partial class MoveCameraSystem : AutoSystem
 {
-    protected override (ISystemParam<Query>, ISystemParam<Res<KeyboardState>>, ISystemParam<Res<GameTime>>) CreateParams(PolyWorld world) => (
-        Param.Of(world.QueryBuilder().With<Position2D>().InOut().With<Camera>().InOutNone().Build()),
-        Param.OfRes<KeyboardState>(),
-        Param.OfRes<GameTime>()
-    );
-
-    public override void Run(Query cameras, Res<KeyboardState> kbState, Res<GameTime> gameTime)
+    [ParamProvider("cameras")]
+    public QueryParam BuildCamerasQuery(PolyWorld world)
     {
-        var optState = kbState.TryGet();
-        if (!optState.HasValue)
-        {
-            return;
-        }
-        var delta = gameTime.Get().ElapsedGameTime.TotalSeconds;
-        var state = optState.Value;
+        return Param.Of(world.QueryBuilder().With<Position2D>().InOut().With<Camera>().InOutNone().Build());
+    }
+
+    [AutoRunMethod]
+    public void Run(Query cameras, KeyboardState state, GameTime gameTime)
+    {
+        var delta = gameTime.ElapsedGameTime.TotalSeconds;
         var move = Vector2.Zero;
         if (state.IsKeyDown(Keys.W))
         {

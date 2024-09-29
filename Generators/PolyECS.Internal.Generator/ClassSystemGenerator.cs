@@ -1,7 +1,7 @@
 using CodeGenHelpers;
 using Microsoft.CodeAnalysis;
 
-namespace PolyECS.Generator;
+namespace PolyECS.Internal.Generator;
 
 [Generator]
 public sealed class ClassSystemGenerator : IIncrementalGenerator
@@ -51,19 +51,11 @@ public sealed class ClassSystemGenerator : IIncrementalGenerator
             runMethod.AddParameter($"T{i}", $"param{i}");
         }
 
-        var paramClass = "BiParam";
-        if (numParams == 3)
-        {
-            paramClass = "TriParam";
-        }
-        else if (numParams > 3)
-        {
-            paramClass = $"MultiParam{numParams}";
-        }
+        var paramClass = $"MultiParam{numParams}";
 
-        var paramTypeString = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"ISystemParam<T{i}>"));
+        var paramTypeString = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"ITSystemParam<T{i}>"));
         Class.AddMethod("CreateParams", Accessibility.Protected).WithReturnType($"({paramTypeString})").AddParameter("PolyWorld", "world").Abstract();
-        Class.AddMethod("CreateParam", Accessibility.Protected).Override().WithReturnType($"ISystemParam<({typeString})>").AddParameter("PolyWorld", "world")
+        Class.AddMethod("CreateParam", Accessibility.Protected).Override().WithReturnType($"ITSystemParam<({typeString})>").AddParameter("PolyWorld", "world")
             .WithBody(b => {
                 b.AppendLine($"({paramTypeString}) p = CreateParams(world);");
                 b.AppendLine($"return new {paramClass}<{typeString}>({string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"p.Item{i}"))});");

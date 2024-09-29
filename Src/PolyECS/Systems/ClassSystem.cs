@@ -4,7 +4,7 @@ namespace PolyECS.Systems;
 
 public abstract class ClassSystem : RunnableSystem
 {
-    protected override ISystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
+    protected override ITSystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
 
     protected ClassSystem(string name) : base(name)
     {

@@ -8,7 +8,7 @@ namespace Verse;
 
 public class SpawnCamera : ClassSystem<PolyWorld>
 {
-    protected override ISystemParam<PolyWorld> CreateParam(PolyWorld world) => Param.OfWorld();
+    protected override ITSystemParam<PolyWorld> CreateParam(PolyWorld world) => Param.OfWorld();
 
     public override void Run(PolyWorld world)
     {
