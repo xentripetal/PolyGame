@@ -11,7 +11,7 @@ namespace PolyECS.Generator;
 
 
 [Generator]
-public class SampleIncrementalSourceGenerator : IIncrementalGenerator
+public class AutoSystemGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
