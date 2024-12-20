@@ -1,19 +1,17 @@
+using Flecs.NET.Core;
+
 namespace PolyECS.Systems;
 
 public class SystemMeta
 {
-    public FilteredAccessSet<ulong> ComponentAccessSet;
-
-    // TODO - do we need this? Deferred is handled by the runner and the world
+    public FilteredAccessSet<ulong> ComponentAccessSet = new ();
+    public Access<ulong> ResourceAccess = new ();
     public bool HasDeferred;
     public string Name;
-    public Access<TableComponentId> TableComponentAccess;
+    public Access<TableComponentId> TableComponentAccess = new ();
 
     public SystemMeta(string name)
     {
         Name = name;
-        ComponentAccessSet = new FilteredAccessSet<ulong>();
-        TableComponentAccess = new Access<TableComponentId>();
-        HasDeferred = false;
     }
 }

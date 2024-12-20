@@ -13,7 +13,7 @@ public partial class RotateSpriteSystem : AutoSystem
     [ParamProvider("sprites")]
     protected QueryParam BuildSpritesQuery(PolyWorld world)
     {
-        return Param.Of(world.QueryBuilder().With<Rotation2D>().InOut().With<Scale2D>().InOut().Build());
+        return Param.Of(world.QueryBuilder().With<Rotation2D>().InOut().With<Scale2D>().InOut().With<Sprite>().InOutNone().Build());
     }
 
     [AutoRunMethod]

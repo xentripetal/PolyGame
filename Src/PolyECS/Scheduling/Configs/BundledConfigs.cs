@@ -3,7 +3,7 @@ using PolyECS.Systems;
 
 namespace PolyECS.Scheduling.Configs;
 
-public abstract class SystemConfigs : NodeConfigs<RunSystem> { }
+public abstract class SystemConfigs : NodeConfigs<BaseSystem<Empty>> { }
 
 public abstract class SetConfigs : NodeConfigs<ISystemSet>
 {
@@ -48,13 +48,13 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
 
     public abstract NodeConfigs<T> AfterIgnoreDeferred(IIntoSystemSet set);
 
-    public abstract NodeConfigs<T> DistributiveRunIf(Condition condition);
+    public abstract NodeConfigs<T> DistributiveRunIf(BaseSystem<bool> condition);
 
     public abstract NodeConfigs<T> AmbiguousWith(IIntoSystemSet set);
 
     public abstract NodeConfigs<T> AmbiguousWithAll();
 
-    public abstract NodeConfigs<T> RunIf(Condition condition);
+    public abstract NodeConfigs<T> RunIf(BaseSystem<bool> condition);
 
     public abstract NodeConfigs<T> Chained();
 
@@ -64,7 +64,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
 
     public static NodeConfigs<T> Of(params IIntoNodeConfigs<T>[] configs) => Of(configs, null);
 
-    public static NodeConfigs<T> Of(IIntoNodeConfigs<T>[] configs, Condition[]? collectiveConditions = null, Chain chained = Chain.No)
+    public static NodeConfigs<T> Of(IIntoNodeConfigs<T>[] configs, BaseSystem<bool>[]? collectiveConditions = null, Chain chained = Chain.No)
     {
         if (configs == null || configs.Length == 0)
         {
@@ -115,7 +115,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> DistributiveRunIf(Condition condition)
+        public override NodeConfigs<T> DistributiveRunIf( BaseSystem<bool> condition)
         {
             Config.Conditions.Add(condition);
             return this;
@@ -133,7 +133,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> RunIf(Condition condition)
+        public override NodeConfigs<T> RunIf(BaseSystem<bool> condition)
         {
             Config.Conditions.Add(condition);
             return this;
@@ -161,9 +161,9 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
         /// <summary>
         ///     Run conditions applied to everything in the tuple.
         /// </summary>
-        public List<Condition> CollectiveConditions;
+        public List<BaseSystem<bool>> CollectiveConditions;
 
-        public Configs(NodeConfigs<T>[] nodeConfigs, Condition[]? collectiveConditions, Chain chain)
+        public Configs(NodeConfigs<T>[] nodeConfigs, BaseSystem<bool>[]? collectiveConditions, Chain chain)
         {
             if (nodeConfigs == null || nodeConfigs.Length == 0)
             {
@@ -171,7 +171,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             }
             if (collectiveConditions == null)
             {
-                collectiveConditions = Array.Empty<Condition>();
+                collectiveConditions = Array.Empty<BaseSystem<bool>>();
             }
             NodeConfigs = nodeConfigs;
             CollectiveConditions = collectiveConditions.ToList();
@@ -223,7 +223,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> DistributiveRunIf(Condition condition)
+        public override NodeConfigs<T> DistributiveRunIf(BaseSystem<bool> condition)
         {
             CollectiveConditions.Add(condition);
             return this;
@@ -247,7 +247,7 @@ public abstract class NodeConfigs<T> : IIntoNodeConfigs<T>
             return this;
         }
 
-        public override NodeConfigs<T> RunIf(Condition condition)
+        public override NodeConfigs<T> RunIf(BaseSystem<bool> condition)
         {
             foreach (var cfg in NodeConfigs)
             {

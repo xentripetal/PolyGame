@@ -9,7 +9,7 @@ namespace PolyECS;
 /// <summary>
 ///     A wrapper around <see cref="World" /> with some helper methods.
 /// </summary>
-public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
+public class PolyWorld : IDisposable
 {
     public PolyWorld(World world)
     {
@@ -22,6 +22,7 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
     {
         World = World.Create();
         TableCache = new TableCache(World);
+        Resources = new ResourceStorage();
         SetResource(new ScheduleContainer());
         SetResource(TableCache);
         TableCache.Update();
@@ -29,13 +30,13 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
 
     public World World { get; }
     public TableCache TableCache { get; }
+    public ResourceStorage Resources { get; }
 
     public void Dispose()
     {
         World.Dispose();
     }
 
-    public static ITSystemParam<PolyWorld> IntoParam(PolyWorld world) => new PolyWorldParam();
 
     /// <summary>
     ///     Temporarily removes the schedule associated with label from the <see cref="ScheduleContainer" />, passes it to the
@@ -94,21 +95,21 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         return true;
     }
 
-    public void RunSystemOnce<T>(T system) where T : RunSystem
+    public void RunSystemOnce<T>(T system) where T : BaseSystem<Empty>
     {
         if (!World.IsDeferred())
         {
             TableCache.Update();
         }
         system.Initialize(this);
-        system.UpdateTableComponentAccess(TableCache);
-        system.Run(null, this);
+        system.UpdateAccess(TableCache, Resources);
+        system.RunWithChecks(this);
     }
 
-    public void RunSystem<T>(T system) where T : RunSystem
+    public void RunSystem<T>(T system) where T : BaseSystem<Empty>
     {
-        system.UpdateTableComponentAccess(TableCache);
-        system.Run(null, this);
+        system.UpdateAccess(TableCache, Resources);
+        system.RunWithChecks(this);
     }
 
     public void SetResource<T>(T resource)
@@ -116,9 +117,14 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         World.Set(resource);
     }
 
-    public void RegisterResource<T>()
+    public ulong RegisterResource<T>()
     {
-        World.Add<T>();
+        return Resources.Register<T>();
+    }
+    
+    public ulong RegisterResource(Type type)
+    {
+        return Resources.Register(type);
     }
 
     public Component<T> Register<T>()
@@ -135,8 +141,8 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
         T.Register(c.UntypedComponent);
     }
 
-    public Res<T> GetResource<T>() => new (World);
-    public ResMut<T> GetResourceMut<T>() => new (World);
+    public Res<T> GetResource<T>() => new (this);
+    public ResMut<T> GetResourceMut<T>() => new (this);
 
 
     #region Flecs.World Proxies
@@ -155,17 +161,13 @@ public class PolyWorld : IDisposable, IIntoSystemParam<PolyWorld>
 
     public QueryBuilder QueryBuilder() => World.QueryBuilder();
 
-    public Query Query<T>() => World.Query<T>();
+    public Query<T> Query<T>() => World.Query<T>();
 
-    public Query Query<T1, T2>() => World.Query<T1, T2>();
+    public Query<T1, T2> Query<T1, T2>() => World.Query<T1, T2>();
 
-    public Query Query<T1, T2, T3>() => World.Query<T1, T2, T3>();
+    public Query<T1, T2, T3> Query<T1, T2, T3>() => World.Query<T1, T2, T3>();
 
-    public Query Query<T1, T2, T3, T4>() => World.Query<T1, T2, T3, T4>();
-
-    public Query Query<T1, T2, T3, T4, T5>() => World.Query<T1, T2, T3, T4, T5>();
-
-    public Query Query<T1, T2, T3, T4, T5, T6>() => World.Query<T1, T2, T3, T4, T5, T6>();
+    public Query<T1, T2, T3, T4> Query<T1, T2, T3, T4>() => World.Query<T1, T2, T3, T4>();
 
     #endregion
 }

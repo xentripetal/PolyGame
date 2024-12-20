@@ -1,54 +1,88 @@
 using System.Diagnostics;
-using PolyECS.Scheduling.Configs;
-using PolyECS.Scheduling.Executor;
-using PolyECS.Systems;
 using QuikGraph;
 using QuikGraph.Algorithms;
 
-namespace PolyECS.Scheduling.Graph;
+namespace PolyScheduler;
 
 /// <summary>
-///     Metadata for a Schedule.
-///     The order isn't optimized; calling <see cref="BuildSchedule" /> return a SystemSchedule where the order is
-///     optimized for execution
+/// Graph of systems, sets, and their relationships.
 /// </summary>
-/// <remarks>
-///     Port of bevy_ecs::schedule::SystemGraph
-/// </remarks>
-public class SystemGraph
+/// <param name="resolver">Compatibility resolver between systems. Used for detecting scheduling conflicts. </param>
+/// <typeparam name="TContext">The context used for all systems runtime. The system must derive all its parameters from this context.</typeparam>
+/// <typeparam name="TResource">An id type for reporting what internal parameters a system accesses</typeparam>
+public class ScheduleGraph<TContext, TResource>(ICompatabilityResolver<TContext, TResource> resolver) where TContext : IContext<TContext>
 {
-    public UndirectedGraph<NodeId, Edge<NodeId>> AmbiguousWith = new ();
-    protected HashSet<NodeId> AmbiguousWithAll = new ();
-    protected ulong AnonymousSets;
-    protected Dictionary<uint, NodeId> AutoSyncNodeIds = new ();
-    public bool Changed = true;
-    public ScheduleBuildSettings Config = new (autoInsertApplyDeferred: true);
-    protected List<(NodeId, NodeId, ulong[])> ConflictingSystems = new ();
+    /// <summary>
+    /// Whether the graph will throw an exception if it detects any ambiguities when being built into a schedule.
+    /// </summary>
+    public bool EnforceNoAmbiguity { get; set; } = true;
+    /// <summary>
+    /// Whether the graph has changed since the last time it was built into a <see cref="CompiledSchedule{TContext}"/>.
+    /// </summary>
+    public bool Dirty { get; protected set; }
 
-    /// Directed acyclic graph of the dependency (which systems/sets have to run before which other systems/sets)
-    protected BidirectionalGraph<NodeId, Edge<NodeId>> Dependency = new ();
+    /// <summary>
+    /// Determines whether the presence of redundant edges in the hierarchy of system sets is only
+    /// logged or also results in a <see cref="ScheduleBuildException.HierarchyRedundancy"/>
+    /// error.
+    /// </summary>
+    public bool ThrowHierarchyRedundancyErrors { get; set; } = true;
 
-    /// Directed acyclic graph of the hierarchy (which systems/sets are children of which sets)
-    protected BidirectionalGraph<NodeId, Edge<NodeId>> Hierarchy = new ();
+    /// <summary>
+    /// Auto insert <see cref="ApplyDeferredSystem{TContext}"/> into the schedule,
+    /// when there are [`Deferred`](crate::prelude::Deferred)
+    /// in one system and there are ordering dependencies on that system. [`Commands`](crate::system::Commands) is one
+    /// such deferred buffer.
+    ///
+    /// You may want to disable this if you only want to sync deferred params at the end of the schedule,
+    /// or want to manually insert all your sync points.
+    ///
+    /// Defaults to `true`
+    /// </summary>
+    public bool AutoInsertApplyDeferred { get; set; } = true;
 
-    /// Dependency edges that will **not** automatically insert an instance of `apply_deferred` on the edge.
-    protected HashSet<(NodeId, NodeId)> NoSyncEdges = new ();
-    /// List of conditions for each system, in the same order as `systems`
-    protected List<List<BaseSystem<bool>>> SystemConditions = new ();
-    /// List of systems in the schedule
-    protected List<BaseSystem<Empty>> Systems = new ();
+    public readonly ICompatabilityResolver<TContext, TResource> CompatabilityResolver = resolver;
+
+    /// <summary>
+    /// Nodes that are allowed to be ambiguous with all other sets.
+    /// </summary>
+    protected readonly HashSet<NodeId> PermittedGlobalAmbiguities = new();
+
+    /// <summary>Permitted ambiguities between system sets. </summary>
+    public readonly UndirectedGraph<NodeId, Edge<NodeId>> PermittedSetAmbiguities = new();
+
+    /// <summary>Directed acyclic graph of dependencies of the schedule (which systems/sets have to run before which other systems/sets)</summary>
+    protected readonly BidirectionalGraph<NodeId, Edge<NodeId>> Dependency = new();
+
+    /// <summary>Directed acyclic graph of the hierarchy of the schedule (which systems/sets are children of which sets)</summary>
+    protected BidirectionalGraph<NodeId, Edge<NodeId>> Hierarchy = new();
+
+    /// <summary>
+    /// Lookup table for ids of generated auto sync nodes by distance
+    /// </summary>
+    protected readonly Dictionary<uint, NodeId> AutoSyncNodeIds = new();
+
+    /// <summary>Dependency edges that will **not** automatically insert an instance of `apply_deferred` on the edge.</summary>
+    protected readonly HashSet<(NodeId, NodeId)> NoSyncEdges = new();
+
+    /// <summary>List of conditions for each system, in the same order as `systems`</summary>
+    protected readonly List<List<ICondition<TContext>>> SystemConditions = new();
+
+    /// <summary>List of systems in the schedule</summary>
+    protected readonly List<ISystem<TContext>> Systems = new();
 
     /// List of conditions for each system set, in the same order as `system_sets`
-    protected List<List<BaseSystem<bool>>> SystemSetConditions = new ();
+    protected readonly List<List<ICondition<TContext>>> SystemSetConditions = new();
 
     /// Map from system set to node id
-    public Dictionary<ISystemSet, NodeId> SystemSetIds = new ();
+    public readonly Dictionary<ISystemSet, NodeId> SystemSetIds = new();
+
     /// List of system sets in the schedule
-    protected List<ISystemSet> SystemSets = new ();
+    protected readonly List<ISystemSet> SystemSets = new();
 
     /// Systems that have not been initialized yet; for system sets, we store the index of the first uninitialized condition
     /// (all the conditions after that index still need to be initialized)
-    protected List<(NodeId, int)> Uninit = new ();
+    protected readonly List<(NodeId, int)> Uninitialized = new();
 
     /// <summary>
     ///     Returns the set at the given <see cref="NodeId" />, if it exists
@@ -61,39 +95,41 @@ public class SystemGraph
         {
             return null;
         }
+
         if (id.Id >= SystemSets.Count)
         {
             return null;
         }
+
         return SystemSets[id.Id];
     }
 
     /// <summary>
-    ///     Returns the <see cref="BaseSystem<Empty>" /> at the given <see cref="NodeId" />, if it exists
+    ///     Returns the <see cref="ISystem{TContext}" /> at the given <see cref="NodeId" />, if it exists
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="id">Node</param>
     /// <returns>System for the given NodeId</returns>
-    public BaseSystem<Empty>? GetSystemAt(NodeId id)
+    public ISystem<TContext>? GetSystemAt(NodeId id)
     {
         if (id.Type != NodeType.System)
         {
             return null;
         }
+
         if (id.Id >= Systems.Count)
         {
             return null;
         }
+
         return Systems[id.Id];
     }
 
 
-
     /// <summary>
-    ///     Provides an iterator over all <see cref="BaseSystem<Empty>" />s in this schedule, along with their <see cref="Condition" />
-    ///     s
+    ///     Provides an iterator over all <see cref="ISystem{TContext}" />s in this schedule, along with their <see cref="ICondition{TContext}" />s
     /// </summary>
     /// <returns></returns>
-    public IEnumerable<(NodeId, BaseSystem<Empty>, BaseSystem<bool>[])> GetSystems()
+    public IEnumerable<(NodeId, ISystem<TContext>, ICondition<TContext>[])> GetSystems()
     {
         for (var i = 0; i < Systems.Count; i++)
         {
@@ -103,7 +139,7 @@ public class SystemGraph
         }
     }
 
-    public IEnumerable<(NodeId, ISystemSet, BaseSystem<bool>[])> GetSets()
+    public IEnumerable<(NodeId, ISystemSet, ICondition<TContext>[])> GetSets()
     {
         for (var i = 0; i < SystemSets.Count; i++)
         {
@@ -114,132 +150,50 @@ public class SystemGraph
     }
 
     /// <summary>
-    ///     Returns the <see cref="PolyECS.Systems.Graph" /> of the hierarchy.
+    ///     Returns the graph of the hierarchy.
     ///     The hierarchy is a directed acyclic graph of the systems and sets, where an edge denotes that a system or set is
     ///     the child of another set.
     /// </summary>
     public IBidirectionalGraph<NodeId, Edge<NodeId>> GetHierarchy() => Hierarchy;
 
     /// <summary>
-    ///     Returns the <see cref="PolyECS.Systems.Graph" /> of the dependencies on the schedule.
+    ///     Returns the graph of the dependencies on the schedule.
     ///     Nodes in this graph are systems and sets, and edges denote that a system or set has to run before another system or
     ///     set.
     /// </summary>
     /// <returns></returns>
     public IBidirectionalGraph<NodeId, Edge<NodeId>> GetDependencyGraph() => Dependency;
 
+
+    public AddEntryResult AddEntry<TNode>(ScheduleEntry<TNode, TContext, TResource> entry) {
+        Dirty = true;
+        return entry.AddToGraph(this);
+    }
+
     /// <summary>
-    ///     Returns the list of systems that conflict with each other, i.e. have ambiguities in their data access.
-    ///     If the <see cref="List{Type}" /> is empty, the systems conflict on <see cref="PolyWorld" /> access.
-    ///     Must be called after <see cref="BuildSchedule" /> to be non-empty.
+    /// Adds a dependency between two nodes to the graph.
     /// </summary>
-    /// <returns></returns>
-    public IReadOnlyCollection<(NodeId, NodeId, ulong[])> GetConflictingSystems() => ConflictingSystems.AsReadOnly();
-
-    protected ProcessConfigsResult ProcessConfig<TNode>(NodeConfig<TNode> config, bool collectNodes)
+    /// <param name="from">Source node</param>
+    /// <param name="to">Target node</param>
+    /// <param name="noSync">Whether the dependency should be skipped for syncing</param>
+    public void AddDependency(NodeId from, NodeId to, bool noSync)
     {
-        List<NodeId> nodes = new ();
-        var id = config.ProcessConfig(this);
-        if (collectNodes)
+        Dirty = true;
+        Dependency.AddEdge(new Edge<NodeId>(from, to));
+        if (noSync)
         {
-            nodes.Add(id);
-        }
-        return new ProcessConfigsResult(nodes, true);
-    }
-
-    protected void ApplyCollectiveConditions<TNode>(NodeConfigs<TNode>[] configs, List<BaseSystem<bool>>? collectiveConditions)
-    {
-        if (collectiveConditions == null || collectiveConditions.Count == 0)
-        {
-            return;
-        }
-        if (collectiveConditions.Count == 1)
-        {
-            foreach (var condition in collectiveConditions)
-            {
-                configs[0].RunIf(condition);
-            }
-        }
-        else
-        {
-            var set = CreateAnonymousSet();
-            foreach (var cfg in configs)
-            {
-                cfg.InSet(set);
-            }
-            var setCfg = new SystemSetConfig(set);
-            setCfg.Conditions.AddRange(collectiveConditions);
-            ConfigureSet(setCfg);
+            NoSyncEdges.Add((from, to));
         }
     }
 
-    public ProcessConfigsResult ProcessConfigs<TNode>(NodeConfigs<TNode> configs, bool collectNodes)
+    public NodeId AddSystem(SystemEntry<TContext, TResource> config)
     {
-        if (configs is NodeConfigs<TNode>.Node nodeConfig)
-        {
-            return ProcessConfig(nodeConfig.Config, collectNodes);
-        }
-        if (configs is not NodeConfigs<TNode>.Configs bundledConfigs)
-            throw new ArgumentException("Invalid NodeConfigs type");
-
-        ApplyCollectiveConditions(bundledConfigs.NodeConfigs, bundledConfigs.CollectiveConditions);
-        var ignoreDeferred = bundledConfigs.Chain == Chain.YesIgnoreDeferred;
-        var chained = bundledConfigs.Chain == Chain.Yes || bundledConfigs.Chain == Chain.YesIgnoreDeferred;
-        var denselyChained = chained || bundledConfigs.NodeConfigs.Length == 1;
-        var nodes = new List<NodeId>();
-
-        if (bundledConfigs.NodeConfigs.Count() == 0)
-        {
-            return new ProcessConfigsResult(nodes, denselyChained);
-        }
-        var first = bundledConfigs.NodeConfigs.First();
-        var previousResult = ProcessConfigs(first, collectNodes || chained);
-        denselyChained &= previousResult.DenselyChained;
-
-        foreach (var cfg in bundledConfigs.NodeConfigs.Skip(1))
-        {
-            var result = ProcessConfigs(cfg, collectNodes || chained);
-            denselyChained &= result.DenselyChained;
-
-            if (chained)
-            {
-                // if the current result is densely chained, we only need to chain the first node
-                var currentNodes = result.DenselyChained ? result.Nodes[..1] : result.Nodes;
-                // if the previous result was densely chained, we only need to chain the last node
-                var previousNodes = previousResult.DenselyChained ? previousResult.Nodes[^1..] : previousResult.Nodes;
-                foreach (var previousNode in previousNodes)
-                {
-                    foreach (var currentNode in currentNodes)
-                    {
-                        Dependency.AddEdge(new Edge<NodeId>(previousNode, currentNode));
-                        if (ignoreDeferred)
-                        {
-                            NoSyncEdges.Add((previousNode, currentNode));
-                        }
-                    }
-                }
-            }
-            if (collectNodes)
-            {
-                nodes.AddRange(result.Nodes);
-            }
-            previousResult = result;
-        }
-
-        if (collectNodes)
-        {
-            nodes.AddRange(previousResult.Nodes);
-        }
-        return new ProcessConfigsResult(nodes, denselyChained);
-    }
-
-    public NodeId AddSystem(SystemConfig config)
-    {
+        Dirty = true;
         var id = new NodeId(Systems.Count, NodeType.System);
-        UpdateGraphs(id, config.Subgraph);
+        UpdateGraphs(id, config);
 
         // system init has to be deferred (need `&mut World`)
-        Uninit.Add((id, 0));
+        Uninitialized.Add((id, 0));
         Systems.Add(config.Node);
         SystemConditions.Add(config.Conditions);
         return id;
@@ -247,7 +201,7 @@ public class SystemGraph
 
 
     /// Add a single `SystemSetConfig` to the graph, including its dependencies and conditions.
-    internal NodeId ConfigureSet(SystemSetConfig set)
+    internal NodeId ConfigureSet(SetEntry<TContext, TResource> set)
     {
         var ok = SystemSetIds.TryGetValue(set.Node, out var id);
         if (!ok)
@@ -255,10 +209,10 @@ public class SystemGraph
             id = AddSet(set.Node);
         }
 
-        UpdateGraphs(id, set.Subgraph);
+        UpdateGraphs(id, set);
 
         var conditions = SystemSetConditions[id.Id];
-        Uninit.Add((id, conditions.Count));
+        Uninitialized.Add((id, conditions.Count));
         conditions.AddRange(set.Conditions);
         return id;
     }
@@ -268,9 +222,10 @@ public class SystemGraph
         var id = new NodeId(SystemSets.Count, NodeType.Set);
         SystemSets.Add(set);
         SystemSetIds[set] = id;
-        SystemSetConditions.Add(new List<BaseSystem<bool>>());
+        // Make sure to register it in all the graphs even if it has no edges
+        SystemSetConditions.Add([]);
         Hierarchy.AddVertex(id);
-        AmbiguousWith.AddVertex(id); // Make sure to register it in all the graphs even if it has no edges
+        PermittedSetAmbiguities.AddVertex(id);
         return id;
     }
 
@@ -295,19 +250,12 @@ public class SystemGraph
     /// </summary>
     /// <param name="id"></param>
     /// <param name="subgraph"></param>
-    protected void CheckHierarchySets(NodeId id, SubgraphInfo subgraph)
+    protected void CheckHierarchySets<TNode>(NodeId id, ScheduleEntry<TNode, TContext, TResource> subgraph)
     {
         foreach (var set in subgraph.Hierarchy)
         {
             CheckHierarchySet(id, set);
         }
-    }
-
-    protected AnonymousSet CreateAnonymousSet()
-    {
-        var id = AnonymousSets;
-        AnonymousSets += 1;
-        return new AnonymousSet(id);
     }
 
     /// <summary>
@@ -316,7 +264,7 @@ public class SystemGraph
     /// </summary>
     /// <param name="id"></param>
     /// <param name="subgraph"></param>
-    protected void CheckEdges(NodeId id, SubgraphInfo subgraph)
+    protected void CheckEdges<TNode>(NodeId id, ScheduleEntry<TNode, TContext, TResource> subgraph)
     {
         // Add all the dependencies to the graph
         foreach (var dependency in subgraph.Dependencies)
@@ -336,7 +284,7 @@ public class SystemGraph
         }
 
         // Add all the sets from the `ambiguous_with` to the graph
-        if (subgraph.AmbiguousWith is Ambiguity.IgnoreWithSet ignoreWithSet)
+        if (subgraph.Ambiguity is Ambiguity.IgnoreWithSet ignoreWithSet)
         {
             foreach (var set in ignoreWithSet.Sets)
             {
@@ -349,16 +297,15 @@ public class SystemGraph
     }
 
     /// <summary>
-    ///     Update the internal graphs (hierarchy, dependency, ambiguity) by adding a single <see cref="SubgraphInfo" />
+    ///     Update the internal graphs (hierarchy, dependency, ambiguity) by adding a single <see cref="ScheduleEntry{TNode,TContext}"/>
     /// </summary>
     /// <param name="id">Id for element being added</param>
     /// <param name="subgraph">Subgraph information about the id being added</param>
     /// <exception cref="ArgumentException">If the configuration produces an invalid subgraph an exception will be thrown</exception>
-    protected void UpdateGraphs(NodeId id, SubgraphInfo subgraph)
+    protected void UpdateGraphs<TNode>(NodeId id, ScheduleEntry<TNode, TContext, TResource> subgraph)
     {
         CheckHierarchySets(id, subgraph);
         CheckEdges(id, subgraph);
-        Changed = true;
 
         Hierarchy.AddVertex(id);
         Dependency.AddVertex(id);
@@ -373,17 +320,17 @@ public class SystemGraph
 
         foreach (var dependency in subgraph.Dependencies)
         {
-            (var kind, var set) = dependency;
-            (var lhs, var rhs) = kind switch
+            var (kind, set) = dependency;
+            var (lhs, rhs) = kind switch
             {
-                DependencyKind.Before => (id, SystemSetIds[set]),
-                DependencyKind.BeforeNoSync => (id, SystemSetIds[set]),
-                DependencyKind.After => (SystemSetIds[set], id),
-                DependencyKind.AfterNoSync => (SystemSetIds[set], id),
+                PolyScheduler.Dependency.Kind.Before => (id, SystemSetIds[set]),
+                PolyScheduler.Dependency.Kind.BeforeNoSync => (id, SystemSetIds[set]),
+                PolyScheduler.Dependency.Kind.After => (SystemSetIds[set], id),
+                PolyScheduler.Dependency.Kind.AfterNoSync => (SystemSetIds[set], id),
                 _ => throw new ArgumentException("Invalid dependency kind")
             };
 
-            if (kind is DependencyKind.BeforeNoSync or DependencyKind.AfterNoSync)
+            if (kind is PolyScheduler.Dependency.Kind.BeforeNoSync or PolyScheduler.Dependency.Kind.AfterNoSync)
             {
                 NoSyncEdges.Add((lhs, rhs));
             }
@@ -393,62 +340,64 @@ public class SystemGraph
             Hierarchy.AddVertex(SystemSetIds[set]);
         }
 
-        if (subgraph.AmbiguousWith is Ambiguity.IgnoreWithSet ignoreWithSet)
+        if (subgraph.Ambiguity is Ambiguity.IgnoreWithSet ignoreWithSet)
         {
             foreach (var set in ignoreWithSet.Sets)
             {
-                AmbiguousWith.AddEdge(new Edge<NodeId>(id, SystemSetIds[set]));
+                PermittedSetAmbiguities.AddEdge(new Edge<NodeId>(id, SystemSetIds[set]));
             }
         }
-        else if (subgraph.AmbiguousWith is Ambiguity.IgnoreAll)
+        else if (subgraph.Ambiguity is Ambiguity.IgnoreAll)
         {
-            AmbiguousWithAll.Add(id);
+            PermittedGlobalAmbiguities.Add(id);
         }
     }
 
     /// Initializes any newly-added systems and conditions by calling [`System::initialize`]
-    public void Initialize(PolyWorld world)
+    // TODO - Should this be something on the graph?
+    public void Initialize(TContext context)
     {
-        foreach ((var id, var i) in Uninit)
+        foreach (var (id, i) in Uninitialized)
         {
             if (id.IsSystem)
             {
-                Systems[id.Id].Initialize(world);
+                Systems[id.Id].Initialize(context);
                 foreach (var condition in SystemConditions[id.Id])
                 {
-                    condition.Initialize(world);
+                    condition.Initialize(context);
                 }
             }
             else
             {
                 foreach (var condition in SystemSetConditions[id.Id].Skip(i))
                 {
-                    condition.Initialize(world);
+                    condition.Initialize(context);
                 }
             }
         }
-        Uninit.Clear();
+
+        Uninitialized.Clear();
     }
 
-    public SystemSchedule BuildSchedule(ScheduleLabel label, HashSet<ulong> ignoredAmbiguities)
+    public CompiledSchedule<TContext> BuildSchedule(ISet<TResource> ignoredAmbiguities)
     {
         var hierarchySort = Hierarchy.TopologicalSort().ToArray();
-        var hierResults = CheckGraph(Hierarchy, hierarchySort);
-        CheckHierarchyConflicts(hierResults.TransitiveEdges);
+        var hierarchyResults = CheckGraph(Hierarchy, hierarchySort);
+        CheckHierarchyConflicts(hierarchyResults.TransitiveEdges);
 
         //remove redundant edges
-        Hierarchy = hierResults.TransitiveReduction;
+        Hierarchy = hierarchyResults.TransitiveReduction;
 
         //check dependencies for cycles
         var dependencyTopSort = Dependency.TopologicalSort().ToArray();
 
         // Check for systems or sets depending on sets they belong to
         var depResults = CheckGraph(Dependency, dependencyTopSort);
-        CheckCrossDependencies(depResults, hierResults.Connected);
+        CheckCrossDependencies(depResults, hierarchyResults.Connected);
 
         // Map all system sets to their systems
         // go in reverse topological order (bottom-up) for efficiency
-        (var setSystems, var setSystemBitsets) = MapSetsToSystems(hierarchySort, Hierarchy);
+        var (setSystems, setSystemBitsets) = MapSetsToSystems(hierarchySort, Hierarchy);
         CheckOrderButIntersect(depResults.Connected, setSystemBitsets);
 
         // check that there are no edges to system-type sets that have multiple instances
@@ -457,14 +406,14 @@ public class SystemGraph
         var dependencyFlattened = GetDependencyFlattened(setSystems);
 
         // modify graph with auto sync points
-        if (Config.AutoInsertApplyDeferred)
+        if (AutoInsertApplyDeferred)
         {
-            dependencyFlattened = AutoInsertApplyDeferred(dependencyFlattened);
+            dependencyFlattened = InsertApplyDeferred(dependencyFlattened);
         }
 
-        //topsort
-        var flattenedTopsort = dependencyFlattened.TopologicalSort().ToArray();
-        var flatResults = CheckGraph(dependencyFlattened, flattenedTopsort);
+        //top sort
+        var flattenedTopSort = dependencyFlattened.TopologicalSort().ToArray();
+        var flatResults = CheckGraph(dependencyFlattened, flattenedTopSort);
 
         //remove redundant edges
         dependencyFlattened = flatResults.TransitiveReduction;
@@ -473,19 +422,21 @@ public class SystemGraph
         var ambiguousWithFlattened = GetAmbiguousWithFlattened(setSystems);
 
         // check for conflicts
-        var conflictingSystems = GetConflictingSystems(flatResults.Disconnected, ambiguousWithFlattened, ignoredAmbiguities);
+        var conflictingSystems =
+            GetConflictingSystems(flatResults.Disconnected, ambiguousWithFlattened, ignoredAmbiguities);
         OptionallyCheckConflicts(conflictingSystems);
-        ConflictingSystems = conflictingSystems;
 
-        return BuildScheduleInner(dependencyFlattened, flattenedTopsort, hierResults.Reachable);
+        return BuildScheduleInner(dependencyFlattened, flattenedTopSort, hierarchyResults.Reachable);
     }
 
-    protected SystemSchedule BuildScheduleInner(BidirectionalGraph<NodeId, Edge<NodeId>> graph, NodeId[] topsort, FixedBitSet hierResultsReachable)
+    protected CompiledSchedule<TContext> BuildScheduleInner(BidirectionalGraph<NodeId, Edge<NodeId>> graph,
+        NodeId[] topSort,
+        FixedBitSet hierResultsReachable)
     {
-        var dgSystemIdxMap = new Dictionary<NodeId, int>(topsort.Length);
-        for (var i = 0; i < topsort.Length; i++)
+        var dgSystemIdxMap = new Dictionary<NodeId, int>(topSort.Length);
+        for (var i = 0; i < topSort.Length; i++)
         {
-            dgSystemIdxMap[topsort[i]] = i;
+            dgSystemIdxMap[topSort[i]] = i;
         }
 
         var hierSort = Hierarchy.TopologicalSort().ToArray();
@@ -498,6 +449,7 @@ public class SystemGraph
                 hgSystem.Add((i, hierSort[i]));
             }
         }
+
         var hgSetWithConditionsIdxs = new List<int>();
         var hgSetIds = new List<NodeId>();
         for (var i = 0; i < hierSort.Length; i++)
@@ -508,6 +460,7 @@ public class SystemGraph
             {
                 continue;
             }
+
             hgSetIds.Add(hierSort[i]);
             hgSetWithConditionsIdxs.Add(i);
         }
@@ -520,7 +473,7 @@ public class SystemGraph
         // (needed by multi_threaded executor to run systems in the correct order)
         var systemDependencies = new List<int>(sysCount);
         var systemDependents = new List<List<int>>(sysCount);
-        foreach (var id in topsort)
+        foreach (var id in topSort)
         {
             var numDependencies = graph.InDegree(id);
             var dependents = graph.OutEdges(id).Select(x => dgSystemIdxMap[x.Target]).ToList();
@@ -537,17 +490,18 @@ public class SystemGraph
         {
             var row = hgSetWithConditionsIdxs[i];
             var bitset = new FixedBitSet(sysCount);
-            foreach ((var col, var sysId) in hgSystem)
+            foreach (var (col, sysId) in hgSystem)
             {
                 var idx = dgSystemIdxMap[sysId];
                 var isDescendant = hierResultsReachable[Index(row, col, hgNodeCount)];
                 bitset.SetValue(idx, isDescendant);
             }
+
             systemsInSetsWithConditions.Add(bitset);
         }
 
         var setsWithConditionsOfSystems = new List<FixedBitSet>(sysCount);
-        foreach ((var col, _) in hgSystem)
+        foreach (var (col, _) in hgSystem)
         {
             var bitset = new FixedBitSet(setWithsConditionsCount);
             for (var idx = 0; idx < setWithsConditionsCount; idx++)
@@ -557,18 +511,22 @@ public class SystemGraph
                 {
                     break;
                 }
+
                 var isAncestor = hierResultsReachable[Index(row, col, hgNodeCount)];
                 bitset.SetValue(idx, isAncestor);
             }
+
             setsWithConditionsOfSystems.Add(bitset);
         }
 
-        return new SystemSchedule
+        Dirty = false;
+
+        return new CompiledSchedule<TContext>
         {
-            Systems = new List<BaseSystem<Empty>>(sysCount),
-            SystemConditions = new List<List<BaseSystem<bool>>>(sysCount),
-            SetConditions = new List<List<BaseSystem<bool>>>(setWithsConditionsCount),
-            SystemIds = topsort.ToList(),
+            Systems = new List<ISystem<TContext>>(sysCount),
+            SystemConditions = new List<List<ICondition<TContext>>>(sysCount),
+            SetConditions = new List<List<ICondition<TContext>>>(setWithsConditionsCount),
+            SystemIds = topSort.ToList(),
             SystemDependencies = systemDependencies,
             SystemDependents = systemDependents,
             SetsWithConditionsOfSystems = setsWithConditionsOfSystems,
@@ -577,13 +535,15 @@ public class SystemGraph
         };
     }
 
-    public SystemSchedule UpdateSchedule(SystemSchedule schedule, HashSet<ulong> ignoredAmbiguities, ScheduleLabel label)
+    public CompiledSchedule<TContext> UpdateSchedule(CompiledSchedule<TContext> schedule,
+        ISet<TResource> ignoredAmbiguities)
     {
-        if (Uninit.Count != 0)
+        if (Uninitialized.Count != 0)
         {
             throw new ScheduleBuildException.Uninitialized();
         }
         // Note - this make no sense to me. Why would this take in a new schedule instead of modifying in place
+        Dirty = false;
 
         // move systems out of old schedule
         foreach (var id in schedule.SystemIds)
@@ -591,6 +551,7 @@ public class SystemGraph
             Systems[id.Id] = schedule.Systems[id.Id];
             SystemConditions[id.Id] = schedule.SystemConditions[id.Id];
         }
+
         schedule.SystemIds.Clear();
         schedule.Systems.Clear();
         schedule.SystemConditions.Clear();
@@ -599,10 +560,11 @@ public class SystemGraph
         {
             SystemSetConditions[id.Id] = schedule.SetConditions[id.Id];
         }
+
         schedule.SetIds.Clear();
         schedule.SetConditions.Clear();
 
-        var newSchedule = BuildSchedule(label, ignoredAmbiguities);
+        var newSchedule = BuildSchedule(ignoredAmbiguities);
 
         // move systems into new schedule
         foreach (var id in newSchedule.SystemIds)
@@ -612,27 +574,31 @@ public class SystemGraph
             newSchedule.Systems.Add(system);
             newSchedule.SystemConditions.Add(conditions);
         }
+
         foreach (var id in newSchedule.SetIds)
         {
             var conditions = SystemSetConditions[id.Id];
             newSchedule.SetConditions.Add(conditions);
         }
+
         return newSchedule;
     }
 
-    private List<(NodeId, NodeId, ulong[])> GetConflictingSystems(
+    private List<(NodeId, NodeId, TResource[])> GetConflictingSystems(
         List<(NodeId, NodeId)> flatResultsDisconnected,
         UndirectedGraph<NodeId, Edge<NodeId>> ambiguousWithFlattened,
-        HashSet<ulong> ignoredAmbiguities
+        ISet<TResource> ignoredAmbiguities
     )
     {
-        var conflictingSystems = new List<(NodeId, NodeId, ulong[])>();
-        foreach ((var a, var b) in flatResultsDisconnected)
+        var conflictingSystems = new List<(NodeId, NodeId, TResource[])>();
+        foreach (var (a, b) in flatResultsDisconnected)
         {
-            if (ambiguousWithFlattened.ContainsEdge(a, b) || AmbiguousWithAll.Contains(a) || AmbiguousWithAll.Contains(b))
+            if (ambiguousWithFlattened.ContainsEdge(a, b) || PermittedGlobalAmbiguities.Contains(a) ||
+                PermittedGlobalAmbiguities.Contains(b))
             {
                 continue;
             }
+
             var systemA = Systems[a.Id];
             var systemB = Systems[b.Id];
 
@@ -642,22 +608,10 @@ public class SystemGraph
             }
             else
             {
-                var aAccess = systemA.GetComponentAccess();
-                var bAccess = systemB.GetComponentAccess();
-                if (!aAccess.IsCompatible(bAccess))
+                if (!CompatabilityResolver.IsCompatible(systemA, systemB))
                 {
-                    var conflicts = aAccess.GetConflicts(bAccess).Where(x => !ignoredAmbiguities.Contains(x)).ToArray();
-                    if (conflicts.Length > 0)
-                    {
-                        conflictingSystems.Add((a, b, conflicts));
-                    }
-                }
-                // TODO res detection
-                var aResAccess = systemA.GetResourceAccess();
-                var bResAccess = systemB.GetResourceAccess();
-                if (!aResAccess.IsCompatible(bResAccess))
-                {
-                    var conflicts = aResAccess.GetConflicts(bResAccess).Where(x => !ignoredAmbiguities.Contains(x)).ToArray();
+                    var conflicts = CompatabilityResolver.GetConflicts(systemA, systemB)
+                        .Where(x => !ignoredAmbiguities.Contains(x)).ToArray();
                     if (conflicts.Length > 0)
                     {
                         conflictingSystems.Add((a, b, conflicts));
@@ -665,6 +619,7 @@ public class SystemGraph
                 }
             }
         }
+
         return conflictingSystems;
     }
 
@@ -672,18 +627,16 @@ public class SystemGraph
     {
         if (id.IsSystem)
         {
-            return new List<NodeId>
-            {
-                id
-            };
+            return [id];
         }
+
         return setSystems.GetValueOrDefault(id, new List<NodeId>());
     }
 
     private UndirectedGraph<NodeId, Edge<NodeId>> GetAmbiguousWithFlattened(Dictionary<NodeId, List<NodeId>> setSystems)
     {
         var graph = new UndirectedGraph<NodeId, Edge<NodeId>>();
-        foreach (var edge in AmbiguousWith.Edges)
+        foreach (var edge in PermittedSetAmbiguities.Edges)
         {
             foreach (var source in ResolveNodeToSystems(setSystems, edge.Source))
             {
@@ -693,6 +646,7 @@ public class SystemGraph
                 }
             }
         }
+
         return graph;
     }
 
@@ -701,7 +655,8 @@ public class SystemGraph
     /// </summary>
     /// <param name="flattened"></param>
     /// <returns></returns>
-    protected BidirectionalGraph<NodeId, Edge<NodeId>> AutoInsertApplyDeferred(BidirectionalGraph<NodeId, Edge<NodeId>> flattened)
+    protected BidirectionalGraph<NodeId, Edge<NodeId>> InsertApplyDeferred(
+        BidirectionalGraph<NodeId, Edge<NodeId>> flattened)
     {
         var syncGraph = flattened.Clone();
         var topo = flattened.TopologicalSort().ToArray();
@@ -716,7 +671,8 @@ public class SystemGraph
 
             foreach (var edge in flattened.OutEdges(node))
             {
-                var addSyncOnEdge = addSyncAfter && !NoSyncEdges.Contains((node, edge.Target)) && Systems[edge.Target.Id] is not ApplyDeferredSystem;
+                var addSyncOnEdge = addSyncAfter && !NoSyncEdges.Contains((node, edge.Target)) &&
+                                    Systems[edge.Target.Id] is not ApplyDeferredSystem<TContext>;
                 var weight = (uint)(addSyncOnEdge ? 1 : 0);
                 var dist = distances.GetValueOrDefault<int, uint>(edge.Target.Id, 0);
                 dist = dist > nodeDist + weight ? dist : nodeDist + weight;
@@ -745,35 +701,37 @@ public class SystemGraph
         {
             return id;
         }
+
         id = AddAutoSync();
         AutoSyncNodeIds.Add(dist, id);
         return id;
     }
 
     /// <summary>
-    ///     Adds a <see cref="ApplyDeferredSystem" /> with no config
+    ///     Adds a <see cref="ApplyDeferredSystem{TContext}" /> with no config
     /// </summary>
-    /// <returns>Id of sync system</returns>
+    /// <returns>ID of sync system</returns>
     protected NodeId AddAutoSync()
     {
         var id = new NodeId(Systems.Count, NodeType.System);
-        Systems.Add(new ApplyDeferredSystem());
-        SystemConditions.Add(new List<BaseSystem<bool>>());
+        Systems.Add(new ApplyDeferredSystem<TContext>());
+        SystemConditions.Add(new());
         Hierarchy.AddVertex(id);
         Dependency.AddVertex(id);
         // ignore ambiguities with auto sync points
         // They aren't under user control, so no one should know or care.
-        AmbiguousWithAll.Add(id);
+        PermittedGlobalAmbiguities.Add(id);
         return id;
     }
 
-    protected BidirectionalGraph<NodeId, Edge<NodeId>> GetDependencyFlattened(Dictionary<NodeId, List<NodeId>> setSystems)
+    protected BidirectionalGraph<NodeId, Edge<NodeId>> GetDependencyFlattened(
+        Dictionary<NodeId, List<NodeId>> setSystems)
     {
         // flatten: combine `in_set` with `before` and `after` information
         // have to do it like this to preserve transitivity
         var flattened = Dependency.Clone();
         var temp = new List<(NodeId, NodeId)>();
-        foreach ((var set, var systems) in setSystems)
+        foreach (var (set, systems) in setSystems)
         {
             if (systems.Count == 0)
             {
@@ -786,6 +744,7 @@ public class SystemGraph
                         {
                             NoSyncEdges.Add((aEdge.Source, bEdge.Target));
                         }
+
                         temp.Add((aEdge.Source, bEdge.Target));
                     }
                 }
@@ -800,6 +759,7 @@ public class SystemGraph
                         {
                             NoSyncEdges.Add((aEdge.Source, sys));
                         }
+
                         temp.Add((aEdge.Source, sys));
                     }
                 }
@@ -812,16 +772,18 @@ public class SystemGraph
                         {
                             NoSyncEdges.Add((sys, bEdge.Target));
                         }
+
                         temp.Add((sys, bEdge.Target));
                     }
                 }
             }
 
             flattened.RemoveVertex(set);
-            foreach ((var a, var b) in temp)
+            foreach (var (a, b) in temp)
             {
                 flattened.AddEdge(new Edge<NodeId>(a, b));
             }
+
             temp.Clear();
         }
 
@@ -829,30 +791,31 @@ public class SystemGraph
     }
 
     /// <summary>
-    ///     Return a map from a <see cref="ISystemSet" /> <see cref="NodeId" /> to a list of <see cref="BaseSystem<Empty>" />
+    ///     Return a map from a <see cref="ISystemSet" /> <see cref="NodeId" /> to a list of <see cref="ISystem{TContext}" />
     ///     <see cref="NodeId" />'s that are included in the set.
     ///     Also return a map from a <see cref="ISystemSet" /> <see cref="NodeId" /> to a <see cref="FixedBitSet" /> of
     ///     <see cref="ISystemSet" /> <see cref="NodeId" />'s
-    ///     that are included in the set, where the bitset order is the same as <see cref="SystemGraph.GetSystems()" />
+    ///     that are included in the set, where the bitset order is the same as <see cref="GetSystems()" />
     /// </summary>
-    /// <param name="hierarchyTopsort"></param>
+    /// <param name="hierarchyTopSort"></param>
     /// <param name="hierarchyGraph"></param>
     /// <returns></returns>
     protected (Dictionary<NodeId, List<NodeId>>, Dictionary<NodeId, FixedBitSet>) MapSetsToSystems(
-        NodeId[] hierarchyTopsort,
+        NodeId[] hierarchyTopSort,
         BidirectionalGraph<NodeId, Edge<NodeId>> hierarchyGraph
     )
     {
         var setSystems = new Dictionary<NodeId, List<NodeId>>(SystemSets.Count);
         var setSystemBitsets = new Dictionary<NodeId, FixedBitSet>(SystemSets.Count);
 
-        for (var i = hierarchyTopsort.Count() - 1; i >= 0; i--)
+        for (var i = hierarchyTopSort.Count() - 1; i >= 0; i--)
         {
-            var id = hierarchyTopsort[i];
+            var id = hierarchyTopSort[i];
             if (id.IsSystem)
             {
                 continue;
             }
+
             var systems = new List<NodeId>();
             var systemBitset = new FixedBitSet(systems.Count);
             foreach (var edge in hierarchyGraph.OutEdges(id))
@@ -868,6 +831,7 @@ public class SystemGraph
                     {
                         systems.AddRange(childSystems);
                     }
+
                     if (setSystemBitsets.TryGetValue(edge.Target, out var childSystemBitset))
                     {
                         systemBitset.Or(childSystemBitset);
@@ -878,6 +842,7 @@ public class SystemGraph
             setSystems[id] = systems;
             setSystemBitsets[id] = systemBitset;
         }
+
         return (setSystems, setSystemBitsets);
     }
 
@@ -888,12 +853,14 @@ public class SystemGraph
             var sys = Systems[id.Id];
             return sys.Name;
         }
-        return SystemSets[id.Id].GetName();
+
+        return SystemSets[id.Id].Name;
     }
 
-    private void CheckCrossDependencies(CheckGraphResults<NodeId> depResults, HashSet<(NodeId, NodeId)> hierResultsConnected)
+    private void CheckCrossDependencies(CheckGraphResults<NodeId> depResults,
+        HashSet<(NodeId, NodeId)> hierResultsConnected)
     {
-        foreach ((var a, var b) in depResults.Connected)
+        foreach (var (a, b) in depResults.Connected)
         {
             if (hierResultsConnected.Contains((a, b)) || hierResultsConnected.Contains((b, a)))
             {
@@ -918,7 +885,8 @@ public class SystemGraph
     /// <remarks>
     ///     Port of bevy_ecs::schedule::graph_utils::check_graph
     /// </remarks>
-    public static CheckGraphResults<TV> CheckGraph<TV>(IBidirectionalGraph<TV, Edge<TV>> graph, TV[] topologicalOrder) where TV : notnull
+    public static CheckGraphResults<TV> CheckGraph<TV>(IBidirectionalGraph<TV, Edge<TV>> graph, TV[] topologicalOrder)
+        where TV : notnull
     {
         var n = graph.VertexCount;
         if (n == 0)
@@ -926,19 +894,19 @@ public class SystemGraph
             return new CheckGraphResults<TV>();
         }
 
-        // build a copy of the graph where the nodes and edges appear in topsorted order
+        // build a copy of the graph where the nodes and edges appear in topSorted order
         var map = new Dictionary<TV, int>(n);
-        var topsorted = new BidirectionalGraph<TV, Edge<TV>>();
+        var topSorted = new BidirectionalGraph<TV, Edge<TV>>();
 
         // iterate nodes in topological order
         for (var i = 0; i < n; i++)
         {
             map[topologicalOrder[i]] = i;
-            topsorted.AddVertex(topologicalOrder[i]);
+            topSorted.AddVertex(topologicalOrder[i]);
             // insert nodes as successors to their predecessors
             foreach (var edge in graph.InEdges(topologicalOrder[i]))
             {
-                topsorted.AddEdge(new Edge<TV>(edge.Source, edge.Target));
+                topSorted.AddEdge(new Edge<TV>(edge.Source, edge.Target));
             }
         }
 
@@ -951,18 +919,18 @@ public class SystemGraph
         var transitiveClosure = new BidirectionalGraph<TV, Edge<TV>>();
 
         var visited = new FixedBitSet(n);
-        foreach (var vertex in topsorted.Vertices)
+        foreach (var vertex in topSorted.Vertices)
         {
             transitiveReduction.AddVertex(vertex);
             transitiveClosure.AddVertex(vertex);
         }
 
         // iterate nodes in reverse topological order
-        // Note - Bevy does this by iterating the topsort vertices, but our graph implementation doesn't support ordered insertion
+        // Note - Bevy does this by iterating the topSort vertices, but our graph implementation doesn't support ordered insertion
         for (var indexA = n - 1; indexA >= 0; indexA--)
         {
             var a = topologicalOrder[indexA];
-            foreach (var edge in topsorted.OutEdges(a))
+            foreach (var edge in topSorted.OutEdges(a))
             {
                 var b = edge.Target;
                 var indexB = map[b];
@@ -970,6 +938,7 @@ public class SystemGraph
                 {
                     throw new UnreachableException("topological order is not valid");
                 }
+
                 if (!visited[indexB])
                 {
                     transitiveReduction.AddEdge(new Edge<TV>(a, b));
@@ -986,7 +955,6 @@ public class SystemGraph
                             reachable.Set(indexA * n + indexC);
                         }
                     }
-
                 }
                 else
                 {
@@ -994,16 +962,17 @@ public class SystemGraph
                     transitiveEdges.Add((a, b));
                 }
             }
+
             visited.Clear();
         }
 
         // partition pairs of nodes into "connected by path" and "not connected by path"
         for (var i = 0; i < n; i++)
         {
-            // reachable is upper triangular because the nodes were topsorted
+            // reachable is upper triangular because the nodes were topSorted
             for (var index = Index(i, i + 1, n); index <= Index(i, n - 1, n); index++)
             {
-                (var a, var b) = RowCol(index, n);
+                var (a, b) = RowCol(index, n);
                 var pair = (topologicalOrder[a], topologicalOrder[b]);
                 if (reachable[index])
                 {
@@ -1043,34 +1012,39 @@ public class SystemGraph
 
     private void CheckHierarchyConflicts(List<(NodeId, NodeId)> transitiveEdges)
     {
-        if (!Config.ThrowHierarchyRedundancyErrors || transitiveEdges.Count == 0)
+        if (!ThrowHierarchyRedundancyErrors || transitiveEdges.Count == 0)
         {
             return;
         }
 
         var message = "hierarchy contains redundant edge(s)";
-        foreach ((var parent, var child) in transitiveEdges)
+        foreach (var (parent, child) in transitiveEdges)
         {
-            message += $"\n -- {child.Type} `{GetNodeName(child)}` cannot be child of set `{GetNodeName(parent)}`, longer path exists";
+            message +=
+                $"\n -- {child.Type} `{GetNodeName(child)}` cannot be child of set `{GetNodeName(parent)}`, longer path exists";
         }
+
         throw new ScheduleBuildException.HierarchyRedundancy(message);
     }
 
 
-    private void CheckOrderButIntersect(HashSet<(NodeId, NodeId)> depResultsConnected, Dictionary<NodeId, FixedBitSet> setSystemBitsets)
+    private void CheckOrderButIntersect(HashSet<(NodeId, NodeId)> depResultsConnected,
+        Dictionary<NodeId, FixedBitSet> setSystemBitsets)
     {
-        foreach ((var a, var b) in depResultsConnected)
+        foreach (var (a, b) in depResultsConnected)
         {
             if (!(a.IsSet && b.IsSet))
             {
                 continue;
             }
+
             var aSystems = setSystemBitsets[a];
             var bSystems = setSystemBitsets[b];
             if (aSystems.Length == 0)
             {
                 continue;
             }
+
             if (!aSystems.IsDisjoint(bSystems))
             {
                 throw new ScheduleBuildException.SetsHaveOrderButIntersect(GetNodeName(a), GetNodeName(b));
@@ -1080,13 +1054,13 @@ public class SystemGraph
 
     private void CheckSystemTypeSetAmbiguity(Dictionary<NodeId, List<NodeId>> setSystems)
     {
-        foreach ((var id, var systems) in setSystems)
+        foreach (var (id, systems) in setSystems)
         {
             var set = SystemSets[id.Id];
-            if (set.SystemType() != null)
+            if (set.IsSystemAlias)
             {
                 var instances = systems.Count;
-                var ambiguous = AmbiguousWith.AdjacentEdges(id);
+                var ambiguous = PermittedSetAmbiguities.AdjacentEdges(id);
                 var before = Dependency.InDegree(id);
                 var after = Dependency.OutDegree(id);
                 var relations = before + after + ambiguous.Count();
@@ -1098,9 +1072,9 @@ public class SystemGraph
         }
     }
 
-    private void OptionallyCheckConflicts(List<(NodeId, NodeId, ulong[])> conflicts)
+    private void OptionallyCheckConflicts(List<(NodeId, NodeId, TResource[])> conflicts)
     {
-        if (Config.ThrowAmbiguousErrors)
+        if (EnforceNoAmbiguity)
         {
             if (conflicts.Count > 0)
             {
@@ -1111,29 +1085,26 @@ public class SystemGraph
     }
 
 
-    private string GetConflictsErrorMessage(List<(NodeId, NodeId, ulong[])> ambiguities)
+    private string GetConflictsErrorMessage(List<(NodeId, NodeId, TResource[])> ambiguities)
     {
         var nAmbiguities = ambiguities.Count;
-        var message = $"{nAmbiguities} pairs of systems with conflicting data access have indeterminate execution order.\n" +
-                      $"Consider adding `before`, `after`, or `ambiguous_with` relationships between these:\n";
-        foreach ((var nameA, var nameB, var conflicts) in ambiguities)
+        var message =
+            $"{nAmbiguities} pairs of systems with conflicting data access have indeterminate execution order.\n" +
+            $"Consider adding `before`, `after`, or `ambiguous_with` relationships between these:\n";
+        foreach (var (nameA, nameB, conflicts) in ambiguities)
         {
             message += $" -- {nameA} and {nameB}\n";
             if (conflicts.Length != 0)
             {
                 // TODO name
-                message += $"    conflict on: {string.Join(", ", conflicts.Select(c => c.ToString()))}\n";
+                message += $"    conflict on: {string.Join(", ", conflicts.Select(c => c?.ToString()))}\n";
             }
             else
             {
                 message += "    conflict on: World\n";
             }
         }
-        return message;
-    }
 
-    public void ConfigureSets(IIntoNodeConfigs<ISystemSet> sets)
-    {
-        ProcessConfigs(sets.IntoConfigs(), false);
+        return message;
     }
 }

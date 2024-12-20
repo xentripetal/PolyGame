@@ -35,8 +35,6 @@ public class TableCache
 
     public IEnumerable<Table> GetRange(int start, int count) => Tables.GetRange(start, count);
 
-
-
     public IEnumerable<Table> TablesForType(UntypedComponent component) => TablesForType(component.Id);
 
     public IEnumerable<Table> TablesForType(Id type)

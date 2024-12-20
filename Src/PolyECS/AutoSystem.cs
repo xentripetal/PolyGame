@@ -7,18 +7,19 @@ namespace PolyECS;
 /// <summary>
 /// An AutoSystem is a system that uses PolyECS.Generator to generate its plumbing to be used in the ECS system.
 /// </summary>
-public abstract class AutoSystem : ParameterSystem<Empty, Empty>, IIntoSystemConfigs
+public abstract class AutoSystem : RunSystem
 {
-    public override void Initialize(PolyWorld world)
+    protected AutoSystem()
     {
-        Params = GetParams(world);
-        base.Initialize(world);
     }
 
-    public abstract ISystemParam[] GetParams(PolyWorld world);
-    public NodeConfigs<RunSystem> IntoConfigs()
+    protected AutoSystem(string name) : base(name)
     {
-        IIntoNodeConfigs<RunSystem> baseConfig = NodeConfigs<RunSystem>.Of(new SystemConfig(this));
+    }
+
+    public NodeConfigs<BaseSystem<Empty>> IntoConfigs()
+    {
+        IIntoNodeConfigs<BaseSystem<Empty>> baseConfig = NodeConfigs<BaseSystem<Empty>>.Of(new SystemConfig(this));
 
         // Apply any attributes of this type onto its base config
         var attributes = Attribute.GetCustomAttributes(GetType(), true);
@@ -35,29 +36,33 @@ public abstract class AutoSystem : ParameterSystem<Empty, Empty>, IIntoSystemCon
 
     // Re-export all the interface methods from IIntoSystemConfigs to make it easier to chain them
 
-    public IIntoNodeConfigs<RunSystem> InSet(IIntoSystemSet set) => IntoConfigs().InSet(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> InSet(IIntoSystemSet set) => IntoConfigs().InSet(set);
 
-    public IIntoNodeConfigs<RunSystem> InSet<TEnum>(TEnum set) where TEnum : struct, Enum => IntoConfigs().InSet(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> InSet<TEnum>(TEnum set) where TEnum : struct, Enum =>
+        IntoConfigs().InSet(set);
 
-    public IIntoNodeConfigs<RunSystem> Before(IIntoSystemSet set) => IntoConfigs().Before(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> Before(IIntoSystemSet set) => IntoConfigs().Before(set);
 
-    public IIntoNodeConfigs<RunSystem> After(IIntoSystemSet set) => IntoConfigs().After(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> After(IIntoSystemSet set) => IntoConfigs().After(set);
 
-    public IIntoNodeConfigs<RunSystem> BeforeIgnoreDeferred(IIntoSystemSet set) => IntoConfigs().BeforeIgnoreDeferred(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> BeforeIgnoreDeferred(IIntoSystemSet set) =>
+        IntoConfigs().BeforeIgnoreDeferred(set);
 
-    public IIntoNodeConfigs<RunSystem> AfterIgnoreDeferred(IIntoSystemSet set) => IntoConfigs().AfterIgnoreDeferred(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> AfterIgnoreDeferred(IIntoSystemSet set) =>
+        IntoConfigs().AfterIgnoreDeferred(set);
 
-    public IIntoNodeConfigs<RunSystem> Chained() => IntoConfigs().Chained();
+    public IIntoNodeConfigs<BaseSystem<Empty>> Chained() => IntoConfigs().Chained();
 
-    public IIntoNodeConfigs<RunSystem> ChainedIgnoreDeferred() => IntoConfigs().ChainedIgnoreDeferred();
+    public IIntoNodeConfigs<BaseSystem<Empty>> ChainedIgnoreDeferred() => IntoConfigs().ChainedIgnoreDeferred();
 
-    public IIntoNodeConfigs<RunSystem> RunIf(Condition condition) => IntoConfigs().RunIf(condition);
+    public IIntoNodeConfigs<BaseSystem<Empty>> RunIf(Condition condition) => IntoConfigs().RunIf(condition);
 
-    public IIntoNodeConfigs<RunSystem> DistributiveRunIf(Condition condition) => IntoConfigs().DistributiveRunIf(condition);
+    public IIntoNodeConfigs<BaseSystem<Empty>> DistributiveRunIf(Condition condition) =>
+        IntoConfigs().DistributiveRunIf(condition);
 
-    public IIntoNodeConfigs<RunSystem> AmbiguousWith(IIntoSystemSet set) => IntoConfigs().AmbiguousWith(set);
+    public IIntoNodeConfigs<BaseSystem<Empty>> AmbiguousWith(IIntoSystemSet set) => IntoConfigs().AmbiguousWith(set);
 
-    public IIntoNodeConfigs<RunSystem> AmbiguousWithAll() => IntoConfigs().AmbiguousWithAll();
+    public IIntoNodeConfigs<BaseSystem<Empty>> AmbiguousWithAll() => IntoConfigs().AmbiguousWithAll();
 
     public ISystemSet IntoSystemSet() => new SystemReferenceSet(this);
 }

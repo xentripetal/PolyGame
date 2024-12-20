@@ -21,7 +21,7 @@ public abstract partial class CameraQueueBaseSystem : AutoSystem
     protected QueryParam BuildLightsQuery(PolyWorld world) => Param.Of(CreateRenderableQuery(world));
 
     [AutoRunMethod]
-    public void Run(Query cameras, Query lights)
+    public void Run(Query<ComputedCamera, RenderableList> cameras, Query lights)
     {
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
             // can't pass ref to lambda
@@ -122,6 +122,10 @@ public class QueuePointLights : CameraQueueBaseSystem
 
     protected override void EvaluateRenderables(ComputedCamera cam, RenderableList camRenders, Query renderables)
     {
+        foreach (var r in renderables)
+        {
+            
+        }
         renderables.Each((Entity en, ref GlobalTransform2D transform, ref PointLight light, ref SortLayer layer, ref GlobalZIndex index) => {
             var scale = transform.Value.Scale;
             var size = light.Radius * scale.X * 2;

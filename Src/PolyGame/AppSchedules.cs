@@ -1,3 +1,4 @@
+using PolyECS;
 using PolyECS.Scheduling;
 using PolyECS.Scheduling.Configs;
 using PolyECS.Scheduling.Graph;
@@ -7,9 +8,11 @@ namespace PolyGame;
 
 public partial class App
 {
-    public App AddSystems(IIntoScheduleLabel label, params IIntoNodeConfigs<RunSystem>[] systems)
+    public App AddSystems(IIntoScheduleLabel label, params IIntoNodeConfigs<BaseSystem<Empty>>[] systems)
     {
-        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        var schedules = World.GetResource<ScheduleContainer>().Get();
+        if (schedules is null)
+            throw new ApplicationException("ScheduleContainer resource not found");
         var schedule = schedules.Get(label.IntoScheduleLabel());
         if (schedule == null)
         {
@@ -19,7 +22,7 @@ public partial class App
         return this;
     }
 
-    public App AddSystem<T>(IIntoScheduleLabel label, Func<T, IIntoNodeConfigs<RunSystem>>? cfg = null) where T : IIntoNodeConfigs<RunSystem>, new()
+    public App AddSystem<T>(IIntoScheduleLabel label, Func<T, IIntoNodeConfigs<BaseSystem<Empty>>>? cfg = null) where T : IIntoNodeConfigs<BaseSystem<Empty>>, new()
     {
         if (cfg != null)
         {
@@ -30,14 +33,18 @@ public partial class App
 
     public App AddSchedule(Schedule schedule)
     {
-        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        var schedules = World.GetResource<ScheduleContainer>().Get();
+        if (schedules is null)
+            throw new ApplicationException("ScheduleContainer resource not found");
         schedules.Insert(schedule);
         return this;
     }
 
     public App ConfigureSets(IIntoScheduleLabel label, params IIntoNodeConfigs<ISystemSet>[] sets)
     {
-        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        var schedules = World.GetResource<ScheduleContainer>().Get();
+        if (schedules is null)
+            throw new ApplicationException("ScheduleContainer resource not found");
         var schedule = schedules.Get(label.IntoScheduleLabel());
         if (schedule == null)
         {
@@ -51,7 +58,9 @@ public partial class App
 
     public App ConfigureSchedules(ScheduleBuildSettings settings)
     {
-        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        var schedules = World.GetResource<ScheduleContainer>().Get();
+        if (schedules is null)
+            throw new ApplicationException("ScheduleContainer resource not found");
         schedules.SetBuildSettings(settings);
         return this;
     }

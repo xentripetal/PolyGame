@@ -1,266 +1,80 @@
-using DotNext;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
-using PolyECS.Queries;
 
 namespace PolyECS.Systems;
 
-public interface IIntoSystemParam<T>
+public interface ISystemParamMetadata
 {
-    public abstract static ITSystemParam<T> IntoParam(PolyWorld world);
+    public void EvaluateNewStorage(SystemMeta meta, Storage storage);
+    public bool IsReady(PolyWorld world);
 }
 
-public interface ITSystemParam<T> : ISystemParam
+public interface IIntoSystemParamMetadata
 {
-    public T Get(PolyWorld world, SystemMeta systemMeta);
+    public ISystemParamMetadata IntoParamMetadata(PolyWorld world, SystemMeta meta);
 }
 
-public interface ISystemParam
+public class ResParamMetadata : ISystemParamMetadata
 {
-    public void Initialize(PolyWorld world, SystemMeta meta);
-    public void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration);
+    protected ulong ResourceId;
+    protected bool Optional;
 
-    /// <summary>
-    /// Marks if the parameter is ready and can be passed to a system. If false the system will not run this tick
-    /// </summary>
-    /// <param name="world"></param>
-    /// <param name="systemMeta"></param>
-    /// <returns></returns>
-    public bool IsGettable(PolyWorld world, SystemMeta systemMeta);
-
-    public object Get(PolyWorld world, SystemMeta systemMeta);
-}
-
-public abstract class SystemParam<T> : ITSystemParam<T>
-{
-    public abstract void Initialize(PolyWorld world, SystemMeta meta);
-    public abstract void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration);
-    public abstract bool IsGettable(PolyWorld world, SystemMeta systemMeta);
-    object ISystemParam.Get(PolyWorld world, SystemMeta systemMeta) => Get(world, systemMeta);
-
-    public abstract T Get(PolyWorld world, SystemMeta systemMeta);
-}
-
-public class VoidParam : SystemParam<Empty>, IIntoSystemParam<Empty>
-{
-    public static ITSystemParam<Empty> IntoParam(PolyWorld world) => new VoidParam();
-
-    public override void Initialize(PolyWorld world, SystemMeta meta) { }
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGen) { }
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-
-    public override Empty Get(PolyWorld world, SystemMeta systemMeta) => Empty.Instance;
-}
-
-public static class Param
-{
-    public static QueryParam Of(Query query) => new QueryParam(query);
-    public static PolyWorldParam Of(PolyWorld world) => new PolyWorldParam();
-    public static WorldParam OfWorld(World world) => new WorldParam();
-    public static TQueryParam<T> Of<T>(TQuery<T> query) => new TQueryParam<T>(query);
-    public static PolyWorldParam OfWorld() => new PolyWorldParam();
-    public static ResParam<T> OfRes<T>() => new ResParam<T>();
-    public static ResMutParam<T> OfResMut<T>() => new ResMutParam<T>();
-}
-
-public class ResParam<T> : SystemParam<Res<T>>
-{
-    private Entity _globalEntity;
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
+    public ResParamMetadata(Type type, PolyWorld world, SystemMeta meta)
     {
-        unsafe
-        {
-            world.RegisterResource<T>();
-            _globalEntity = world.Entity<T>();
-            meta.ComponentAccessSet.AddUnfilteredRead(Type<T>.Id(world.World.Handle));
-        }
+        var underlyingType = Nullable.GetUnderlyingType(type);
+        var concreteType = underlyingType ?? type;
+        Optional = underlyingType != null;
+        ResourceId = world.RegisterResource(concreteType);
+        meta.ResourceAccess.AddRead(ResourceId);
     }
 
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
-    {
-        if (table.Equals(_globalEntity.Table()))
-        {
-            unsafe
-            {
-                meta.TableComponentAccess.AddRead(new TableComponentId(tableGeneration, Type<T>.Id(_globalEntity.World)));
-            }
-        }
-    }
+    // No-op. Resources are seperate from tables
+    public void EvaluateNewStorage(SystemMeta meta, Storage storage) { }
 
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => world.GetResource<T>().HasValue;
-
-    public override Res<T> Get(PolyWorld world, SystemMeta systemMeta) => world.GetResource<T>();
+    public bool IsReady(PolyWorld world) => Optional || world.Resources.HasValue(ResourceId);
 }
 
-public class OptionalParam<TParam, TValue> : SystemParam<Optional<TValue>> where TParam : ITSystemParam<TValue>
+public class ResParamMetadata<T> : ResParamMetadata
 {
-    protected readonly TParam Param;
-    public OptionalParam(TParam param) => Param = param;
+    public ResParamMetadata(PolyWorld world, SystemMeta meta) : base(typeof(T), world, meta) { }
+}
 
-    public override void Initialize(PolyWorld world, SystemMeta meta)
+public class ResMutParamMetadata : ResParamMetadata
+{
+    public ResMutParamMetadata(Type type, PolyWorld world, SystemMeta meta) : base(type, world, meta)
     {
-        Param.Initialize(world, meta);
-    }
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
-    {
-        Param.EvaluateNewTable(meta, table, tableGeneration);
-    }
-
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-
-    public override Optional<TValue> Get(PolyWorld world, SystemMeta systemMeta)
-    {
-        if (Param.IsGettable(world, systemMeta))
-        {
-            return new Optional<TValue>(Param.Get(world, systemMeta));
-        }
-        return Optional<TValue>.None;
+        meta.ResourceAccess.AddWrite(ResourceId);
     }
 }
 
-public class ResMutParam<T> : SystemParam<ResMut<T>>
+public class ResMutParamMetadata<T> : ResMutParamMetadata
 {
-    private Entity _globalEntity;
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
-    {
-        unsafe
-        {
-            world.RegisterResource<T>();
-            _globalEntity = world.World.Entity<T>();
-            meta.ComponentAccessSet.AddUnfilteredWrite(Type<T>.Id(world.World.Handle));
-        }
-    }
-
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => world.GetResourceMut<T>().HasValue;
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
-    {
-        if (table.Equals(_globalEntity.Table()))
-        {
-            unsafe
-            {
-                meta.TableComponentAccess.AddWrite(new TableComponentId(tableGeneration, Type<T>.Id(_globalEntity.World)));
-            }
-        }
-    }
-
-    public override ResMut<T> Get(PolyWorld world, SystemMeta systemMeta) => world.GetResourceMut<T>();
+    public ResMutParamMetadata(PolyWorld world, SystemMeta meta) : base(typeof(T), world, meta) { }
 }
 
-public class WorldParam : SystemParam<World>
+public class WorldParamMetadata : ISystemParamMetadata
 {
-    private World _world;
-    
-    public override void Initialize(PolyWorld world, SystemMeta meta)
+    public WorldParamMetadata(SystemMeta meta)
     {
-        meta.ComponentAccessSet.WriteAll();
         meta.TableComponentAccess.WriteAll();
-        meta.HasDeferred = true;
-        _world = world.World;
-    }
-    
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration) { }
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-    public override World Get(PolyWorld world, SystemMeta systemMeta) => _world;
-}
-
-public class PolyWorldParam : SystemParam<PolyWorld>
-{
-    private PolyWorld _world;
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
-    {
         meta.ComponentAccessSet.WriteAll();
-        meta.TableComponentAccess.WriteAll();
+        meta.ResourceAccess.WriteAll();
         meta.HasDeferred = true;
-        _world = world;
     }
 
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration) { }
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
+    public void EvaluateNewStorage(SystemMeta meta, Storage storage) { }
 
-    public override PolyWorld Get(PolyWorld world, SystemMeta systemMeta) => _world;
+    public bool IsReady(PolyWorld world) => true;
 }
 
-public class TQueryParam<TData> : SystemParam<TQuery<TData>>
+
+public class QueryParam : ISystemParamMetadata
 {
-    protected QueryParam? Param;
-
-    protected TQuery<TData>? Query;
-
-    public TQueryParam()
-    {
-    }
+    protected Query _query;
     
-    public TQueryParam(TQuery<TData> query)
+    public QueryParam(Query query, SystemMeta meta)
     {
-        Query = query;
-    }
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
-    {
-        if (Query == null)
-        {
-            Query = new TQuery<TData>(world);
-        }
-        Param = new QueryParam(Query.Query);
-        Param.Initialize(world, meta);
-    }
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
-    {
-        Param!.EvaluateNewTable(meta, table, tableGeneration);
-    }
-
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-
-    public override TQuery<TData> Get(PolyWorld world, SystemMeta systemMeta) => Query!;
-}
-
-public class TQueryParam<TData, TFilter> : SystemParam<TQuery<TData, TFilter>> where TFilter : IIntoFilter
-{
-    protected readonly QueryParam Param;
-
-    protected TQuery<TData, TFilter> Query;
-
-    public TQueryParam(TQuery<TData, TFilter> query)
-    {
-        Param = new QueryParam(query.Query);
-        Query = query;
-    }
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
-    {
-        Param.Initialize(world, meta);
-    }
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration)
-    {
-        Param.EvaluateNewTable(meta, table, tableGeneration);
-    }
-
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-
-    public override TQuery<TData, TFilter> Get(PolyWorld world, SystemMeta systemMeta) => Query;
-}
-
-public class QueryParam : SystemParam<Query>
-{
-    private readonly Query _query;
-    public QueryParam(Query query) => _query = query;
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
-    {
-        unsafe
-        {
-            if (_query.World() != world.World)
-            {
-                throw new InvalidOperationException("Query was created with a different world than the one it is being used with.");
-            }
-        }
+        _query = query;
         var access = new FilteredAccess<ulong>();
         for (var i = 0; i < _query.TermCount(); i++)
         {
@@ -309,8 +123,14 @@ public class QueryParam : SystemParam<Query>
         }
     }
 
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGen)
+    public void EvaluateNewStorage(SystemMeta meta, Storage storage)
     {
+        if (storage.Type != StorageType.Table)
+        {
+            return;
+        }
+        
+        var table = storage.Table!.Value;
         var tableTypes = table.Type();
         foreach (var filter in meta.ComponentAccessSet.FilteredAccesses)
         {
@@ -337,69 +157,19 @@ public class QueryParam : SystemParam<Query>
             {
                 if (table.Has(read))
                 {
-                    meta.TableComponentAccess.AddRead(new TableComponentId(tableGen, read));
+                    meta.TableComponentAccess.AddRead(new TableComponentId(storage.Generation, read));
                 }
             }
             foreach (var write in filter.Access.Writes)
             {
                 if (table.Has(write))
                 {
-                    meta.TableComponentAccess.AddWrite(new TableComponentId(tableGen, write));
+                    meta.TableComponentAccess.AddWrite(new TableComponentId(storage.Generation, write));
                 }
             }
         }
     }
 
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
 
-    public override Query Get(PolyWorld world, SystemMeta systemMeta) => _query;
-
-    public static implicit operator QueryParam(Query query) => new (query);
-}
-
-public class LocalParam<T> : SystemParam<T>
-{
-    protected T Value;
-
-    public LocalParam() => Value = default;
-
-    public LocalParam(T value) => Value = value;
-
-    public override void Initialize(PolyWorld world, SystemMeta meta) { }
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGeneration) { }
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-
-    public override T Get(PolyWorld world, SystemMeta systemMeta) => Value;
-}
-
-/// <summary>
-///     A simple parameter that access a world singleton. <see cref="Res" /> and <see cref="ResMut{T}" /> should be used in
-///     actual applications.
-/// </summary>
-/// <typeparam name="T"></typeparam>
-public class SingletonParam<T> : SystemParam<Ref<T>>
-{
-    protected ulong _id;
-
-    public override void Initialize(PolyWorld world, SystemMeta meta)
-    {
-        unsafe
-        {
-            _id = Type<T>.Id(world.World);
-            meta.ComponentAccessSet.AddUnfilteredWrite(_id);
-        }
-    }
-
-    public override void EvaluateNewTable(SystemMeta meta, Table table, int tableGen)
-    {
-        if (table.Has(_id))
-        {
-            meta.TableComponentAccess.AddWrite(new TableComponentId(tableGen, _id));
-        }
-    }
-
-    public override bool IsGettable(PolyWorld world, SystemMeta systemMeta) => true;
-
-    public override Ref<T> Get(PolyWorld world, SystemMeta systemMeta) => world.World.GetRef<T>();
+    public bool IsReady(PolyWorld world) => true;
 }

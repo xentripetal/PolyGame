@@ -1,10 +1,13 @@
 using PolyECS.Systems;
-using Serilog;
 
 namespace PolyECS.Scheduling.Executor;
 
-public class SimpleExecutor : IExecutor
+public class SingleThreadedExecutor : IExecutor
 {
+    /// <summary>
+    ///     Applies deferred system buffers after all systems have ran
+    /// </summary>
+    protected bool ApplyFinalDeferred = true;
     /// <summary>
     ///     Systems that have run or been skipped
     /// </summary>
@@ -24,7 +27,7 @@ public class SimpleExecutor : IExecutor
 
     public void SetApplyFinalDeferred(bool apply)
     {
-        // do nothing. simple executor does not do a final sync
+        ApplyFinalDeferred = apply;
     }
 
     public void Run(SystemSchedule schedule, PolyWorld world, FixedBitSet? skipSystems)
@@ -33,6 +36,7 @@ public class SimpleExecutor : IExecutor
         {
             CompletedSystems.Or(skipSystems.Value);
         }
+
         for (var systemIndex = 0; systemIndex < schedule.Systems.Count; systemIndex++)
         {
             var shouldRun = !CompletedSystems.Contains(systemIndex);
@@ -66,32 +70,42 @@ public class SimpleExecutor : IExecutor
             }
 
             var system = schedule.Systems[systemIndex];
-            // Simple executor always applys deferred after a system, so skip inserted deferred systems
             if (system is ApplyDeferredSystem)
             {
+                ApplyDeferred(schedule, world);
                 continue;
             }
+
             try
             {
                 world.RunSystem(system);
             }
             catch (Exception e)
             {
-                Log.Error(e, "Error in system {System}", system.GetType().Name);
+                Console.WriteLine($"Error in system {system.GetType().Name}: {e.Message}");
             }
+        }
+
+        if (ApplyFinalDeferred)
+        {
+            ApplyDeferred(schedule, world);
         }
         EvaluatedSets.Clear();
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
+    protected void ApplyDeferred(SystemSchedule schedule, PolyWorld world)
+    {
+        world.DeferEnd();
+    }
+
+    protected bool EvaluateAndFoldConditions(List<BaseSystem<bool>> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
         var met = true;
         foreach (var condition in conditions)
         {
-            // TODO refactor conditions
-            if (!condition.Evaluate(world))
+            if (!condition.RunWithChecks(world))
             {
                 met = false;
             }

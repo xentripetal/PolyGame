@@ -59,9 +59,9 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
 ///         <item>You cannot order something relative to one if it has more than one member</item>
 ///     </list>
 /// </summary>
-public class SystemReferenceSet(RunSystem sys) : ISystemSet
+public class SystemReferenceSet(BaseSystem<Empty> sys) : ISystemSet
 {
-    public readonly RunSystem System = sys;
+    public readonly BaseSystem<Empty> System = sys;
 
     public bool Equals(ISystemSet? other)
     {
@@ -86,7 +86,7 @@ public class SystemTypeSet : ISystemSet
 {
     public SystemTypeSet(Type type)
     {
-        if (!typeof(RunSystem).IsAssignableFrom(type))
+        if (!typeof(BaseSystem<Empty>).IsAssignableFrom(type))
         {
             throw new ArgumentException("Type must be a subclass of RunSystem to be a SystemTypeSet");
         }
@@ -115,7 +115,7 @@ public class SystemTypeSet : ISystemSet
 }
 
 public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
-    where T : RunSystem
+    where T : BaseSystem<Empty>
 {
     public new bool Equals(ISystemSet? other)
     {

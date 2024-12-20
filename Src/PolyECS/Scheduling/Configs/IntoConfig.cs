@@ -41,5 +41,5 @@ public interface IIntoNodeConfigs<T>
     public NodeConfigs<T> AmbiguousWithAll() => IntoConfigs().AmbiguousWithAll();
 }
 
-public interface IIntoSystemConfigs : IIntoNodeConfigs<RunSystem> { }
+public interface IIntoSystemConfigs : IIntoNodeConfigs<BaseSystem<Empty>> { }
 public interface IIntoSystemSetConfigs : IIntoNodeConfigs<ISystemSet> { }

@@ -115,9 +115,9 @@ public class AutoParam
             case AutoParamKind.Res:
                 if (WriteAnnotation.ReadWrite == Annotation || WriteAnnotation.WriteOnly == Annotation)
                 {
-                    return $"ResMutParam<{BaseTypeInfo.Name}>";
+                    return $"ResMutParamMetadata<{BaseTypeInfo.Name}>";
                 }
-                return $"ResParam<{BaseTypeInfo.Name}>";
+                return $"ResParamMetadata<{BaseTypeInfo.Name}>";
 
             case AutoParamKind.IInto:
                 if (BaseTypeInfo.Name.Equals("TQuery") && BaseTypeInfo is INamedTypeSymbol t)

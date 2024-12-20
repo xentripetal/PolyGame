@@ -1,4 +1,5 @@
 using PolyECS.Scheduling.Graph;
+using PolyECS.Systems;
 
 namespace PolyECS.Scheduling.Executor;
 
@@ -13,7 +14,7 @@ public class SystemSchedule
     /// <summary>
     ///     Indexed by system set node id
     /// </summary>
-    public List<List<Condition>> SetConditions = new ();
+    public List<List<BaseSystem<bool>>> SetConditions = new ();
     /// <summary>
     ///     List of system set node ids
     /// </summary>
@@ -26,7 +27,7 @@ public class SystemSchedule
     /// <summary>
     ///     Indexed by system node id
     /// </summary>
-    public List<List<Condition>> SystemConditions = new ();
+    public List<List<BaseSystem<bool>>> SystemConditions = new ();
     /// <summary>
     ///     Indexed by system node id
     ///     Number of systems that immediately depend on the system
@@ -45,7 +46,7 @@ public class SystemSchedule
     /// <summary>
     ///     Indexed by system node id
     /// </summary>
-    public List<RunSystem> Systems = new ();
+    public List<BaseSystem<Empty>> Systems = new ();
     /// <summary>
     ///     Indexed by system set node id.
     ///     List of systems that are in sets that have conditions.

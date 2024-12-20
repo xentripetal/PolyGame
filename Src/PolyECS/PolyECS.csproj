@@ -19,18 +19,18 @@
         <PackageReference Include="Serilog" Version="4.0.1"/>
     </ItemGroup>
 
+    <!--
     <ItemGroup>
         <ProjectReference Include="..\..\lib\Flecs.NET\src\Flecs.NET\Flecs.NET.csproj"/>
     </ItemGroup>
 
     <Import Project="..\..\lib\Flecs.NET\src\Flecs.NET.Native\Flecs.NET.Native.targets"/>
-
-    <!--
-    <ItemGroup>
-        <PackageReference Include="Flecs.NET.Debug" Version="*-*" Condition="'$(Configuration)' == 'Debug'"/>
-        <PackageReference Include="Flecs.NET.Release" Version="*-*" Condition="'$(Configuration)' == 'Release'"/>
-    </ItemGroup>
     -->
+
+    <ItemGroup>
+        <PackageReference Include="Flecs.NET.Debug" Version="4.0.2" Condition="'$(Configuration)' == 'Debug'"/>
+        <PackageReference Include="Flecs.NET.Release" Version="4.0.2" Condition="'$(Configuration)' == 'Release'"/>
+    </ItemGroup>
     
     
 

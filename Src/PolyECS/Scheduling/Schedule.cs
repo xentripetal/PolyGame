@@ -29,7 +29,7 @@ public class Schedule
 
     public ScheduleLabel GetLabel() => Label;
 
-    public Schedule AddSystems(params IIntoNodeConfigs<RunSystem>[] configs)
+    public Schedule AddSystems(params IIntoNodeConfigs<BaseSystem<Empty>>[] configs)
     {
         foreach (var config in configs)
         {

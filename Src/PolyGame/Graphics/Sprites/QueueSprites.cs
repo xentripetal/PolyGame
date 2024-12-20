@@ -36,7 +36,7 @@ public partial class QueueSprites : AutoSystem
     }
 
     [AutoRunMethod]
-    public void Run(Query cameras, Query sprites, MissingTexture2D? missingTexture, AssetServer assets)
+    public void Run(Query<ComputedCamera, RenderableList> cameras, Query<Sprite, GlobalZIndex, SortLayer, Handle<Texture2D>, GlobalTransform2D> sprites, MissingTexture2D? missingTexture, AssetServer assets)
     {
         MissingTexture = null;
         // Check the missing texture resource every frame
@@ -108,6 +108,14 @@ public partial class QueueSprites : AutoSystem
         // TODO sourceRect
         // TODO transform based draw
         batch.Draw(image, transform.Translation, null, Color.White, transform.RotationDegrees, sprite.Anchor, transform.Scale, sprite.Effects, 0);
+    }
+}
+
+public class QueryAnnotationAttribute : Attribute
+{
+    public QueryAnnotationAttribute(string empty)
+    {
+        throw new NotImplementedException();
     }
 }
 
