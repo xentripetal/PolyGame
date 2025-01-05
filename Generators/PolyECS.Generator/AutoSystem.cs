@@ -61,22 +61,41 @@ class AutoSystemBuilder
             return ParsedAutoSystem.Err(Diagnostic.Create(Diagnostics.MissingPartial, syntax.GetLocation()));
 
 
-        var autoRunMethods = syntax.MethodWithAttribute("AutoRunMethod", cancellationToken);
-        if (autoRunMethods.Count > 1)
+        var runMethods = syntax.MethodWithAttribute("AutoRunMethod", cancellationToken);
+        if (runMethods.Count == 0)
+        {
+            runMethods = syntax.MethodsNamed("Run", cancellationToken);
+        }
+
+        if (runMethods.Count > 1)
         {
             return ParsedAutoSystem.Err(Diagnostic.Create(Diagnostics.MultipleRunMethods, syntax.GetLocation()));
         }
-        if (autoRunMethods.Count == 0)
+        if (runMethods.Count == 0)
         {
             return ParsedAutoSystem.Err(Diagnostic.Create(Diagnostics.MissingRunMethod, syntax.GetLocation()));
+        }
+        var runMethod = runMethods[0];
+
+        List<AutoParam> autoParams = new();
+        for (var index = 0; index < runMethod.ParameterList.Parameters.Count; index++)
+        {
+            var p = runMethod.ParameterList.Parameters[index];
+            var (param, err) = AutoParam.Parse(ctx, syntax, runMethod, p, index);
+            if (err is not null)
+            {
+                return ParsedAutoSystem.Err(err);
+            }
+
+            autoParams.Add(param!);
         }
 
         return ParsedAutoSystem.Valid(new AutoSystemBuilder
         {
             Syntax = syntax,
-            RunMethod = autoRunMethods[0],
+            RunMethod = runMethod,
             Namespace = classSymbol.ContainingNamespace.ToDisplayString(),
-            Params = autoRunMethods[0].ParameterList.Parameters.Select(x => new AutoParam(ctx, syntax, x)).ToList()
+            Params = autoParams
         });
     }
 
@@ -94,40 +113,51 @@ class AutoSystemBuilder
         var usings = Syntax.GetFileUsings(ctx.CancellationToken);
         foreach (var use in usings)
         {
-            if (use.Name is not null)
-                file.AddNamespaceImport(use.Name.ToString());
+            file.AddNamespaceImport(use.Name.ToString());
         }
         // Manually add Systems
         file.AddNamespaceImport("PolyECS.Systems");
+        file.AddNamespaceImport("PolyECS");
+        
+        // If its a nested class, we need to add the parent class
+        var cur = Syntax.Parent;
+        ClassBuilder ext = null;
+        while (cur is TypeDeclarationSyntax parent)
+        {
+            if (ext is null)
+                ext = file.AddClass(parent.Identifier.ToString()).WithAccessModifier(parent.GetAccessModifier());
+            else
+            {
+                ext = ext.AddNestedClass(parent.Identifier.ToString(), true, parent.GetAccessModifier());
+            }
+            cur = cur.Parent;
+        }
+
+        if (ext is null)
+            ext = file.AddClass(SystemName).WithAccessModifier(Syntax.GetAccessModifier());
+        else
+            ext = ext.AddNestedClass(SystemName, true, Syntax.GetAccessModifier());
+        ext.SetBaseClass("AutoSystem");
 
         // Start building the class
-        var ext = file.AddClass(SystemName).WithAccessModifier(Syntax.GetAccessModifier()).SetBaseClass("PolyECS.AutoSystem");
         foreach (var p in Params)
         {
-            ext.AddProperty(p.PropertyName).WithAccessModifier(Accessibility.Private).SetType(p.ParamType());
+            ext.AddProperty(p.PropertyName).WithAccessModifier(Accessibility.Private).SetType(p.TypeName);
         }
-        ext.AddMethod("GetParams", Accessibility.Public).WithReturnType("PolyECS.Systems.ISystemParam[]").Override().AddParameter("PolyECS.PolyWorld", "world")
+        ext.AddMethod("BuildParameters", Accessibility.Protected).Override().AddParameter("ParamBuilder", "builder")
             .WithBody(b => {
-                foreach (var p in Params)
-                {
-                    b.AppendLine($"{p.PropertyName} = {p.ParamCreatorCode()};");
-                }
-                b.AppendLine($"return [{string.Join(", ", Params.Select(p => p.PropertyName))}];");
+                foreach (var p in Params) p.ParamCreatorCode(b);
             });
-        ext.AddMethod("Run", Accessibility.Public).WithReturnType("PolyECS.Empty").Override().AddParameter("PolyECS.Empty", "e")
+        
+        ext.AddMethod("Run", Accessibility.Public).Override()
             .AddParameter("PolyWorld", "world").WithBody(b => {
                 foreach (var p in Params)
                 {
-                    if (p.Kind == AutoParamKind.Res && !p.IsOptional)
-                    {
-                        b.AppendLine($"if (!{p.PropertyName}.IsGettable(world, Meta))");
-                        b.AppendLine("\t return e;");
-                    }
+                    p.RunPreconditionCode(b);
                 }
                 b.AppendLine($"{RunMethod.Identifier.ToString()}({
                     string.Join(", ", Params.Select(p => p.ParamGetterCode()))
                 });");
-                b.AppendLine("return e;");
             });
 
         return file;

@@ -7,7 +7,6 @@ namespace CSharpCodeGen;
 using PolyECS;
 
 internal class NonPartialSystem : AutoSystem {
-    [AutoRunMethod]
     public void Run() { }
 }
 ";
@@ -25,7 +24,6 @@ namespace CSharpCodeGen;
 using PolyECS;
 
 internal partial class NonPartialSystem : AutoSystem {
-    [AutoRunMethod]
     public void Run() { }
 }
 ";
@@ -39,10 +37,9 @@ namespace PolyGame.Graphics.Renderers;
 
 public partial class TestAutoRenderer : AutoSystem
 {
-    [AutoRunMethod]
     public void Run(
         PolyWorld world,
-        Query cameras,
+        Query<int> cameras,
     ) { }
 }";
 }

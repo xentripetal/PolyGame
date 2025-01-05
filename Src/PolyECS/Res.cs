@@ -4,49 +4,96 @@ using PolyECS.Systems;
 
 namespace PolyECS;
 
-// TODO refactor Res to actually hold the value instead of looking it up every time
-
-public class Res<T> : IIntoSystemParam<Res<T>>
+public struct Res<T> : IIntoSystemParam, IStaticSystemParam<Res<T>>
 {
-    protected World World;
+    private PolyWorld World;
+    private int Index;
 
-    public Res(World world) => World = world;
+    public Res(PolyWorld world)
+    {
+        World = world;
+        Index = world.RegisterResource<T>();
+    }
 
-    public bool IsEmpty => !World.Has<T>();
-    public bool HasValue => World.Has<T>();
-    public static ITSystemParam<Res<T>> IntoParam(PolyWorld world) => new ResParam<T>();
+    public bool IsEmpty => !HasValue;
+    public bool HasValue => World.Resources.HasValue(Index);
 
     public T? Get()
     {
-        // TODO - Move Res out of World and into its own storage system
-        if (!World.Has<T>())
-        {
-            return default;
-        }
-        return World.Get<T>();
+        World.Resources.TryGet<T>(Index, out var value);
+        return value;
+    }
+    
+    public bool TryGet(out T? value)
+    {
+        return World.Resources.TryGet<T>(Index, out value);
     }
 
     public T? Value => Get();
 
-    public Optional<T> TryGet()
+    public static implicit operator T?(Res<T> res) => res.Get();
+    public ISystemParam IntoParam(PolyWorld world) => new ResParam<T>();
+    public static Res<T> BuildParamValue(PolyWorld world)
     {
-        if (World.Has<T>())
-        {
-            return World.Get<T>();
-        }
-        return Optional<T>.None;
+        return world.GetResource<T>();
     }
 
-    public static implicit operator T?(Res<T> res) => res.Get();
+    public static ISystemParam GetParam(PolyWorld world, Res<T> value)
+    {
+        return value.IntoParam(world);
+    }
 }
 
-public class ResMut<T> : Res<T>, IIntoSystemParam<ResMut<T>>
+
+
+public struct ResMut<T> : IIntoSystemParam, IStaticSystemParam<ResMut<T>>
 {
-    public ResMut(World world) : base(world) { }
+    private PolyWorld World;
+    private int Index;
 
-    public new static ITSystemParam<ResMut<T>> IntoParam(PolyWorld world) => new ResMutParam<T>();
-
-    public Ref<T> GetRef() => World.GetRef<T>();
+    public ResMut(PolyWorld world)
+    {
+        World = world;
+        Index = world.RegisterResource<T>();
+    }
     
+    public bool IsEmpty => !HasValue;
+    public bool HasValue => World.Resources.HasValue(Index);
+
+
+
+    public void Set(T value)
+    {
+        World.Resources.Set(Index, value);
+    }
+    
+    public T Get()
+    {
+        World.Resources.TryGet<T>(Index, out var value);
+        return value!;
+    }
+    
+    public bool TryGet(out T? value)
+    {
+        return World.Resources.TryGet<T>(Index, out value);
+    }
+
+    public T Value
+    {
+        get => Get();
+        set => Set(value);
+    }
+
     public static implicit operator T(ResMut<T> res) => res.Get();
+    
+    public ISystemParam IntoParam(PolyWorld world) => new ResMutParam<T>();
+    public static ResMut<T> BuildParamValue(PolyWorld world)
+    {
+        return world.GetResourceMut<T>();
+    }
+
+    public static ISystemParam GetParam(PolyWorld world, ResMut<T> value)
+    {
+        return value.IntoParam(world);
+    }
 }

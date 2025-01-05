@@ -16,7 +16,7 @@ using Verse;
 
 namespace PolyGame.Examples.Samples;
 
-public class DeferredLighting : ISample
+public partial class DeferredLighting : ISample
 {
     public static void Run()
     {
@@ -29,15 +29,11 @@ public class DeferredLighting : ISample
 
     public record struct MouseFollowTag { }
 
-    public class Spawn : ClassSystem<PolyWorld, ResMut<AssetServer>, ResMut<FinalRenderTarget>>
+    public partial class Spawn : AutoSystem
     {
-        protected override (ITSystemParam<PolyWorld>, ITSystemParam<ResMut<AssetServer>>, ITSystemParam<ResMut<FinalRenderTarget>>) CreateParams(PolyWorld world)
-            => (Param.OfWorld(), Param.OfResMut<AssetServer>(), Param.OfResMut<FinalRenderTarget>());
-
-        public override void Run(PolyWorld world, ResMut<AssetServer> resAssets, ResMut<FinalRenderTarget> renderTargetRes)
+        public void Run(PolyWorld world, AssetServer assets, FinalRenderTarget renderTarget)
         {
-            var renderTarget = renderTargetRes.Get();
-            var screen = world.Get<Screen>();
+            var screen = world.MustGetResource<Screen>();
             var renderGraph = world.Entity("MainCamera").Get<CameraRenderGraph>();
             // TODO hack
             var renderer = new DeferredLightingRenderer(screen, 0, 2, 0);
@@ -50,7 +46,6 @@ public class DeferredLighting : ISample
             world.SetResource(new ClearColor(Color.DarkGray));
 
 
-            var assets = resAssets.Get();
             var moonTex = assets.Load<Texture2D>("Content/DeferredLighting/moon.png");
             var moonNormal = assets.Load<Texture2D>("Content/DeferredLighting/moonNorm.png", false);
             var orangeTex = assets.Load<Texture2D>("Content/DeferredLighting/orange.png");
@@ -84,16 +79,14 @@ public class DeferredLighting : ISample
         }
     }
 
-    public class MouseFollow : ClassSystem<Query, Res<MouseState>, Res<FinalRenderTarget>>
+    public partial class MouseFollow : AutoSystem
     {
-        protected override (ITSystemParam<Query>, ITSystemParam<Res<MouseState>>, ITSystemParam<Res<FinalRenderTarget>>) CreateParams(PolyWorld world)
-            => (Param.Of(world.Query<Position2D, MouseFollowTag>()), Param.OfRes<MouseState>(), Param.OfRes<FinalRenderTarget>());
-
-        public override void Run(Query query, Res<MouseState> mouseRes, Res<FinalRenderTarget> renderTargetRes)
+        public void Run(TQuery<Position2D, With<MouseFollowTag>> query, in MouseState mouse, in FinalRenderTarget renderTarget)
         {
-            var renderTarget = renderTargetRes.Get();
+            var target = renderTarget;
+            var state = mouse;
             query.Each((ref Position2D pos) => {
-                pos.Value = (mouseRes.Get().Position - renderTarget.FinalRenderDestinationRect.Location).ToVector2() * renderTarget.Scale;
+                pos.Value = (state.Position).ToVector2() * target.Scale;
             });
         }
     }

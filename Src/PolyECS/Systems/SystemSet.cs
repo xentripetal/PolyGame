@@ -4,13 +4,21 @@ namespace PolyECS.Systems;
 
 public interface ISystemSet : IEquatable<ISystemSet>, IIntoSystemSet, IIntoSystemSetConfigs
 {
+    /// <summary>
+    /// The name of the set.
+    /// </summary>
+    /// <returns></returns>
     public string GetName();
-    public Type? SystemType();
+    /// <summary>
+    /// Whether the set represents a single system. 
+    /// </summary>
+    /// <returns></returns>
+    public bool IsSystemAlias();
 }
 
 public readonly record struct NamedSet(string Name) : ISystemSet
 {
-    public Type? SystemType() => null;
+    public bool IsSystemAlias() => false;
 
     public bool Equals(ISystemSet? other)
     {
@@ -43,7 +51,7 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
 
     public override int GetHashCode() => Id.GetHashCode();
 
-    public Type? SystemType() => null;
+    public bool IsSystemAlias() => false;
 
     public string GetName() => $"AnonymousSet {Id}";
     public ISystemSet IntoSystemSet() => this;
@@ -51,7 +59,7 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
 }
 
 /// <summary>
-///     A <see cref="ISystemSet" /> grouping instances of the same <see cref="BaseSystem{TIn,TOut}" />.
+///     A <see cref="ISystemSet" /> grouping instances of the same <see cref="ISystem" />.
 ///     This kind of set is automatically populated and thus has some special rules:
 ///     <list type="bullet">
 ///         <item>You cannot manually add members</item>
@@ -59,9 +67,9 @@ public readonly struct AnonymousSet(ulong id) : ISystemSet
 ///         <item>You cannot order something relative to one if it has more than one member</item>
 ///     </list>
 /// </summary>
-public class SystemReferenceSet(RunSystem sys) : ISystemSet
+public class SystemReferenceSet(ISystem sys) : ISystemSet
 {
-    public readonly RunSystem System = sys;
+    public readonly ISystem System = sys;
 
     public bool Equals(ISystemSet? other)
     {
@@ -74,7 +82,7 @@ public class SystemReferenceSet(RunSystem sys) : ISystemSet
 
     public string GetName() => $"SystemReferenceSet {System.GetType().Name}";
 
-    public Type SystemType() => System.GetType();
+    public bool IsSystemAlias() => true;
 
     public ISystemSet IntoSystemSet() => this;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
@@ -86,10 +94,9 @@ public class SystemTypeSet : ISystemSet
 {
     public SystemTypeSet(Type type)
     {
-        if (!typeof(RunSystem).IsAssignableFrom(type))
-        {
-            throw new ArgumentException("Type must be a subclass of RunSystem to be a SystemTypeSet");
-        }
+        // check if type implements ISystem interface
+        if (!typeof(ISystem).IsAssignableFrom(type))
+            throw new ArgumentException("Type must implement ISystem interface", nameof(type));
         Type = type;
     }
 
@@ -108,14 +115,14 @@ public class SystemTypeSet : ISystemSet
 
     public string GetName() => $"SystemTypeSet {Type.Name}";
 
-    public Type? SystemType() => Type;
+    public bool IsSystemAlias() => true;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 
     public override int GetHashCode() => Type.GetHashCode();
 }
 
 public class SystemTypeSet<T>() : SystemTypeSet(typeof(T))
-    where T : RunSystem
+    where T : ISystem
 {
     public new bool Equals(ISystemSet? other)
     {
@@ -150,7 +157,7 @@ public class EnumSystemSet<T> : ISystemSet where T : struct, Enum
 
     public string GetName() => $"{typeof(T).Name}({Enum.GetName(Value)})";
 
-    public Type? SystemType() => null;
+    public bool IsSystemAlias() => false;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 
     public override int GetHashCode() => HashCode.Combine(typeof(T), Value);
@@ -165,7 +172,7 @@ public abstract class StaticSystemSet : ISystemSet
 
     public string GetName() => GetType().Name;
 
-    public Type? SystemType() => null;
+    public bool IsSystemAlias() => false;
     public ISystemSet IntoSystemSet() => this;
     public NodeConfigs<ISystemSet> IntoConfigs() => new SystemSetConfig(this);
 

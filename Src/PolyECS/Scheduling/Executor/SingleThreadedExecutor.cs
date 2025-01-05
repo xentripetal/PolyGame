@@ -99,7 +99,7 @@ public class SingleThreadedExecutor : IExecutor
         world.DeferEnd();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
+    protected bool EvaluateAndFoldConditions(List<ICondition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
         var met = true;

@@ -1,13 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>13</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Generators\PolyECS.Generator\PolyECS.Generator.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Analyzer</OutputItemType>
+        </ProjectReference>
       <ProjectReference Include="..\PolyGame.ImGui\PolyGame.ImGui.csproj" />
       <ProjectReference Include="..\PolyGame.Myra\PolyGame.Myra.csproj" />
       <ProjectReference Include="..\PolyGame\PolyGame.csproj" />

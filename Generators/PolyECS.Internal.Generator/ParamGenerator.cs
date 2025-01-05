@@ -8,9 +8,11 @@ public sealed class ParamGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        /**
         context.RegisterPostInitializationOutput(postContext => {
             postContext.AddSource("PolyECS.Systems.SystemParams.g.cs", GenerateParams(2, 10));
         });
+        **/
     }
 
     private string GenerateParams(int startCount, int endCount)

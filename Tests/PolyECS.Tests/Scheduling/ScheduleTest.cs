@@ -16,7 +16,7 @@ public class ScheduleTest
         schedule.Run(world);
     }
 
-    protected Schedule ScheduleAndRun(params IIntoNodeConfigs<RunSystem>[] configs)
+    protected Schedule ScheduleAndRun(params IIntoNodeConfigs<ISystem>[] configs)
     {
         var schedule = new Schedule(new ScheduleLabel("default"));
         using var world = new PolyWorld();
@@ -28,8 +28,8 @@ public class ScheduleTest
     [Fact]
     public void InsertsASyncPoint()
     {
-        var sysA = new TestSystem("A");
-        var sysB = new TestSystem("B");
+        var sysA = new TestSystem();
+        var sysB = new TestSystem();
         var schedule = ScheduleAndRun(SystemConfigs.Of([sysA, sysB]).Chained());
 
         // Should have our 2 systems and a sync point between them
@@ -41,27 +41,29 @@ public class ScheduleTest
     [Fact]
     public void DoesntInsertASyncPoint()
     {
-        var schedule = ScheduleAndRun(new TestSystem("A"), new TestSystem("B"));
+        var schedule = ScheduleAndRun(new TestSystem(), new TestSystem());
         Assert.Equal(2, schedule.Executable.Systems.Count);
     }
 
-    protected class TestSystem : ClassSystem<Empty>
+    protected class TestSystem : ClassSystem
     {
-        public int InitCout = 0;
         public int RunCount;
 
-        public TestSystem(string name) : base(name) => Meta.HasDeferred = true;
+        public TestSystem() => Meta.HasDeferred = true;
 
-        protected override ITSystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
-
-        public override void Run(Empty param)
-        {
-            RunCount++;
-        }
 
         public void AssertCalled(int times)
         {
             Assert.Equal(times, RunCount);
+        }
+
+        protected override void BuildParameters(ParamBuilder builder)
+        {
+        }
+
+        public override void Run(PolyWorld world)
+        {
+            RunCount++;
         }
     }
 }

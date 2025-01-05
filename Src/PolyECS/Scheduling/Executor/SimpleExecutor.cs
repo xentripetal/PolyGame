@@ -16,10 +16,8 @@ public class SimpleExecutor : IExecutor
 
     public void Init(SystemSchedule schedule)
     {
-        var sysCount = schedule.SystemIds.Count;
-        var setCount = schedule.SetIds.Count;
-        EvaluatedSets = new FixedBitSet(setCount);
-        CompletedSystems = new FixedBitSet(sysCount);
+        EvaluatedSets = new FixedBitSet(schedule.SetIds.Count);
+        CompletedSystems = new FixedBitSet(schedule.SystemIds.Count);
     }
 
     public void SetApplyFinalDeferred(bool apply)
@@ -84,7 +82,7 @@ public class SimpleExecutor : IExecutor
         CompletedSystems.Clear();
     }
 
-    protected bool EvaluateAndFoldConditions(List<Condition> conditions, PolyWorld world)
+    protected bool EvaluateAndFoldConditions(List<ICondition> conditions, PolyWorld world)
     {
         // Not short-circuiting is intentional
         var met = true;

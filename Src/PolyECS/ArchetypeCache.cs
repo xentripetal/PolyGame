@@ -32,7 +32,7 @@ public class TableCache
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Tables[index];
     }
-
+    
     public IEnumerable<Table> GetRange(int start, int count) => Tables.GetRange(start, count);
 
 

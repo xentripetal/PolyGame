@@ -10,14 +10,7 @@ namespace Verse;
 
 public partial class RotateSpriteSystem : AutoSystem
 {
-    [ParamProvider("sprites")]
-    protected QueryParam BuildSpritesQuery(PolyWorld world)
-    {
-        return Param.Of(world.QueryBuilder().With<Rotation2D>().InOut().With<Scale2D>().InOut().Build());
-    }
-
-    [AutoRunMethod]
-    public void Run(Query sprites, KeyboardState state, GameTime gameTime)
+    public void Run(Query<Rotation2D, Scale2D> sprites, KeyboardState state, GameTime gameTime)
     {
         var delta = gameTime.ElapsedGameTime.TotalSeconds;
         var rotChange = 0f;

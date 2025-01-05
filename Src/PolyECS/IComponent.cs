@@ -7,5 +7,5 @@ namespace PolyECS;
 /// </summary>
 public interface IComponent
 {
-    public abstract static void Register(UntypedComponent component);
+    public static abstract void Register(UntypedComponent component);
 }

@@ -1,59 +1,176 @@
+using Flecs.NET.Core;
 using PolyECS.Scheduling.Configs;
 
 namespace PolyECS.Systems;
 
-public abstract class ClassSystem : RunnableSystem
-{
-    protected override ITSystemParam<Empty> CreateParam(PolyWorld world) => new VoidParam();
-
-    protected ClassSystem(string name) : base(name)
-    {
-        DefaultSets.Add(new SystemTypeSet(GetType()));
-    }
-
-    protected ClassSystem()
-    {
-        DefaultSets.Add(new SystemTypeSet(GetType()));
-    }
-    public override Empty Run(Empty i, Empty param)
-    {
-        Run();
-        return param;
-    }
-
-    public abstract void Run();
-
-    public static implicit operator NodeConfig<RunSystem>(ClassSystem system) => new SystemConfig(system);
-
-    public static implicit operator NodeConfigs<RunSystem>(ClassSystem system) => new SystemConfig(system);
-    
-}
 /// <summary>
-///     A <see cref="RunSystem" /> that takes in a parameter
+/// Base properties for a <see cref="ISystem"/> or <see cref="ICondition"/>.
 /// </summary>
-/// <typeparam name="T">Parameter type</typeparam>
-public abstract class ClassSystem<T> : RunnableSystem<T>
+public interface IMetaSystem
 {
-    protected ClassSystem(string name) : base(name)
+    /// <summary>
+    /// Gets the metadata and access information for a system
+    /// </summary>
+    public SystemMeta Meta { get; }
+    
+    /// <summary>
+    /// Initialize the system and its parameters.
+    /// </summary>
+    /// <param name="world"></param>
+    public void Initialize(PolyWorld world);
+    
+    /// <summary>
+    /// Called whenever a new table is created. The system should check if the table has any components that it is interested in and update
+    /// its metadata accordingly.
+    /// </summary>
+    /// <param name="cache"></param>
+    public void UpdateStorageAccess(TableCache tables, ResourceStorage resources); 
+}
+
+public interface ICondition : IMetaSystem
+{
+    /// <summary>
+    /// Execute the condition and return the result
+    /// </summary>
+    /// <param name="world"></param>
+    public bool Evaluate(PolyWorld world);
+}
+
+public interface ISystem : IMetaSystem
+{
+    /// <summary>
+    /// Gets the system set that should be created alongside this system and it should be inserted into.
+    /// </summary>
+    /// <returns></returns>
+    public List<ISystemSet> GetDefaultSystemSets();
+    
+    
+    /// <summary>
+    /// Execute the system
+    /// </summary>
+    /// <param name="world"></param>
+    public void TryRun(PolyWorld world);
+}
+
+public abstract class ClassSystem : ISystem, IIntoSystemConfigs, IIntoSystemSet
+{
+    protected ClassSystem(params ISystemParam[] parameters)
     {
-        DefaultSets.Add(new SystemTypeSet(GetType()));
+        Meta = new SystemMeta(GetType().Name);
+        Params = parameters.ToList();
+    }
+    
+    protected void SetupFromBuilder(ParamBuilder builder)
+    {
+        BuildParameters(builder);
+        Params.AddRange(builder.Build());
+    }
+    
+    protected abstract void BuildParameters(ParamBuilder builder);
+    
+    
+    protected List<ISystemParam> Params;
+    public SystemMeta Meta { get; }
+    public virtual void Initialize(PolyWorld world)
+    {
+        SetupFromBuilder(world.GetParamBuilder());
+        
+        foreach (var param in Params)
+        {
+            param.Initialize(world, Meta);
+        }
+    }
+    
+    protected int TableGeneration;
+    protected int ResourceGeneration;
+
+    public void UpdateStorageAccess(TableCache tables, ResourceStorage resources)
+    {
+        (var oldGeneration, TableGeneration) = (TableGeneration, tables.Generation);
+        for (var i = oldGeneration; i < TableGeneration; i++)
+        {
+            var storage = new Storage(i, -1, tables[i]);
+            foreach (var parameter in Params)
+            {
+                parameter.EvaluateNewStorage(Meta, storage);
+            }
+        }
+        
+        (oldGeneration, ResourceGeneration) = (ResourceGeneration, resources.Generation);
+        for (var i = oldGeneration; i < ResourceGeneration; i++)
+        {
+            var storage = new Storage(resources[i]!.Value);
+            foreach (var parameter in Params)
+            {
+                parameter.EvaluateNewStorage(Meta, storage);
+            }
+        }
     }
 
-    protected ClassSystem()
+    public virtual List<ISystemSet> GetDefaultSystemSets()
     {
-        DefaultSets.Add(new SystemTypeSet(GetType()));
+        return [new SystemTypeSet(GetType())];
     }
 
-
-    public override Empty Run(Empty i, T param)
+    public virtual void TryRun(PolyWorld world)
     {
-        Run(param);
-        return i;
+        foreach (var param in Params)
+        {
+            if (!param.IsReady(world, Meta))
+            {
+                return;
+            }
+        }
+        Run(world);
     }
 
-    public abstract void Run(T param);
+    public abstract void Run(PolyWorld world);
+    public NodeConfigs<ISystem> IntoConfigs()
+    {
+            IIntoNodeConfigs<ISystem> baseConfig = NodeConfigs<ISystem>.Of(new SystemConfig(this));
 
-    public static implicit operator NodeConfig<RunSystem>(ClassSystem<T> system) => new SystemConfig(system);
+            // Apply any attributes of this type onto its base config
+            var attributes = Attribute.GetCustomAttributes(GetType(), true);
+            foreach (var attr in attributes)
+            {
+                if (attr is SystemConfigAttribute configAttr)
+                {
+                    baseConfig = configAttr.Apply(baseConfig);
+                }
+            }
 
-    public static implicit operator NodeConfigs<RunSystem>(ClassSystem<T> system) => new SystemConfig(system);
+            return baseConfig.IntoConfigs();
+    }
+
+    public ISystemSet IntoSystemSet()
+    {
+        return new SystemTypeSet(GetType());
+    }
+    
+    
+    // Re-export all the interface methods from IIntoSystemConfigs to make it easier to chain them
+
+    public IIntoNodeConfigs<ISystem> InSet(IIntoSystemSet set) => IntoConfigs().InSet(set);
+
+    public IIntoNodeConfigs<ISystem> InSet<TEnum>(TEnum set) where TEnum : struct, Enum => IntoConfigs().InSet(set);
+
+    public IIntoNodeConfigs<ISystem> Before(IIntoSystemSet set) => IntoConfigs().Before(set);
+
+    public IIntoNodeConfigs<ISystem> After(IIntoSystemSet set) => IntoConfigs().After(set);
+
+    public IIntoNodeConfigs<ISystem> BeforeIgnoreDeferred(IIntoSystemSet set) => IntoConfigs().BeforeIgnoreDeferred(set);
+
+    public IIntoNodeConfigs<ISystem> AfterIgnoreDeferred(IIntoSystemSet set) => IntoConfigs().AfterIgnoreDeferred(set);
+
+    public IIntoNodeConfigs<ISystem> Chained() => IntoConfigs().Chained();
+
+    public IIntoNodeConfigs<ISystem> ChainedIgnoreDeferred() => IntoConfigs().ChainedIgnoreDeferred();
+
+    public IIntoNodeConfigs<ISystem> RunIf(ICondition condition) => IntoConfigs().RunIf(condition);
+
+    public IIntoNodeConfigs<ISystem> DistributiveRunIf(ICondition condition) => IntoConfigs().DistributiveRunIf(condition);
+
+    public IIntoNodeConfigs<ISystem> AmbiguousWith(IIntoSystemSet set) => IntoConfigs().AmbiguousWith(set);
+
+    public IIntoNodeConfigs<ISystem> AmbiguousWithAll() => IntoConfigs().AmbiguousWithAll();
 }

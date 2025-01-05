@@ -17,6 +17,6 @@ public class CameraPlugin : IPlugin
             .RegisterComponent<ComputedCamera>()
             .RegisterComponent<Camera>()
             .RegisterComponent<CameraInset>()
-            .AddSystems(Schedules.PostUpdate, new ComputeCameraSystem());
+            .AddSystem<ComputeCameraSystem>(Schedules.PostUpdate);
     }
 }

@@ -9,7 +9,7 @@ namespace Verse;
 public partial class SpawnCamera : AutoSystem
 {
     [AutoRunMethod]
-    public void Run(PolyWorld world)
+    public void Spawn(PolyWorld world)
     {
         var cb = new CameraBundle
         {

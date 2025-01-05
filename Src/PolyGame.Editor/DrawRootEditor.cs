@@ -1,28 +1,21 @@
-using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
 using PolyECS.Systems;
 
 namespace PolyGame.Editor;
 
-public class InitEditor : ClassSystem<PolyWorld, ResMut<GraphicsDevice>>
+public partial class InitEditor : AutoSystem
 {
-    protected override (ITSystemParam<PolyWorld>, ITSystemParam<ResMut<GraphicsDevice>>) CreateParams(PolyWorld world)
-        => (Param.OfWorld(), Param.OfResMut<GraphicsDevice>());
-
-    public override void Run(PolyWorld world, ResMut<GraphicsDevice> deviceRes)
+    public void Run(PolyWorld world, GraphicsDevice device)
     {
-        Designer.Init(world, deviceRes.Get());
+        Designer.Init(world, device);
     }
 }
 
-public class DrawEditor : ClassSystem<PolyWorld, ResMut<GraphicsDevice>>
+public partial class DrawEditor : AutoSystem
 {
-    protected override (ITSystemParam<PolyWorld>, ITSystemParam<ResMut<GraphicsDevice>>) CreateParams(PolyWorld world)
-        => (Param.OfWorld(), Param.OfResMut<GraphicsDevice>());
-
-    public override void Run(PolyWorld world, ResMut<GraphicsDevice> deviceRes)
+    public void Run(PolyWorld world, GraphicsDevice device)
     {
-        Designer.Draw(world, deviceRes.Get());
+        Designer.Draw(world, device);
     }
 }

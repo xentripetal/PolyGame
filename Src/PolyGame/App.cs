@@ -47,13 +47,13 @@ public partial class App : Game, IDisposable
         IsFixedTimeStep = false;
 
         World = new PolyWorld();
-        Assets = new AssetServer([World.World]);
+        Assets = new AssetServer([World.FlecsWorld]);
         Assets.AddLoader(new XNBAssetLoader(Content));
         World.SetResource(Assets);
         World.SetResource(MainScheduleOrder);
         World.RegisterResource<GameTime>();
 
-        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        var schedules = World.MustGetResource<ScheduleContainer>();
         foreach (var label in MainScheduleOrder.AllLabels)
         {
             schedules.Insert(new Schedule(label));
@@ -92,9 +92,10 @@ public partial class App : Game, IDisposable
     protected override void Update(GameTime gameTime)
     {
         base.Update(gameTime);
-        World.World.Set(gameTime);
+        World.SetResource(gameTime);
+        World.FlecsWorld.Set(gameTime);
         // Progress any internal flecs routines such as http server
-        World.World.Progress();
+        World.FlecsWorld.Progress();
         // Run our main schedule
         foreach (var schedule in MainScheduleOrder.UpdateLabels)
         {

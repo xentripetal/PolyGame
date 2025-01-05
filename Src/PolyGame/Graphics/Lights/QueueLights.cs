@@ -11,61 +11,50 @@ using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Lights;
 
-public abstract partial class CameraQueueBaseSystem : AutoSystem
+public partial class QueueSpotLights : AutoSystem
 {
-    protected abstract Query CreateRenderableQuery(PolyWorld world);
-
-    [ParamProvider("cameras")]
-    protected QueryParam BuildCamerasQuery(PolyWorld world) => Param.Of(world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build());
-    [ParamProvider("lights")]
-    protected QueryParam BuildLightsQuery(PolyWorld world) => Param.Of(CreateRenderableQuery(world));
-
-    [AutoRunMethod]
-    public void Run(Query cameras, Query lights)
+    public override void Initialize(PolyWorld world)
     {
-        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
-            // can't pass ref to lambda
-            var renderables = renderablesRef;
-            EvaluateRenderables(cCam, renderables, lights);
-        });
-    }
-
-    protected abstract void EvaluateRenderables(ComputedCamera cam, RenderableList camRenders, Query renderables);
-}
-
-public class QueueSpotLights : CameraQueueBaseSystem
-{
-    public QueueSpotLights(DrawFuncRegistry registry)
-    {
-        DrawSpotLightIndex = registry.RegisterDrawFunc(DrawSpotLight);
+        base.Initialize(world);
+        var drawFuncRegistry = world.GetResource<DrawFuncRegistry>().Value;
+        if (drawFuncRegistry == null)
+            throw new System.Exception("DrawFuncRegistry not found");
+        DrawSpotLightIndex = drawFuncRegistry.RegisterDrawFunc(DrawSpotLight);
     }
 
     protected int DrawSpotLightIndex;
-
-    protected override Query CreateRenderableQuery(PolyWorld world) => world.QueryBuilder().With<GlobalTransform2D>().In().With<SpotLight>().In()
-        .With<SortLayer>().In().With<GlobalZIndex>().In().Cached().Build();
-
-    protected override void EvaluateRenderables(ComputedCamera cam, RenderableList camRenders, Query renderables)
+    
+    public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<GlobalTransform2D, SpotLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
-        renderables.Each((Entity en, ref GlobalTransform2D transform, ref SpotLight light, ref SortLayer layer, ref GlobalZIndex index) => {
-            var scale = transform.Value.Scale;
-            var size = light.Radius * scale.X * 2;
-            // TODO rotated bounds
-            var bounds = new RectangleF(transform.Value.Translation - light.Radius * scale, new Vector2(size, size));
-            if (cam.Bounds.Intersects(bounds))
+        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
+        {
+            var renderables = renderablesRef;
+            var camBounds = cCam.Bounds;
+            
+            // can't pass ref to lambda
+            lights.Each((Entity en, ref GlobalTransform2D transform, ref SpotLight light, ref SortLayer layer,
+                ref GlobalZIndex index) =>
             {
-                camRenders.Add(new RenderableReference
+                var scale = transform.Value.Scale;
+                var size = light.Radius * scale.X * 2;
+                // TODO rotated bounds
+                var bounds = new RectangleF(transform.Value.Translation - light.Radius * scale, new Vector2(size, size));
+                if (camBounds.Intersects(bounds))
                 {
-                    Entity = en,
-                    SortKey = index.Value,
-                    SubSortKey = transform.Value.Translation.Y,
-                    DrawFuncIndex = DrawSpotLightIndex
-                }, layer.Value);
-            }
+                    renderables.Add(new RenderableReference
+                    {
+                        Entity = en,
+                        SortKey = index.Value,
+                        SubSortKey = transform.Value.Translation.Y,
+                        DrawFuncIndex = DrawSpotLightIndex
+                    }, layer.Value);
+                }
+            });
         });
     }
 
-    protected void DrawSpotLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
+
+    public static void DrawSpotLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         if (renderer is DeferredLightingRenderer deferred)
         {
@@ -74,32 +63,38 @@ public class QueueSpotLights : CameraQueueBaseSystem
     }
 }
 
-public class QueueDirLights : CameraQueueBaseSystem
+public partial class QueueDirLights : AutoSystem
 {
-    public QueueDirLights(DrawFuncRegistry registry)
+    
+    public override void Initialize(PolyWorld world)
     {
-        DrawDirLightIndex = registry.RegisterDrawFunc(DrawDirLight);
+        base.Initialize(world);
+        DrawDirLightIndex = world.MustGetResource<DrawFuncRegistry>().RegisterDrawFunc(DrawDirLight);
     }
 
     protected int DrawDirLightIndex;
 
-    protected override Query CreateRenderableQuery(PolyWorld world)
-        => world.QueryBuilder().With<DirLight>().In().With<SortLayer>().In().With<GlobalZIndex>().In().Build();
-
-    protected override void EvaluateRenderables(ComputedCamera cam, RenderableList camRenders, Query renderables)
+    
+    public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<DirLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
-        renderables.Each((Entity en, ref DirLight light, ref SortLayer layer, ref GlobalZIndex index) => {
-            camRenders.Add(new RenderableReference
+        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
+        {
+            var renderables = renderablesRef;
+            // can't pass ref to lambda
+            lights.Each((Entity en, ref DirLight lights, ref SortLayer layer, ref GlobalZIndex index) =>
             {
-                Entity = en,
-                SortKey = index.Value,
-                SubSortKey = 0,
-                DrawFuncIndex = DrawDirLightIndex
-            }, layer.Value);
+                    renderables.Add(new RenderableReference
+                    {
+                        Entity = en,
+                        SortKey = index.Value,
+                        SubSortKey = 0,
+                        DrawFuncIndex = DrawDirLightIndex
+                    }, layer.Value);
+            });
         });
     }
 
-    public void DrawDirLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
+    public static void DrawDirLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         if (renderer is DeferredLightingRenderer deferred)
         {
@@ -108,39 +103,45 @@ public class QueueDirLights : CameraQueueBaseSystem
     }
 }
 
-public class QueuePointLights : CameraQueueBaseSystem
+public partial class QueuePointLights : AutoSystem
 {
     protected int DrawPointLightIndex;
 
-    public QueuePointLights(DrawFuncRegistry registry)
+    public override void Initialize(PolyWorld world)
     {
-        DrawPointLightIndex = registry.RegisterDrawFunc(DrawPointLight);
+        base.Initialize(world);
+        DrawPointLightIndex = world.MustGetResource<DrawFuncRegistry>().RegisterDrawFunc(DrawPointLight);
     }
 
-    protected override Query CreateRenderableQuery(PolyWorld world) => world.QueryBuilder().With<GlobalTransform2D>().In().With<PointLight>().In()
-        .With<SortLayer>().In().With<GlobalZIndex>().In().Build();
-
-    protected override void EvaluateRenderables(ComputedCamera cam, RenderableList camRenders, Query renderables)
+    public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<GlobalTransform2D, PointLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
-        renderables.Each((Entity en, ref GlobalTransform2D transform, ref PointLight light, ref SortLayer layer, ref GlobalZIndex index) => {
-            var scale = transform.Value.Scale;
-            var size = light.Radius * scale.X * 2;
-            // TODO rotated bounds
-            var bounds = new RectangleF(transform.Value.Translation - light.Radius * scale, new Vector2(size, size));
-            if (cam.Bounds.Intersects(bounds))
+        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
+        {
+            var renderables = renderablesRef;
+            var camBounds = cCam.Bounds;
+            
+            // can't pass ref to lambda
+            lights.Each((Entity en, ref GlobalTransform2D transform, ref PointLight light, ref SortLayer layer, ref GlobalZIndex index) =>
             {
-                camRenders.Add(new RenderableReference
+                var scale = transform.Value.Scale;
+                var size = light.Radius * scale.X * 2;
+                // TODO rotated bounds
+                var bounds = new RectangleF(transform.Value.Translation - light.Radius * scale, new Vector2(size, size));
+                if (camBounds.Intersects(bounds))
                 {
-                    Entity = en,
-                    SortKey = index.Value,
-                    SubSortKey = transform.Value.Translation.Y,
-                    DrawFuncIndex = DrawPointLightIndex
-                }, layer.Value);
-            }
+                    renderables.Add(new RenderableReference
+                    {
+                        Entity = en,
+                        SortKey = index.Value,
+                        SubSortKey = transform.Value.Translation.Y,
+                        DrawFuncIndex = DrawPointLightIndex
+                    }, layer.Value);
+                }
+            });
         });
     }
 
-    protected void DrawPointLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
+    protected static void DrawPointLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         if (renderer is DeferredLightingRenderer deferred)
         {
@@ -149,37 +150,44 @@ public class QueuePointLights : CameraQueueBaseSystem
     }
 }
 
-public class QueueAreaLights : CameraQueueBaseSystem
+public partial class QueueAreaLights : AutoSystem
 {
     protected int DrawAreaLightIndex;
 
-    public QueueAreaLights(DrawFuncRegistry registry)
+    public override void Initialize(PolyWorld world)
     {
-        DrawAreaLightIndex = registry.RegisterDrawFunc(DrawAreaLight);
+        base.Initialize(world);
+        DrawAreaLightIndex = world.MustGetResource<DrawFuncRegistry>().RegisterDrawFunc(DrawAreaLight);
     }
-
-    protected override Query CreateRenderableQuery(PolyWorld world) => world.QueryBuilder().With<GlobalTransform2D>().In().With<AreaLight>().In()
-        .With<SortLayer>().In().With<GlobalZIndex>().In().Build();
-
-    protected override void EvaluateRenderables(ComputedCamera cam, RenderableList camRenders, Query renderables)
+    
+    public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<GlobalTransform2D, AreaLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
-        renderables.Each((Entity en, ref GlobalTransform2D transform, ref AreaLight light, ref SortLayer layer, ref GlobalZIndex index) => {
-            // TODO rotated bounds
-            var bounds = new RectangleF(transform.Value.Translation, new Vector2(light.Width, light.Height) * transform.Value.Scale);
-            if (cam.Bounds.Intersects(bounds))
+        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
+        {
+            var renderables = renderablesRef;
+            var camBounds = cCam.Bounds;
+            
+            lights.Each((Entity en, ref GlobalTransform2D transform, ref AreaLight light, ref SortLayer layer,
+                ref GlobalZIndex index) =>
             {
-                camRenders.Add(new RenderableReference
+                // TODO rotated bounds
+                var bounds = new RectangleF(transform.Value.Translation,
+                    new Vector2(light.Width, light.Height) * transform.Value.Scale);
+                if (camBounds.Intersects(bounds))
                 {
-                    Entity = en,
-                    SortKey = index.Value,
-                    SubSortKey = transform.Value.Translation.Y,
-                    DrawFuncIndex = DrawAreaLightIndex
-                }, layer.Value);
-            }
+                    renderables.Add(new RenderableReference
+                    {
+                        Entity = en,
+                        SortKey = index.Value,
+                        SubSortKey = transform.Value.Translation.Y,
+                        DrawFuncIndex = DrawAreaLightIndex
+                    }, layer.Value);
+                }
+            });
         });
     }
 
-    protected void DrawAreaLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
+    public static void DrawAreaLight(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         if (renderer is DeferredLightingRenderer deferred)
         {

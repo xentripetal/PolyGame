@@ -14,7 +14,7 @@ public abstract class SystemTest : IDisposable
     public SystemTest()
     {
         World = new PolyWorld();
-        var schedules = World.GetResource<ScheduleContainer>().TryGet().OrThrow(() => new ApplicationException("ScheduleContainer resource not found"));
+        var schedules = World.MustGetResource<ScheduleContainer>();
         Schedule = new Schedule(ScheduleLabel);
         schedules.Insert(Schedule);
     }
@@ -26,7 +26,7 @@ public abstract class SystemTest : IDisposable
 
     public void Progress()
     {
-        World.World.Progress();
+        World.FlecsWorld.Progress();
         World.RunSchedule(ScheduleLabel);
     }
 }

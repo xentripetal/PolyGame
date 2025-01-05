@@ -71,7 +71,7 @@ public class ScheduleContainer
     {
         unsafe
         {
-            var id = Type<T>.Id(world.World.Handle);
+            var id = Type<T>.Id(world.FlecsWorld.Handle);
             AllowAmbiguousComponent(id);
         }
     }

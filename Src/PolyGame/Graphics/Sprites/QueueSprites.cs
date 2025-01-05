@@ -16,27 +16,16 @@ namespace PolyGame.Graphics.Sprites;
 /**
  * Example class for what I want a system to look like
  */
-public partial class QueueSprites : AutoSystem 
+public partial class QueueSprites : AutoSystem
 {
     protected int DrawSpriteIndex;
     protected Texture2D? MissingTexture;
 
     public QueueSprites(DrawFuncRegistry registry) => DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
 
-    [ParamProvider("cameras")]
-    public QueryParam BuildCamerasQuery(PolyWorld world)
-    {
-        return Param.Of(world.QueryBuilder().With<ComputedCamera>().In().With<RenderableList>().InOut().Build());
-    }
-    
-    [ParamProvider("sprites")]
-    public QueryParam BuildRenderableQuery(PolyWorld world)
-    {
-        return Param.Of(world.QueryBuilder().With<Sprite>().With<GlobalZIndex>().In().With<SortLayer>().With<Handle<Texture2D>>().In().With<GlobalTransform2D>().In().Build());
-    }
-
-    [AutoRunMethod]
-    public void Run(Query cameras, Query sprites, MissingTexture2D? missingTexture, AssetServer assets)
+    public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras,
+        TQuery<Sprite, GlobalZIndex, SortLayer, Handle<Texture2D>, GlobalTransform2D, In<AllTerms>> sprites,
+        MissingTexture2D? missingTexture, AssetServer assets)
     {
         MissingTexture = null;
         // Check the missing texture resource every frame
@@ -49,7 +38,8 @@ public partial class QueueSprites : AutoSystem
             }
         }
 
-        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) => {
+        cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
+        {
             // can't pass ref to lambda
             var renderables = renderablesRef;
             var bounds = cCam.Bounds;
@@ -60,7 +50,8 @@ public partial class QueueSprites : AutoSystem
                 ref SortLayer layer,
                 ref Handle<Texture2D> texHandle,
                 ref GlobalTransform2D trans
-            ) => {
+            ) =>
+            {
                 var tex = assets.Get(texHandle);
                 if (tex == null)
                 {
@@ -68,6 +59,7 @@ public partial class QueueSprites : AutoSystem
                     {
                         return;
                     }
+
                     tex = MissingTexture;
                 }
 
@@ -105,10 +97,13 @@ public partial class QueueSprites : AutoSystem
                 return; // Missing texture and we don't have a placeholder.
             }
         }
+
         // TODO sourceRect
         // TODO transform based draw
-        batch.Draw(image, transform.Translation, null, Color.White, transform.RotationDegrees, sprite.Anchor, transform.Scale, sprite.Effects, 0);
+        batch.Draw(image, transform.Translation, null, Color.White, transform.RotationDegrees, sprite.Anchor,
+            transform.Scale, sprite.Effects, 0);
     }
 }
 
-public record struct MissingTexture2D(Handle<Texture2D> Value) { }
+public record struct MissingTexture2D(Handle<Texture2D> Value)
+{ }

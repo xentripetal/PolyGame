@@ -6,11 +6,10 @@ using PolyGame.Transform;
 
 namespace Verse;
 
-public class SpawnCamera : ClassSystem<PolyWorld>
+public partial class SpawnCamera : AutoSystem
 {
-    protected override ITSystemParam<PolyWorld> CreateParam(PolyWorld world) => Param.OfWorld();
-
-    public override void Run(PolyWorld world)
+    [AutoRunMethod]
+    public void Spawn(PolyWorld world)
     {
         var cb = new CameraBundle
         {

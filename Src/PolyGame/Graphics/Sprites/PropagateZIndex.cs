@@ -6,17 +6,9 @@ namespace PolyGame.Graphics.Sprites;
 
 public partial class PropagateZIndex : AutoSystem
 {
-    [ParamProvider("q")]
-    protected QueryParam BuildQuery(PolyWorld world) => new(world.QueryBuilder()
-        .With<ZIndex>().In().With<GlobalZIndex>().Out()
-        .With<GlobalZIndex>().Optional().Parent().Cascade().In()
-        .Cached().Build()
-    );
-
-    [AutoRunMethod]
-    public void Run(Query q)
+    public void Run(TQuery<ZIndex, GlobalZIndex, GlobalZIndex, (In<Term0>, Out<Term1>, Cascade<Parent<Optional<In<Term2>>>>, Cached)> q)
     {
-        q.Run(it => {
+        q.Query.Run(it => {
             while (it.Next())
             {
                 if (!it.Changed())

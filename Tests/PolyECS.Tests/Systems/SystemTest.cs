@@ -11,59 +11,66 @@ public class ParamTest
     public void SingletonTest()
     {
         using var world = new PolyWorld();
-        world.Set(0);
+        world.SetResource(0);
         world.RunSystemOnce(new CountUpSystem());
-        Assert.Equal(1, world.World.Get<int>());
+        Assert.Equal(1, world.MustGetResource<int>());
         world.RunSystemOnce(new CountUpSystem());
-        Assert.Equal(2, world.World.Get<int>());
+        Assert.Equal(2, world.MustGetResource<int>());
     }
 
     [Fact]
     public unsafe void SimpleQueryTest()
     {
         using var world = new PolyWorld();
-        world.World.Entity().Set(0);
-        world.World.Entity().Set(0).Set<double>(1);
-        world.World.Entity().Set(0).Set<double>(1).Set(1.0f);
+        world.FlecsWorld.Entity().Set(0);
+        world.FlecsWorld.Entity().Set(0).Set<double>(1);
+        world.FlecsWorld.Entity().Set(0).Set<double>(1).Set(1.0f);
 
-        var query = world.World.QueryBuilder().With<int>().Out().Without<float>().With<double>().In().Optional().Build();
-        var system = new SingleQuerySystem(query, "Query", q => {
+        var query = world.FlecsWorld.QueryBuilder().With<int>().Out().Without<float>().With<double>().In().Optional().Build();
+        var system = new SingleQuerySystem(query,  q => {
             Assert.Equal(2, q.Count());
         });
         world.RunSystemOnce(system);
-        system.GetAccess().Should().BeEquivalentTo(new Access<ulong>().AddWrite(Type<int>.Id(world.World)).AddRead(Type<double>.Id(world.World)));
-        system.GetTableAccess().ReadsAndWrites.Count.Should().Be(2);
-        system.GetTableAccess().Writes.Count.Should().Be(1);
+        system.Meta.Access.CombinedAccess.Should().BeEquivalentTo(new Access<AccessElement>().AddWrite(AccessElement.OfComponent(Type<int>.Id(world.FlecsWorld))).AddRead(AccessElement.OfComponent(Type<double>.Id(world.FlecsWorld))));
+        system.Meta.StorageAccess.ReadsAndWrites.Count.Should().Be(2);
+        system.Meta.StorageAccess.Writes.Count.Should().Be(1);
     }
 
-    private class CountUpSystem : ClassSystem<Ref<int>>
+    private class CountUpSystem : ClassSystem
     {
-        public CountUpSystem() : base("CountUpSystem") { }
 
-        protected override ITSystemParam<Ref<int>> CreateParam(PolyWorld world) => new SingletonParam<int>();
-
-        public override void Run(Ref<int> param)
+        protected override void BuildParameters(ParamBuilder builder)
         {
-            param.Get()++;
+            param = builder.ResMut<int>();
+        }
+        
+        private ResMut<int> param;
+
+        public override void Run(PolyWorld world)
+        {
+            param.Value++;
         }
     }
 
-    private class SingleQuerySystem : ClassSystem<Query>
+    private class SingleQuerySystem : ClassSystem
     {
         private readonly Action<Query> _cb;
         private readonly Query _query;
 
-        public SingleQuerySystem([NotNull] Query query, [NotNull] string name, Action<Query> cb) : base(name)
+        public SingleQuerySystem(Query query, Action<Query> cb) 
         {
             _cb = cb;
             _query = query;
         }
 
-        protected override ITSystemParam<Query> CreateParam(PolyWorld world) => new QueryParam(_query);
-
-        public override void Run(Query param)
+        protected override void BuildParameters(ParamBuilder builder)
         {
-            _cb(param);
+            builder.With(new QueryParam(_query));
+        }
+
+        public override void Run(PolyWorld world)
+        {
+            _cb(_query);
         }
     }
 }

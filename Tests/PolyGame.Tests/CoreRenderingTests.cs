@@ -1,3 +1,4 @@
+using System;
 using Flecs.NET.Core;
 using JetBrains.Annotations;
 using PolyECS;
@@ -54,37 +55,27 @@ public class CoreRenderingTests
     public T getSingleton<T>(PolyWorld world) where T : struct
     {
         var value = new T();
-        world.Query<T>().Each((ref T t) => {
-            value = t;
-        });
+        world.Query<T>().Each((ref T t) => { value = t; });
         return value;
     }
+}
 
-    public record struct CurrentFrame(int Value);
+public record struct CurrentFrame(int Value);
 
-    protected class FrameIncSystem : ClassSystem<Query>
+public partial class FrameIncSystem : AutoSystem
+{
+    public void Run(Query<CurrentFrame> frames)
     {
-        protected override ITSystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<CurrentFrame>());
-
-        public override void Run(Query param)
-        {
-            param.Each((ref CurrentFrame frame) => {
-                frame.Value++;
-            });
-        }
+        frames.Each((ref CurrentFrame frame) => { frame.Value++; });
     }
+}
 
-    public class FrameTracker : ClassSystem<Query>
+public partial class FrameTracker : AutoSystem
+{
+    public CurrentFrame RenderFrame = new(0);
+
+    public void Run(Query<CurrentFrame> frames)
     {
-        public CurrentFrame RenderFrame = new (0);
-
-        protected override ITSystemParam<Query> CreateParam(PolyWorld world) => Param.Of(world.Query<CurrentFrame>());
-
-        public override void Run(Query param)
-        {
-            param.Each((ref CurrentFrame frame) => {
-                RenderFrame = frame;
-            });
-        }
+        frames.Each((ref CurrentFrame frame) => { RenderFrame = frame; });
     }
 }

@@ -8,11 +8,10 @@ public record struct PreviousKeyboardState(KeyboardState State) { }
 
 public partial class PopulateKeyboardState : AutoSystem
 {
-    [AutoRunMethod]
-    public void Run(ref KeyboardState state, PreviousKeyboardState prevState)
+    public void Run(ResMut<KeyboardState> state, ResMut<PreviousKeyboardState?> prevState)
     {
-        prevState.State = state;
-        state = Keyboard.GetState();
+        prevState.Set(new PreviousKeyboardState(state.Value));
+        state.Set(Keyboard.GetState());
     }
 }
 
@@ -20,10 +19,9 @@ public record struct PreviousMouseState(MouseState State) { }
 
 public partial class PopulateMouseState : AutoSystem
 {
-    [AutoRunMethod]
-    public void Run(ref MouseState state, PreviousMouseState prevState)
+    public void Run(ResMut<MouseState> state, ResMut<PreviousMouseState?> prevState)
     {
-        prevState.State = state;
-        state = Mouse.GetState();
+        prevState.Set(new PreviousMouseState(state.Value));
+        state.Set(Mouse.GetState());
     }
 }

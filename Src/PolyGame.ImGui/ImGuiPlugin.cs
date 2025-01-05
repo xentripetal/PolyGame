@@ -19,37 +19,31 @@ public class ImGuiPlugin : IPlugin
     }
 }
 
-public class StartImGuiFrame : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>>
+public partial class StartImGuiFrame : AutoSystem
 {
-    protected override (ITSystemParam<ResMut<ImGuiRenderer>>, ITSystemParam<Res<GameTime>>) CreateParams(PolyWorld world)
-        => (Param.OfResMut<ImGuiRenderer>(), Param.OfRes<GameTime>());
-
     int frameCount = 0;
 
-    public override void Run(ResMut<ImGuiRenderer> param1, Res<GameTime> param2)
+    public void Run(ImGuiRenderer renderer, in GameTime gameTime)
     {
         // If a render frame was skipped, we need to reset the un-rendered previous frame
         if (ImGui.GetFrameCount() == frameCount && frameCount != 0)
         {
             ImGui.EndFrame();
         }
-        param1.Get().BeforeLayout(param2.Get());
+        renderer.BeforeLayout(gameTime);
         frameCount++;
     }
 }
 
-public class EndImGuiFrame : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>>
+public partial class EndImGuiFrame : AutoSystem
 {
-    protected override (ITSystemParam<ResMut<ImGuiRenderer>>, ITSystemParam<Res<GameTime>>) CreateParams(PolyWorld world)
-        => (Param.OfResMut<ImGuiRenderer>(), Param.OfRes<GameTime>());
-
-    public override void Run(ResMut<ImGuiRenderer> param1, Res<GameTime> param2)
+    public void Run(ImGuiRenderer renderer)
     {
-        param1.Get().AfterLayout();
+        renderer.AfterLayout();
     }
 }
 
-public class TestImGuiRender : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>, PolyWorld>
+public partial class TestImGuiRender : AutoSystem
 {
     public TestImGuiRender(GraphicsDevice device, ImGuiRenderer renderer)
     {
@@ -83,15 +77,11 @@ public class TestImGuiRender : ClassSystem<ResMut<ImGuiRenderer>, Res<GameTime>,
         return texture;
     }
 
-    protected override (ITSystemParam<ResMut<ImGuiRenderer>>, ITSystemParam<Res<GameTime>>, ITSystemParam<PolyWorld>) CreateParams(PolyWorld world)
-        => (Param.OfResMut<ImGuiRenderer>(), Param.OfRes<GameTime>(), Param.OfWorld());
-
     private Texture2D _xnaTexture;
     private IntPtr _imGuiTexture;
 
-    public override void Run(ResMut<ImGuiRenderer> rendererRes, Res<GameTime> time, PolyWorld world)
+    public void Run(ImGuiRenderer renderer, PolyWorld world)
     {
-        var renderer = rendererRes.Get();
         //ImGuiLayout();
         renderer.AfterLayout();
     }

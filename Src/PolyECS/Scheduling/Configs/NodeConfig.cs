@@ -13,7 +13,7 @@ namespace PolyECS.Scheduling.Configs;
 /// </summary>
 public abstract class NodeConfig<T> : IIntoNodeConfigs<T>
 {
-    public List<Condition> Conditions = new ();
+    public List<ICondition> Conditions = new ();
     public T Node;
     /// <summary>
     ///     Hierarchy and depdendency metadata for this node
@@ -29,12 +29,12 @@ public abstract class NodeConfig<T> : IIntoNodeConfigs<T>
     public static implicit operator NodeConfigs<T>(NodeConfig<T> config) => new NodeConfigs<T>.Node(config);
 }
 
-public class SystemConfig : NodeConfig<RunSystem>, IIntoSystemConfigs
+public class SystemConfig : NodeConfig<ISystem>, IIntoSystemConfigs
 {
-    public SystemConfig(RunSystem system) : base(system)
+    public SystemConfig(ISystem system) : base(system)
     {
         Subgraph.Hierarchy = system.GetDefaultSystemSets();
-        Conditions = new List<Condition>();
+        Conditions = new List<ICondition>();
     }
 
     public override NodeId ProcessConfig(SystemGraph graph) => graph.AddSystem(this);

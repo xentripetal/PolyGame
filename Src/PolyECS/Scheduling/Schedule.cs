@@ -15,7 +15,7 @@ public class Schedule
     internal SystemSchedule Executable;
     internal IExecutor Executor;
     protected bool ExecutorInitialized;
-    internal SystemGraph Graph;
+    internal readonly SystemGraph Graph;
 
     public Schedule(ScheduleLabel label)
     {
@@ -29,7 +29,7 @@ public class Schedule
 
     public ScheduleLabel GetLabel() => Label;
 
-    public Schedule AddSystems(params IIntoNodeConfigs<RunSystem>[] configs)
+    public Schedule AddSystems(params IIntoNodeConfigs<ISystem>[] configs)
     {
         foreach (var config in configs)
         {
@@ -83,7 +83,7 @@ public class Schedule
     /// <summary>
     ///     Set whether the schedule applies deferred system buffers on final time or not. This is a catch-all
     ///     in case a system uses commands but was not explicitly ordered before an instance of
-    ///     [`apply_deferred`]. By default this setting is true, but may be disabled if needed.
+    ///     [`apply_deferred`]. By default, this setting is true, but may be disabled if needed.
     /// </summary>
     /// <param name="apply"></param>
     /// <returns></returns>
@@ -106,7 +106,7 @@ public class Schedule
         {
             Graph.Initialize(scheduleWorld);
             // TODO - resource system to get Schedules ambiguities
-            Executable = Graph.UpdateSchedule(Executable, new HashSet<ulong>(), Label);
+            Executable = Graph.UpdateSchedule(scheduleWorld, Executable, new HashSet<AccessElement>(), Label);
             Graph.Changed = false;
             ExecutorInitialized = false;
         }

@@ -32,14 +32,14 @@ public interface IIntoNodeConfigs<T>
 
     public NodeConfigs<T> ChainedIgnoreDeferred() => IntoConfigs().ChainedIgnoreDeferred();
 
-    public NodeConfigs<T> RunIf(Condition condition) => IntoConfigs().RunIf(condition);
+    public NodeConfigs<T> RunIf(ICondition condition) => IntoConfigs().RunIf(condition);
 
-    public NodeConfigs<T> DistributiveRunIf(Condition condition) => IntoConfigs().DistributiveRunIf(condition);
+    public NodeConfigs<T> DistributiveRunIf(ICondition condition) => IntoConfigs().DistributiveRunIf(condition);
 
     public NodeConfigs<T> AmbiguousWith(IIntoSystemSet set) => IntoConfigs().AmbiguousWith(set);
 
     public NodeConfigs<T> AmbiguousWithAll() => IntoConfigs().AmbiguousWithAll();
 }
 
-public interface IIntoSystemConfigs : IIntoNodeConfigs<RunSystem> { }
+public interface IIntoSystemConfigs : IIntoNodeConfigs<ISystem> { }
 public interface IIntoSystemSetConfigs : IIntoNodeConfigs<ISystemSet> { }

@@ -9,7 +9,6 @@ namespace PolyGame.Graphics;
 /// </summary>
 public partial class SetViewport : AutoSystem
 {
-    [AutoRunMethod]
     public void Run(GraphicsDevice device, FinalRenderTarget target)
     {
         device.SetRenderTarget(target.SceneRenderTarget);

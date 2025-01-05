@@ -33,7 +33,7 @@ public class RenderPlugin : IPlugin
             .AddSystems(Schedules.Render,
                 new PropagateZIndex().InSet(RenderSets.PropagateZIndex),
                 new QueueSprites(registry).InSet(RenderSets.Queue),
-                SystemConfigs.Of(new QueueAreaLights(registry), new QueueDirLights(registry), new QueuePointLights(registry), new QueueSpotLights(registry))
+                SystemConfigs.Of(new QueueAreaLights(), new QueueDirLights(), new QueuePointLights(), new QueueSpotLights())
                     .InSet(RenderSets.Queue),
                 new SortRenderablesSystem().InSet(RenderSets.Sort),
                 new RendererSystem().InSet(RenderSets.Render)

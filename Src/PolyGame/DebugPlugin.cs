@@ -7,7 +7,7 @@ public class DebugPlugin : IPlugin
 {
     public void Apply(App app)
     {
-        app.World.World.Import<Ecs.Stats>();
-        app.World.World.Set(default(flecs.EcsRest));
+        app.World.FlecsWorld.Import<Ecs.Stats>();
+        app.World.FlecsWorld.Set(default(flecs.EcsRest));
     }
 }

@@ -6,24 +6,18 @@ namespace PolyGame.Transform;
 
 public partial class PropagateTransform : AutoSystem
 {
-    [ParamProvider("q")]
-    public QueryParam BuildQuery(PolyWorld world) => Param.Of(world.QueryBuilder()
-        .With<Position2D>().In().With<Rotation2D>().In().With<Scale2D>().In()
-        .With<GlobalTransform2D>().Out()
-        .With<GlobalTransform2D>().Optional().Parent().Cascade().In()
-        .Cached().Build());
-
-
-    [AutoRunMethod]
-    public void Run(Query q)
+    public void Run(TQuery<Position2D, Rotation2D, Scale2D, GlobalTransform2D, GlobalTransform2D, (In<AllTerms>, W<Term3>, Cascade<Parent<Optional<Term4>>>, Cached)> q)
     {
-        q.Run(it => {
+        q.Query.Run(it =>
+        {
             while (it.Next())
             {
+                /**
                 if (!it.Changed())
                 {
                     it.Skip();
-                }
+                    continue;
+                }**/
                 // TODO bundle views
                 var pos = it.Field<Position2D>(0);
                 var rot = it.Field<Rotation2D>(1);
