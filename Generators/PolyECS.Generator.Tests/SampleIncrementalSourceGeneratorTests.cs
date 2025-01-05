@@ -68,7 +68,11 @@ public class AutoSystemGeneratorTests
                         {
                             QueryBuilder qb = new(b.World);
                             qb.Desc = b.Desc;
-                            GetType().GetMethod("Run", [typeof(PolyWorld), typeof(Query<int>), typeof(Query<float>)])?.GetParameters()[2].GetCustomAttributes(true).OfType<QueryBuilderAttribute>().ForEach(x => qb = x.Apply(qb));
+                            var queryAttrs = GetType().GetMethod("Run", [typeof(PolyWorld), typeof(Query<int>), typeof(Query<float>)])?.GetParameters()[2].GetCustomAttributes(true).OfType<QueryBuilderAttribute>();
+                            foreach (var attr in queryAttrs)
+                            {
+                                qb = attr.Apply(qb);
+                            }
                             b.Desc = qb.Desc;
                         }
                         return b;
