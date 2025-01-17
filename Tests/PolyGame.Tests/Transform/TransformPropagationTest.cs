@@ -15,7 +15,7 @@ public class TransformPropagationTest : SystemTest
     }
 
     [Fact]
-    public void Test()
+    public void TestFilledComponent()
     {
         var e = World.Entity().Set(new Position2D(new Vector2(2, 2)));
         Progress();

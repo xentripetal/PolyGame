@@ -18,12 +18,16 @@ public record struct Position2D(Vector2 Value)
 
     public static implicit operator Vector2(Position2D pos) => pos.Value;
     public static implicit operator Position2D(Vector2 pos) => new(pos);
-
 }
 
 public record struct Rotation2D
 {
     public Rotation2D(float degrees) => Degrees = degrees;
+
+    public Rotation2D()
+    {
+        Degrees = 0;
+    }
 
     public float Radians
     {
