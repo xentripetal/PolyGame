@@ -200,7 +200,7 @@ public partial class SetDefaultFont : AutoSystem
 {
     public void Run()
     {
-        ImGuiManager.PushFont("Default");
+        //ImGuiManager.PushFont("Default");
     }
 }
 
@@ -209,7 +209,7 @@ public partial class RemoveDefaultFont : AutoSystem
 {
     public void Run()
     {
-        ImGuiManager.PopFont();
+        //ImGuiManager.PopFont();
     }
 }
 
@@ -327,13 +327,15 @@ public class ImGuiManager
         }
     }
 
-    public static void PushFont(string name, bool condition)
+    public static bool PushFont(string name, bool condition)
     {
         if (condition && aliasToFont.TryGetValue(name, out ImFontPtr fontPtr))
         {
             ImGui.PushFont(fontPtr);
             fontPushes++;
+            return true;
         }
+        return false;
     }
 
     public static void PopFont()

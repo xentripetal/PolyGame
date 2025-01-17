@@ -28,7 +28,6 @@ public class AssetServer : IDisposable
 
     protected Dictionary<string, IAssetLoader> loadersByExtension = new();
 
-    protected List<Delegate> typeHooks = new();
     protected World[] worlds;
 
     public AssetServer(World[] worlds) => this.worlds = worlds;
@@ -39,7 +38,6 @@ public class AssetServer : IDisposable
     public void Dispose()
     {
         handleLock.Dispose();
-        typeHooks.Clear();
     }
 
     public void AddLoader(IAssetLoader loader)
@@ -63,7 +61,6 @@ public class AssetServer : IDisposable
         }
     }
 
-    [RequiresDynamicCode()]
     protected Handle<T> CreateHandle<T>(int id, ushort generation)
     {
         unsafe
@@ -77,13 +74,10 @@ public class AssetServer : IDisposable
                     if (!Type<Handle<T>>.IsRegistered(world.Handle))
                     {
                         var component = Type<Handle<T>>.RegisterComponent(world, true, true, 0, "");
-                        flecs.ecs_type_hooks_t hooksDesc = default;
-                        // Make sure we keep the delegate alive
-                        var dtor = (Delegate)HandleDtor<T>;
-                        var dtorPtr = Marshal.GetFunctionPointerForDelegate(dtor);
-                        typeHooks.Add(dtor);
-                        hooksDesc.dtor = dtorPtr;
-                        flecs.ecs_set_hooks_id(world, component, &hooksDesc);
+                        world.Component<Handle<T>>().Dtor((ref Handle<T> data, TypeInfo info) =>
+                        {
+                            Release(data);
+                        });
                     }
                 }
             }
