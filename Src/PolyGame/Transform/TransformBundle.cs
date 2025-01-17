@@ -15,25 +15,25 @@ public class TransformBundle
         Rotation = degrees;
         Scale = scale ?? Vector2.One;
     }
-    
+
     public TransformBundle WithScale(Vector2 scale)
     {
         Scale = scale;
         return this;
     }
-    
+
     public TransformBundle WithScale(float scale)
     {
         Scale = new Vector2(scale, scale);
         return this;
     }
-    
+
     public TransformBundle WithRotation(float degrees)
     {
         Rotation = degrees;
         return this;
     }
-    
+
     public TransformBundle WithPosition(Vector2 position)
     {
         Position = position;

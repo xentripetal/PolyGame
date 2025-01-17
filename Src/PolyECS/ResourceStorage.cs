@@ -4,8 +4,8 @@ namespace PolyECS;
 
 public class ResourceStorage : IEnumerable<ResourceEntry>
 {
-    protected Dictionary<Type, int> TypeLookup = new ();
-    protected List<ResourceEntry> Resources = new ();
+    protected Dictionary<Type, int> TypeLookup = new();
+    protected List<ResourceEntry> Resources = new();
 
     public int Register<T>()
     {
@@ -19,6 +19,11 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
     public int Register<T>(T value)
     {
         return Register(typeof(T), value);
+    }
+
+    public int RegisterDyn(Type type)
+    {
+        return Register(type, null);
     }
 
     public void Set<T>(T? value)
@@ -41,6 +46,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
         {
             throw new IndexOutOfRangeException();
         }
+
         Resources[index] = new ResourceEntry
         {
             Type = typeof(T),
@@ -58,6 +64,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
             value = default;
             return false;
         }
+
         return TryGet<T>(id, out value);
     }
 
@@ -67,6 +74,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
         {
             return value;
         }
+
         return default;
     }
 
@@ -78,6 +86,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
             value = (T)v!;
             return true;
         }
+
         value = default;
         return false;
     }
@@ -97,10 +106,11 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
             value = resource.Resource;
             return true;
         }
+
         value = default;
         return false;
     }
-    
+
     public bool TryGetEntry(int id, out ResourceEntry? entry)
     {
         var index = (int)id;
@@ -109,6 +119,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
             entry = null;
             return false;
         }
+
         entry = Resources[index];
         return true;
     }
@@ -119,15 +130,20 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
         {
             return id;
         }
-        id = Resources.Count;
-        TypeLookup[type] = id;
-        Resources.Add(new ResourceEntry
+
+        lock (Resources)
         {
-            Type = type,
-            Resource = value,
-            HasValue = value != null,
-            Id = id
-        });
+            id = Resources.Count;
+            TypeLookup[type] = id;
+            Resources.Add(new ResourceEntry
+            {
+                Type = type,
+                Resource = value,
+                HasValue = value != null,
+                Id = id
+            });
+        }
+
         return id;
     }
 
@@ -155,6 +171,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
         {
             return false;
         }
+
         return HasValue(id);
     }
 
@@ -165,6 +182,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
         {
             return false;
         }
+
         return Resources[index].HasValue;
     }
 
@@ -176,6 +194,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
             {
                 return null;
             }
+
             return Resources[i];
         }
     }

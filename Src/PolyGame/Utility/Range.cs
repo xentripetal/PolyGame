@@ -3,7 +3,7 @@ using PolyECS;
 
 namespace PolyGame;
 
-public struct Range<T> : IComponent where T : struct, IComparable<T>, IEquatable<T>
+public struct Range<T> where T : struct, IComparable<T>, IEquatable<T>
 {
     public T Start;
     public T End;
@@ -22,8 +22,19 @@ public struct Range<T> : IComponent where T : struct, IComparable<T>, IEquatable
 
     public override int GetHashCode() => HashCode.Combine(Start, End);
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component.Member<T>("Start").Member<T>("End");
+    }
+
+    public static bool operator ==(Range<T> left, Range<T> right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Range<T> left, Range<T> right)
+    {
+        return !(left == right);
     }
 }

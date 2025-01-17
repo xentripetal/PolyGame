@@ -6,11 +6,11 @@ namespace PolyGame.Editor;
 /// <remarks>Copy of HexaEngine.Editor.History</remarks>
 public class History
 {
-    private readonly HistoryStack<(object, HistoryItem)> undoStack = new ();
-    private readonly HistoryStack<(object, HistoryItem)> redoStack = new ();
+    private readonly HistoryStack<(object, HistoryItem)> undoStack = new();
+    private readonly HistoryStack<(object, HistoryItem)> redoStack = new();
     private readonly int maxEntries;
     private readonly bool autoDispose;
-    private readonly object _lock = new ();
+    private readonly object _lock = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="History"/> class with a specified maximum number of entries and auto-dispose setting.
@@ -71,7 +71,7 @@ public class History
     /// <summary>
     /// Gets the default instance of the <see cref="History"/> class.
     /// </summary>
-    public static History Default { get; } = new ();
+    public static History Default { get; } = new();
 
     /// <summary>
     /// Represents an action in the history.
@@ -138,7 +138,7 @@ public class History
             {
                 DestroyObject(undoStack.Pop());
             }
-            undoStack.Push((context, new (actionName, doAction, undoAction)));
+            undoStack.Push((context, new(actionName, doAction, undoAction)));
             ClearRedo();
         }
     }
@@ -163,7 +163,7 @@ public class History
                 DestroyObject(undoStack.Pop());
             }
             var context = new HistoryContext<T1, T2>(target, oldValue, newValue);
-            undoStack.Push((context, new (actionName, doAction, undoAction)));
+            undoStack.Push((context, new(actionName, doAction, undoAction)));
             ClearRedo();
         }
     }
@@ -184,7 +184,7 @@ public class History
                 DestroyObject(undoStack.Pop());
             }
             doAction(context);
-            undoStack.Push((context, new (actionName, doAction, undoAction)));
+            undoStack.Push((context, new(actionName, doAction, undoAction)));
             ClearRedo();
         }
     }
@@ -210,7 +210,7 @@ public class History
             }
             var context = new HistoryContext<T1, T2>(target, oldValue, newValue);
             doAction(context);
-            undoStack.Push((context, new (actionName, doAction, undoAction)));
+            undoStack.Push((context, new(actionName, doAction, undoAction)));
             ClearRedo();
         }
     }

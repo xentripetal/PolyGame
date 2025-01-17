@@ -14,43 +14,43 @@ public class SystemSchedule
     /// <summary>
     ///     Indexed by system set node id
     /// </summary>
-    public List<List<ICondition>> SetConditions = new ();
+    public List<List<ICondition>> SetConditions = new();
     /// <summary>
     ///     List of system set node ids
     /// </summary>
-    public List<NodeId> SetIds = new ();
+    public List<NodeId> SetIds = new();
     /// <summary>
     ///     Indexed by system node id
     ///     List of sets containing the system that have conditions
     /// </summary>
-    public List<FixedBitSet> SetsWithConditionsOfSystems = new ();
+    public List<FixedBitSet> SetsWithConditionsOfSystems = new();
     /// <summary>
     ///     Indexed by system node id
     /// </summary>
-    public List<List<ICondition>> SystemConditions = new ();
+    public List<List<ICondition>> SystemConditions = new();
     /// <summary>
     ///     Indexed by system node id
     ///     Number of systems that immediately depend on the system
     /// </summary>
-    public List<int> SystemDependencies = new ();
+    public List<int> SystemDependencies = new();
     /// <summary>
     ///     Indexed by system node id
     ///     List of systems that immediately depend on the system
     /// </summary>
-    public List<List<int>> SystemDependents = new ();
+    public List<List<int>> SystemDependents = new();
 
     /// <summary>
     ///     List of system node ids.
     /// </summary>
-    public List<NodeId> SystemIds = new ();
+    public List<NodeId> SystemIds = new();
     /// <summary>
     ///     Indexed by system node id
     /// </summary>
-    public List<ISystem> Systems = new ();
+    public List<ISystem> Systems = new();
     /// <summary>
     ///     Indexed by system set node id.
     ///     List of systems that are in sets that have conditions.
     ///     If a set doesn't run because of its conditions, this is used to skip all systems in it.
     /// </summary>
-    public List<FixedBitSet> SystemsInSetsWithConditions = new ();
+    public List<FixedBitSet> SystemsInSetsWithConditions = new();
 }

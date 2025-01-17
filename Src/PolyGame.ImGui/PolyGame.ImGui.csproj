@@ -50,10 +50,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Hexa.NET.ImGui" Version="2.1.1"/>
-        <PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.1.11"/>
-        <PackageReference Include="Hexa.NET.ImNodes" Version="2.1.1"/>
-        <PackageReference Include="Hexa.NET.ImPlot" Version="2.1.1"/>
+        <PackageReference Include="Hexa.NET.ImGui" Version="2.2.4" />
+        <PackageReference Include="Hexa.NET.ImGui.Widgets" Version="1.2.4" />
+        <PackageReference Include="Hexa.NET.ImNodes" Version="2.2.4" />
+        <PackageReference Include="Hexa.NET.ImPlot" Version="2.2.4" />
     </ItemGroup>
 
 </Project>

@@ -25,7 +25,7 @@ public partial class QueueSprites : AutoSystem
 
     public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras,
         TQuery<Sprite, GlobalZIndex, SortLayer, Handle<Texture2D>, GlobalTransform2D, In<AllTerms>> sprites,
-        MissingTexture2D? missingTexture, AssetServer assets)
+        [In] MissingTexture2D? missingTexture, AssetServer assets)
     {
         MissingTexture = null;
         // Check the missing texture resource every frame

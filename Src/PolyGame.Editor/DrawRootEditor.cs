@@ -1,9 +1,12 @@
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
+using PolyGame.ImGuiNet;
 
 namespace PolyGame.Editor;
 
+[After<ImGuiSets>(ImGuiSets.Init)]
 public partial class InitEditor : AutoSystem
 {
     public void Run(PolyWorld world, GraphicsDevice device)

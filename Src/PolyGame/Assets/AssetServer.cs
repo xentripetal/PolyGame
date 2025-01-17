@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
@@ -20,14 +21,13 @@ public class AssetServer : IDisposable
         Failed
     }
 
-    protected ListPool<Asset> assets = new ();
-    protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new ();
-    protected ReaderWriterLockSlim handleLock = new ();
+    protected ListPool<Asset> assets = new();
+    protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new();
+    protected ReaderWriterLockSlim handleLock = new();
 
 
-    protected Dictionary<string, IAssetLoader> loadersByExtension = new ();
+    protected Dictionary<string, IAssetLoader> loadersByExtension = new();
 
-    protected List<Delegate> typeHooks = new ();
     protected World[] worlds;
 
     public AssetServer(World[] worlds) => this.worlds = worlds;
@@ -38,7 +38,6 @@ public class AssetServer : IDisposable
     public void Dispose()
     {
         handleLock.Dispose();
-        typeHooks.Clear();
     }
 
     public void AddLoader(IAssetLoader loader)
@@ -75,13 +74,10 @@ public class AssetServer : IDisposable
                     if (!Type<Handle<T>>.IsRegistered(world.Handle))
                     {
                         var component = Type<Handle<T>>.RegisterComponent(world, true, true, 0, "");
-                        flecs.ecs_type_hooks_t hooksDesc = default;
-                        // Make sure we keep the delegate alive
-                        var dtor = (Delegate)HandleDtor<T>;
-                        var dtorPtr = Marshal.GetFunctionPointerForDelegate(dtor);
-                        typeHooks.Add(dtor);
-                        hooksDesc.dtor = dtorPtr;
-                        flecs.ecs_set_hooks_id(world, component, &hooksDesc);
+                        world.Component<Handle<T>>().Dtor((ref Handle<T> data, TypeInfo info) =>
+                        {
+                            Release(data);
+                        });
                     }
                 }
             }
@@ -149,7 +145,8 @@ public class AssetServer : IDisposable
         }
         if (async)
         {
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 LoadInternal<T>(handle.Index(), handle.Generation(), path, loader);
             });
         }

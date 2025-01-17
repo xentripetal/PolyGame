@@ -7,20 +7,21 @@ namespace PolyGame;
 
 public partial class App
 {
-    public App RegisterComponent<T>() where T : IComponent
+    public App Register<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods |
+                                    DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+    T>()
     {
-        World.RegisterComponent<T>();
+        World.Register<T>();
         return this;
     }
-
-    public Component<T> RegisterType<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() => World.Register<T>();
 
     public App RegisterResource<T>()
     {
         World.RegisterResource<T>();
         return this;
     }
-    
+
     public Res<T> GetResource<T>() => World.GetResource<T>();
 
     public App SetResource<T>(T resource)

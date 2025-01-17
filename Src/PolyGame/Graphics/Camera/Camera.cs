@@ -8,14 +8,15 @@ using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Camera;
 
-public struct CameraInset : IComponent
+public struct CameraInset
 {
     public float Left;
     public float Right;
     public float Top;
     public float Bottom;
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component
             .Member<float>("Left")
@@ -27,10 +28,10 @@ public struct CameraInset : IComponent
 
 public class CameraBundle
 {
-    public Camera Camera = new ();
+    public Camera Camera = new();
     public CameraInset Inset;
-    public RenderGraph RenderGraph = new ([new DefaultRenderer()]);
-    public TransformBundle Transform = new ();
+    public RenderGraph RenderGraph = new([new DefaultRenderer()]);
+    public TransformBundle Transform = new();
 
     public void Apply(Entity entity)
     {
@@ -43,7 +44,7 @@ public class CameraBundle
     }
 }
 
-public struct ComputedCamera : IComponent
+public struct ComputedCamera
 {
     /// <summary>
     ///     Used to convert from world coordinates to screen
@@ -127,7 +128,8 @@ public struct ComputedCamera : IComponent
         }
     }
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component
             .Member<Matrix2D>("TransformMatrix")
@@ -139,7 +141,7 @@ public struct ComputedCamera : IComponent
     }
 }
 
-public struct Camera : IComponent
+public struct Camera
 {
     public float PositionZ3D = 2000f;
 
@@ -183,7 +185,7 @@ public struct Camera : IComponent
     ///     Minimum and Maximum bounds for the zoom level. Default is 0.3 to 3. This is only enforced if you use
     ///     <see cref="SetZoom" />.
     /// </summary>
-    public Range<float> ZoomBounds = new (0.3f, 3f);
+    public Range<float> ZoomBounds = new(0.3f, 3f);
 
 
     /// <summary>
@@ -246,7 +248,8 @@ public struct Camera : IComponent
 
     public Camera() { }
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component
             .Member<float>("PositionZ3D")

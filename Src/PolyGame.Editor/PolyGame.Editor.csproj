@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>13</LangVersion>
+        <PublishAot>false</PublishAot>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +17,10 @@
       <ProjectReference Include="..\PolyGame.ImGui\PolyGame.ImGui.csproj" />
       <ProjectReference Include="..\PolyGame.Myra\PolyGame.Myra.csproj" />
       <ProjectReference Include="..\PolyGame\PolyGame.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.4" />
     </ItemGroup>
 
 </Project>

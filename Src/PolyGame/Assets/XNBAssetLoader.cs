@@ -4,7 +4,7 @@ namespace PolyGame.Assets;
 
 public class XNBAssetLoader : IAssetLoader
 {
-    protected Dictionary<string, int> _referenceCount = new ();
+    protected Dictionary<string, int> _referenceCount = new();
 
     protected ContentManager Manager;
 

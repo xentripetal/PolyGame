@@ -1,3 +1,4 @@
+using Hexa.NET.ImGui;
 using Hexa.NET.ImGui.Widgets;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
@@ -67,6 +68,7 @@ public static class Designer
         //ImGuiConsole.Draw();
         MessageBoxes.Draw();
         PopupManager.Draw();
+        ImGui.ShowDemoWindow();
     }
 
     public static void OpenFile(string? path)

@@ -15,9 +15,9 @@ public static class WindowManager
 {
     private static GraphicsDevice? device;
     private static PolyWorld world;
-    private static readonly List<IEditorWindow> windows = new ();
-    private static readonly List<EditorWindowCategory> categories = new ();
-    private static readonly EditorWindowCategory Default = new (string.Empty);
+    private static readonly List<IEditorWindow> windows = new();
+    private static readonly List<EditorWindowCategory> categories = new();
+    private static readonly EditorWindowCategory Default = new(string.Empty);
 
     static WindowManager()
     {
@@ -92,7 +92,7 @@ public static class WindowManager
 
     public static EditorWindowCategory AddCategory(string categoryName)
     {
-        EditorWindowCategory category = new (categoryName);
+        EditorWindowCategory category = new(categoryName);
         categories.Add(category);
         return category;
     }

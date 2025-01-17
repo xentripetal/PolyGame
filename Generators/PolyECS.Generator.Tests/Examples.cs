@@ -10,15 +10,15 @@ internal class NonPartialSystem : AutoSystem {
     public void Run() { }
 }
 ";
-    
-    public static readonly string NoRunMethod= @"
+
+    public static readonly string NoRunMethod = @"
 namespace CSharpCodeGen;
 using PolyECS;
 
 internal partial class PartialSystem : AutoSystem {
 }
 ";
-    
+
     public static readonly string ValidNoParams = @"
 namespace CSharpCodeGen;
 using PolyECS;

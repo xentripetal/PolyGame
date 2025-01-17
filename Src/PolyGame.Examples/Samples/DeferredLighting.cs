@@ -40,9 +40,9 @@ public partial class DeferredLighting : ISample
             //renderer.EnableDebugBufferRender = true;
             renderGraph.Graph.ClearRenderers().AddRenderer(renderer);
             renderTarget.OnSceneBackBufferSizeChanged += renderGraph.Graph.OnSceneBackBufferSizeChanged;
-            
+
             screen.SetSize(137 * 9, 89 * 9);
-            renderTarget.SetDesignResolution(screen, 137*9, 89*9, FinalRenderTarget.ResolutionPolicy.ShowAllPixelPerfect);
+            renderTarget.SetDesignResolution(screen, 137 * 9, 89 * 9, FinalRenderTarget.ResolutionPolicy.ShowAllPixelPerfect);
             world.SetResource(new ClearColor(Color.DarkGray));
 
 
@@ -64,8 +64,8 @@ public partial class DeferredLighting : ISample
 
             var otherOrange = orange.Clone().Set(new Position2D(new Vector2(200, 200)));
             new SpotLightBundle(2).Apply(world.Entity("OtherOrangeLight")).ChildOf(otherOrange);
-            
-            
+
+
             new SpriteBundle(bg).WithZIndex(-1).WithMaterial(bgMat).WithTransform(new TransformBundle(screen.Center, 0, new Vector2(9, 9)))
                 .Apply(world.Entity("BG"));
 
@@ -85,7 +85,8 @@ public partial class DeferredLighting : ISample
         {
             var target = renderTarget;
             var state = mouse;
-            query.Each((ref Position2D pos) => {
+            query.Each((ref Position2D pos) =>
+            {
                 pos.Value = (state.Position).ToVector2() * target.Scale;
             });
         }

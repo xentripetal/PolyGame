@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace PolyGame;
@@ -20,6 +21,7 @@ public static class ReflectionUtils
     /// <param name="baseClassType"></param>
     /// <param name="onlyIncludeParameterlessConstructors"></param>
     /// <returns></returns>
+    [RequiresUnreferencedCode("Reflection is used to get all types in the current AppDomain")]
     public static List<Type> GetAllTypesAssignableFrom(
         Type baseClassType,
         bool onlyIncludeParameterlessConstructors = false

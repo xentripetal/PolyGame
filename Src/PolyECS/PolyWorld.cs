@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using DotNext;
 using Flecs.NET.Core;
 using PolyECS.Scheduling;
 using PolyECS.Systems;
 using Serilog;
+using TypeInfo = Flecs.NET.Core.TypeInfo;
 
 namespace PolyECS;
 
@@ -31,8 +34,8 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
 
     public World FlecsWorld { get; }
     public TableCache TableCache { get; }
-    
-    public readonly ResourceStorage Resources = new ();
+
+    public readonly ResourceStorage Resources = new();
 
     public void Dispose()
     {
@@ -48,34 +51,32 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
     /// <param name="fn">Function to invoke with the schedule</param>
     /// <typeparam name="T">Return type from the scoped function</typeparam>
     /// <returns>response from fn</returns>
-    public Result<T> ScheduleScope<T>(ScheduleLabel label, Func<PolyWorld, Schedule, T> fn)
+    public void ScheduleScope(ScheduleLabel label, Action<PolyWorld, Schedule> fn)
     {
         var schedules = MustGetResource<ScheduleContainer>();
         var schedule = schedules.Remove(label);
         if (schedule == null)
         {
-            return new Result<T>(new ArgumentException($"Schedule for label {label} not found"));
+            throw new ArgumentException($"Schedule for label {label} not found");
         }
-        var data = fn(this, schedule);
+
+        fn(this, schedule);
         var old = schedules.Insert(schedule);
         if (old != null)
         {
-            Log.Warning("Schedule {Label} was inserted during a call to PolyWorld.ScheduleScope, its value has been overwritten", label);
+            Log.Warning(
+                "Schedule {Label} was inserted during a call to PolyWorld.ScheduleScope, its value has been overwritten",
+                label);
         }
-
-        return data;
     }
 
     /// <summary>
     ///     Runs the <see cref="Schedule" /> associated with the label a single time
     /// </summary>
     /// <param name="label"></param>
-    public Result<Empty> RunSchedule(ScheduleLabel label)
+    public void RunSchedule(ScheduleLabel label)
     {
-        return ScheduleScope<Empty>(label, (world, schedule) => {
-            schedule.Run(world);
-            return Empty.Instance;
-        });
+        ScheduleScope(label, (world, schedule) => { schedule.Run(world); });
     }
 
 
@@ -87,6 +88,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
         {
             return false;
         }
+
         TableCache.Update();
         return true;
     }
@@ -97,6 +99,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
         {
             TableCache.Update();
         }
+
         system.Initialize(this);
         system.UpdateStorageAccess(TableCache, Resources);
         system.TryRun(this);
@@ -117,29 +120,71 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
     {
         return Resources.Register<T>();
     }
-    
+
     public int RegisterResource(Type t)
     {
-        return Resources.Register(t);
+        return Resources.RegisterDyn(t);
     }
-    
 
-    public Component<T> Register<T>()
+
+    /// <summary>
+    /// Registers the given type as a component in the world. This will call any <see cref="ComponentRegistrationAttribute"/> on the type.
+    /// Note that this will not call any implementations of <see cref="IComponent"/>, use <see cref="RegisterComponent{T}"/> instead.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="disableAutoMembers">If true, type will not be reflected and have its fields registered as members in Flecs</param>
+    /// <returns></returns>
+    public Component<T> Register<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods |
+                                    DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+    T>()
     {
+        Component<T> comp;
+        var name = "";
+        var t = typeof(T);
+        if (t.GetCustomAttribute<NamedComponentAttribute>() is { } namedAttribute)
+        {
+            name = namedAttribute.Name;
+        }
+
         unsafe
         {
-            return new Component<T>(FlecsWorld.Handle, Type<T>.RegisterComponent(FlecsWorld, true, true, 0, ""));
+            comp = new Component<T>(FlecsWorld.Handle, Type<T>.RegisterComponent(FlecsWorld, true, true, 0, name));
         }
+
+        // If it has a public parameterless constructor, use it
+        if (t.GetConstructor(Type.EmptyTypes) != null)
+            comp.Ctor((delegate (ref T data, TypeInfo info) { data = (T)Activator.CreateInstance(t)!; }));
+
+
+        // Register any attributes on the type
+        foreach (var attribute in Attribute.GetCustomAttributes(typeof(T), true))
+            if (attribute is ComponentRegistrationAttribute registrationAttribute)
+                registrationAttribute.Register(this, comp.UntypedComponent);
+
+
+        // Scan for any static methods with registration attributes
+        var staticMethods = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public);
+        foreach (var method in staticMethods)
+            foreach (var attr in method.GetCustomAttributes())
+            {
+                if (attr is MethodComponentRegistrationAttribute<T> registrationAttribute)
+                {
+                    registrationAttribute.Apply(method, comp, this);
+                }
+                else if (attr is UntypedMethodComponentRegistrationAttribute untypedAttribute)
+                {
+                    untypedAttribute.Apply(method, comp.UntypedComponent, this);
+                }
+            }
+
+
+        return comp;
     }
 
-    public void RegisterComponent<T>() where T : IComponent
-    {
-        var c = Register<T>();
-        T.Register(c.UntypedComponent);
-    }
 
-    public Res<T> GetResource<T>() => new (this);
-    public ResMut<T> GetResourceMut<T>() => new (this);
+    public Res<T> GetResource<T>() => new(this);
+    public ResMut<T> GetResourceMut<T>() => new(this);
 
     public T MustGetResource<T>()
     {
@@ -151,8 +196,6 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
 
     #region Flecs.World Proxies
 
-    public void Set<T>(T value) => FlecsWorld.Set(value);
-    public T Get<T>() => FlecsWorld.Get<T>();
     public Entity Entity() => FlecsWorld.Entity();
 
     public Entity Entity(string name) => FlecsWorld.Entity(name);
@@ -164,18 +207,20 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
     public Entity Entity<T>(string name) => FlecsWorld.Entity<T>(name);
 
     public QueryBuilder QueryBuilder() => FlecsWorld.QueryBuilder();
-    public QueryBuilder<T>  QueryBuilder<T>() => FlecsWorld.QueryBuilder<T>();
-    
+    public QueryBuilder<T> QueryBuilder<T>() => FlecsWorld.QueryBuilder<T>();
+
     public QueryBuilder<T1, T2> QueryBuilder<T1, T2>() => FlecsWorld.QueryBuilder<T1, T2>();
-    
+
     public QueryBuilder<T1, T2, T3> QueryBuilder<T1, T2, T3>() => FlecsWorld.QueryBuilder<T1, T2, T3>();
-    
+
     public QueryBuilder<T1, T2, T3, T4> QueryBuilder<T1, T2, T3, T4>() => FlecsWorld.QueryBuilder<T1, T2, T3, T4>();
-    
-    public QueryBuilder<T1, T2, T3, T4, T5> QueryBuilder<T1, T2, T3, T4, T5>() => FlecsWorld.QueryBuilder<T1, T2, T3, T4, T5>();
-    
-    public QueryBuilder<T1, T2, T3, T4, T5, T6> QueryBuilder<T1, T2, T3, T4, T5, T6>() => FlecsWorld.QueryBuilder<T1, T2, T3, T4, T5, T6>();
-    
+
+    public QueryBuilder<T1, T2, T3, T4, T5> QueryBuilder<T1, T2, T3, T4, T5>() =>
+        FlecsWorld.QueryBuilder<T1, T2, T3, T4, T5>();
+
+    public QueryBuilder<T1, T2, T3, T4, T5, T6> QueryBuilder<T1, T2, T3, T4, T5, T6>() =>
+        FlecsWorld.QueryBuilder<T1, T2, T3, T4, T5, T6>();
+
     public Query<T> Query<T>() => FlecsWorld.Query<T>();
 
     public Query<T1, T2> Query<T1, T2>() => FlecsWorld.Query<T1, T2>();
@@ -191,6 +236,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
     #endregion
 
     public ISystemParam IntoParam(PolyWorld world) => new PolyWorldParam();
+
     public static PolyWorld BuildParamValue(PolyWorld world)
     {
         return world;

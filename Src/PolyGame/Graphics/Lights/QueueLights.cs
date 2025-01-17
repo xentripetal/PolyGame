@@ -23,14 +23,14 @@ public partial class QueueSpotLights : AutoSystem
     }
 
     protected int DrawSpotLightIndex;
-    
+
     public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<GlobalTransform2D, SpotLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
         {
             var renderables = renderablesRef;
             var camBounds = cCam.Bounds;
-            
+
             // can't pass ref to lambda
             lights.Each((Entity en, ref GlobalTransform2D transform, ref SpotLight light, ref SortLayer layer,
                 ref GlobalZIndex index) =>
@@ -65,7 +65,7 @@ public partial class QueueSpotLights : AutoSystem
 
 public partial class QueueDirLights : AutoSystem
 {
-    
+
     public override void Initialize(PolyWorld world)
     {
         base.Initialize(world);
@@ -74,7 +74,7 @@ public partial class QueueDirLights : AutoSystem
 
     protected int DrawDirLightIndex;
 
-    
+
     public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<DirLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
@@ -83,13 +83,13 @@ public partial class QueueDirLights : AutoSystem
             // can't pass ref to lambda
             lights.Each((Entity en, ref DirLight lights, ref SortLayer layer, ref GlobalZIndex index) =>
             {
-                    renderables.Add(new RenderableReference
-                    {
-                        Entity = en,
-                        SortKey = index.Value,
-                        SubSortKey = 0,
-                        DrawFuncIndex = DrawDirLightIndex
-                    }, layer.Value);
+                renderables.Add(new RenderableReference
+                {
+                    Entity = en,
+                    SortKey = index.Value,
+                    SubSortKey = 0,
+                    DrawFuncIndex = DrawDirLightIndex
+                }, layer.Value);
             });
         });
     }
@@ -119,7 +119,7 @@ public partial class QueuePointLights : AutoSystem
         {
             var renderables = renderablesRef;
             var camBounds = cCam.Bounds;
-            
+
             // can't pass ref to lambda
             lights.Each((Entity en, ref GlobalTransform2D transform, ref PointLight light, ref SortLayer layer, ref GlobalZIndex index) =>
             {
@@ -159,14 +159,14 @@ public partial class QueueAreaLights : AutoSystem
         base.Initialize(world);
         DrawAreaLightIndex = world.MustGetResource<DrawFuncRegistry>().RegisterDrawFunc(DrawAreaLight);
     }
-    
+
     public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras, TQuery<GlobalTransform2D, AreaLight, SortLayer, GlobalZIndex, In<AllTerms>> lights)
     {
         cameras.Each((ref ComputedCamera cCam, ref RenderableList renderablesRef) =>
         {
             var renderables = renderablesRef;
             var camBounds = cCam.Bounds;
-            
+
             lights.Each((Entity en, ref GlobalTransform2D transform, ref AreaLight light, ref SortLayer layer,
                 ref GlobalZIndex index) =>
             {

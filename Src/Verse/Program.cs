@@ -16,7 +16,7 @@ try
         .AddSystem<RotateSpriteSystem>(Schedules.Update)
         .AddSystem<SpawnTestSprites>(Schedules.Startup)
         .AddSystem<SpawnCamera>(Schedules.Startup);
-        //.AddSystem<SpawnGuiTest>(Schedules.Startup);
+    //.AddSystem<SpawnGuiTest>(Schedules.Startup);
     app.Run();
 }
 catch (Exception e)

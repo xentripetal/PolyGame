@@ -6,7 +6,7 @@ public static class QuatExt
 {
     public static Vector3 ToEuler(this Quaternion q)
     {
-        Vector3 angles = new ();
+        Vector3 angles = new();
 
         // roll / x
         double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);

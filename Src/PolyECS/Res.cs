@@ -12,7 +12,8 @@ public struct Res<T> : IIntoSystemParam, IStaticSystemParam<Res<T>>
     public Res(PolyWorld world)
     {
         World = world;
-        Index = world.RegisterResource<T>();
+        var underlyingType = Nullable.GetUnderlyingType(typeof(T));
+        Index = underlyingType != null ? World.RegisterResource(underlyingType) : world.RegisterResource<T>();
     }
 
     public bool IsEmpty => !HasValue;
@@ -23,7 +24,7 @@ public struct Res<T> : IIntoSystemParam, IStaticSystemParam<Res<T>>
         World.Resources.TryGet<T>(Index, out var value);
         return value;
     }
-    
+
     public bool TryGet(out T? value)
     {
         return World.Resources.TryGet<T>(Index, out value);
@@ -33,6 +34,7 @@ public struct Res<T> : IIntoSystemParam, IStaticSystemParam<Res<T>>
 
     public static implicit operator T?(Res<T> res) => res.Get();
     public ISystemParam IntoParam(PolyWorld world) => new ResParam<T>();
+
     public static Res<T> BuildParamValue(PolyWorld world)
     {
         return world.GetResource<T>();
@@ -44,8 +46,6 @@ public struct Res<T> : IIntoSystemParam, IStaticSystemParam<Res<T>>
     }
 }
 
-
-
 public struct ResMut<T> : IIntoSystemParam, IStaticSystemParam<ResMut<T>>
 {
     private PolyWorld World;
@@ -54,25 +54,25 @@ public struct ResMut<T> : IIntoSystemParam, IStaticSystemParam<ResMut<T>>
     public ResMut(PolyWorld world)
     {
         World = world;
-        Index = world.RegisterResource<T>();
+        var underlyingType = Nullable.GetUnderlyingType(typeof(T));
+        Index = underlyingType != null ? World.RegisterResource(underlyingType) : world.RegisterResource<T>();
     }
-    
+
     public bool IsEmpty => !HasValue;
     public bool HasValue => World.Resources.HasValue(Index);
-
 
 
     public void Set(T value)
     {
         World.Resources.Set(Index, value);
     }
-    
+
     public T Get()
     {
         World.Resources.TryGet<T>(Index, out var value);
         return value!;
     }
-    
+
     public bool TryGet(out T? value)
     {
         return World.Resources.TryGet<T>(Index, out value);
@@ -85,8 +85,9 @@ public struct ResMut<T> : IIntoSystemParam, IStaticSystemParam<ResMut<T>>
     }
 
     public static implicit operator T(ResMut<T> res) => res.Get();
-    
+
     public ISystemParam IntoParam(PolyWorld world) => new ResMutParam<T>();
+
     public static ResMut<T> BuildParamValue(PolyWorld world)
     {
         return world.GetResourceMut<T>();

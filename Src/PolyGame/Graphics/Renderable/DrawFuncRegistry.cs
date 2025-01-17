@@ -7,8 +7,8 @@ namespace PolyGame.Graphics.Renderable;
 public class DrawFuncRegistry
 {
     public delegate void DrawFunc(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch);
-    protected Dictionary<DrawFunc, int> drawFuncIndices = new ();
-    protected FastList<DrawFunc> drawFuncs = new ();
+    protected Dictionary<DrawFunc, int> drawFuncIndices = new();
+    protected FastList<DrawFunc> drawFuncs = new();
 
     public DrawFuncRegistry()
     {

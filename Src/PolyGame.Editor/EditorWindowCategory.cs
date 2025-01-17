@@ -8,8 +8,8 @@ using System;
 public class EditorWindowCategory(string name) : IEquatable<EditorWindowCategory>
 {
     public string Name = name;
-    public List<IEditorWindow> Windows = new ();
-    public ImGuiName UIName = new (name);
+    public List<IEditorWindow> Windows = new();
+    public ImGuiName UIName = new(name);
 
     public int Count => Windows.Count;
 

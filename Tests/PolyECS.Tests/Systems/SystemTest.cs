@@ -27,7 +27,8 @@ public class ParamTest
         world.FlecsWorld.Entity().Set(0).Set<double>(1).Set(1.0f);
 
         var query = world.FlecsWorld.QueryBuilder().With<int>().Out().Without<float>().With<double>().In().Optional().Build();
-        var system = new SingleQuerySystem(query,  q => {
+        var system = new SingleQuerySystem(query, q =>
+        {
             Assert.Equal(2, q.Count());
         });
         world.RunSystemOnce(system);
@@ -43,7 +44,7 @@ public class ParamTest
         {
             param = builder.ResMut<int>();
         }
-        
+
         private ResMut<int> param;
 
         public override void Run(PolyWorld world)
@@ -57,7 +58,7 @@ public class ParamTest
         private readonly Action<Query> _cb;
         private readonly Query _query;
 
-        public SingleQuerySystem(Query query, Action<Query> cb) 
+        public SingleQuerySystem(Query query, Action<Query> cb)
         {
             _cb = cb;
             _query = query;

@@ -4,7 +4,7 @@ namespace PolyECS.Generator;
 
 public class Diagnostics
 {
-    
+
     public static readonly DiagnosticDescriptor MissingPartial = new DiagnosticDescriptor(
         id: "PECS.G001",
         title: "Class or struct must be made partial",
@@ -28,7 +28,7 @@ public class Diagnostics
         category: "Configuration",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-    
+
     public static readonly DiagnosticDescriptor AutoParamInternalError = new DiagnosticDescriptor(
         id: "PECS.G004",
         title: "An unknown problem occurred while parsing an AutoParam",
@@ -36,7 +36,7 @@ public class Diagnostics
         category: "Configuration",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-    
+
     public static readonly DiagnosticDescriptor AutoParamMultipleProviders = new DiagnosticDescriptor(
         id: "PECS.G005",
         title: "AutoParam has multiple param providers",
@@ -44,7 +44,7 @@ public class Diagnostics
         category: "Configuration",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
-    
+
     public static readonly DiagnosticDescriptor AutoParamOutParam = new DiagnosticDescriptor(
         id: "PECS.G005",
         title: "Run method has out parameter",

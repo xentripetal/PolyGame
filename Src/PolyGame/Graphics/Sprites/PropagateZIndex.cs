@@ -8,7 +8,8 @@ public partial class PropagateZIndex : AutoSystem
 {
     public void Run(TQuery<ZIndex, GlobalZIndex, GlobalZIndex, (In<Term0>, Out<Term1>, Cascade<Parent<Optional<In<Term2>>>>, Cached)> q)
     {
-        q.Query.Run(it => {
+        q.Query.Run(it =>
+        {
             while (it.Next())
             {
                 if (!it.Changed())

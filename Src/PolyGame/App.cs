@@ -16,7 +16,7 @@ public partial class App : Game, IDisposable
 
     protected Batcher Batcher;
 
-    public MainScheduleOrder MainScheduleOrder = new ();
+    public MainScheduleOrder MainScheduleOrder = new();
     public PolyWorld World;
 
     public App(

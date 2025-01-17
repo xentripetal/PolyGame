@@ -2,7 +2,7 @@ namespace PolyGame.Assets;
 
 public struct Handle<T>
 {
-    public static Handle<T> Invalid = new (-1, 0);
+    public static Handle<T> Invalid = new(-1, 0);
     private readonly int _index;
     private readonly ushort _generation;
 

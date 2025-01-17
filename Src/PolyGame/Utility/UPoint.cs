@@ -31,13 +31,13 @@ public struct UPoint : IEquatable<UPoint>
         Y = value;
     }
 
-    public static UPoint operator +(UPoint value1, UPoint value2) => new (value1.X + value2.X, value1.Y + value2.Y);
+    public static UPoint operator +(UPoint value1, UPoint value2) => new(value1.X + value2.X, value1.Y + value2.Y);
 
-    public static UPoint operator -(UPoint value1, UPoint value2) => new (value1.X - value2.X, value1.Y - value2.Y);
+    public static UPoint operator -(UPoint value1, UPoint value2) => new(value1.X - value2.X, value1.Y - value2.Y);
 
-    public static UPoint operator *(UPoint value1, UPoint value2) => new (value1.X * value2.X, value1.Y * value2.Y);
+    public static UPoint operator *(UPoint value1, UPoint value2) => new(value1.X * value2.X, value1.Y * value2.Y);
 
-    public static UPoint operator /(UPoint source, UPoint divisor) => new (source.X / divisor.X, source.Y / divisor.Y);
+    public static UPoint operator /(UPoint source, UPoint divisor) => new(source.X / divisor.X, source.Y / divisor.Y);
 
     public static bool operator ==(UPoint a, UPoint b) => a.Equals(b);
 
@@ -52,7 +52,7 @@ public struct UPoint : IEquatable<UPoint>
     public override string ToString() => "{X:" + X + " Y:" + Y + "}";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Vector2 ToVector2() => new (X, Y);
+    public Vector2 ToVector2() => new(X, Y);
 
     public void Deconstruct(out uint x, out uint y)
     {

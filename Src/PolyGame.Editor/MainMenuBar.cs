@@ -1,8 +1,4 @@
-using System.Net.Mime;
-using System.Resources;
-using Hexa.NET.ImGui.Widgets.Dialogs;
 using Microsoft.Xna.Framework.Graphics;
-using Myra.Graphics2D.UI;
 using PolyGame.Editor.Dialogs;
 
 namespace PolyGame.Editor;
@@ -41,7 +37,8 @@ public static class MainMenuBar
         //HotkeyManager.Register("Save Scene", SceneManager.Save, Key.LCtrl, Key.S);
     }
 
-    internal static void Init(GraphicsDevice device) { }
+    internal static void Init(GraphicsDevice device)
+    { }
 
     //[Profile]
     internal static unsafe void Draw()
@@ -90,6 +87,7 @@ public static class MainMenuBar
                 EditSubMenu();
                 ImGui.EndMenu();
             }
+
             if (ImGui.BeginMenu("View"))
             {
                 WindowManager.DrawMenu();
@@ -292,7 +290,7 @@ public static class MainMenuBar
 
             if (progress != -1)
             {
-                ImGui.ProgressBar(progress, new (200, 0), progressOverlay);
+                ImGui.ProgressBar(progress, new(200, 0), progressOverlay);
                 if (progress == 1 && progressOverlayTime == 0)
                 {
                     progressOverlayTime = Stopwatch.GetTimestamp() + Stopwatch.Frequency;
@@ -320,6 +318,7 @@ public static class MainMenuBar
         {
             History.Default.Undo();
         }
+
         if (ImGui.MenuItem("Redo (CTRL+Y)", (byte*)null, false, History.Default.CanRedo))
         {
             History.Default.Redo();
@@ -333,14 +332,17 @@ public static class MainMenuBar
             for (int i = 0; i < history.UndoCount; i++)
             {
                 var item = history.UndoStack[i];
-                if (ImGui.MenuItem(item.Item2.ActionName)) { }
+                if (ImGui.MenuItem(item.Item2.ActionName))
+                { }
             }
+
             ImGui.Separator();
             ImGui.Text("Redo-Stack");
             for (int i = 0; i < history.UndoCount; i++)
             {
                 var item = history.UndoStack[i];
-                if (ImGui.MenuItem(item.Item2.ActionName)) { }
+                if (ImGui.MenuItem(item.Item2.ActionName))
+                { }
             }
         }
     }

@@ -34,7 +34,7 @@ public class Screen
     ///     gets the Screen's size as a Vector2
     /// </summary>
     /// <value>The screen size.</value>
-    public Vector2 Size => new (Width, Height);
+    public Vector2 Size => new(Width, Height);
 
     /// <summary>
     ///     gets the Screen's center.null Note that this is the center of the backbuffer! If you are rendering to a smaller
@@ -42,7 +42,7 @@ public class Screen
     ///     you will need to scale this value appropriately.
     /// </summary>
     /// <value>The center.</value>
-    public Vector2 Center => new (Width / 2, Height / 2);
+    public Vector2 Center => new(Width / 2, Height / 2);
 
     public int PreferredBackBufferWidth
     {

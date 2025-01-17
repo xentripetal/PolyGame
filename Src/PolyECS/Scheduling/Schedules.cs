@@ -10,8 +10,8 @@ namespace PolyECS.Scheduling;
 /// <remarks>Based on bevy_ecs::schedule:Schedules</remarks>
 public class ScheduleContainer
 {
-    public HashSet<ulong> IgnoredSchedulingAmbiguities = new ();
-    protected Dictionary<ScheduleLabel, Schedule> Schedules = new ();
+    public HashSet<ulong> IgnoredSchedulingAmbiguities = new();
+    protected Dictionary<ScheduleLabel, Schedule> Schedules = new();
 
     /// <summary>
     ///     Inserts a labeled schedule into the map. Replaces existing schedule if label already exists.

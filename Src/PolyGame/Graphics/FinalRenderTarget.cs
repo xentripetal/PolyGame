@@ -7,7 +7,8 @@ public class FinalRenderTarget : IDisposable
 {
     public FinalRenderTarget(GameWindow window, Screen screen)
     {
-        window.ClientSizeChanged += (sender, e) => {
+        window.ClientSizeChanged += (sender, e) =>
+        {
             UpdateResolutionScaler(screen);
         };
         SceneRenderTarget = new RenderTarget2D(screen.GraphicsDevice, screen.Width, screen.Height, false, screen.BackBufferFormat,

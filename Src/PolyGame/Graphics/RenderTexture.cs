@@ -144,7 +144,7 @@ public class RenderTexture : IDisposable
 
         // unload if necessary
         Dispose();
-        
+
         RenderTarget = new RenderTarget2D(Screen.GraphicsDevice, width, height, false, Screen.BackBufferFormat,
             Screen.PreferredDepthStencilFormat, 0, RenderTargetUsage.PreserveContents);
     }

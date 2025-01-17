@@ -9,6 +9,7 @@ public class EditorPlugin : IPlugin
 {
     public unsafe void Apply(App app)
     {
+        /**
         var ctx = ImGui.GetCurrentContext();
         ImGui.SetCurrentContext(ctx);
         ImPlot.SetImGuiContext(ctx);
@@ -18,11 +19,16 @@ public class EditorPlugin : IPlugin
         io.ConfigViewportsNoAutoMerge = false;
         io.ConfigViewportsNoTaskBarIcon = false;
         io.ConfigDragClickToInputText = true;
-        
-        
-        //ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
+        **/
 
-        app.AddSystem<InitEditor>(Schedules.Startup);
-        app.AddSystem<DrawEditor>(Schedules.Render);
+
+        //ImGui.DockSpaceOverViewport(null, ImGuiDockNodeFlags.PassthruCentralNode, null);
+        app.AddSystem<InitEditor>(Schedules.Startup)
+            .AddSystem<DrawEditor>(Schedules.Render)
+            .AddSystem<InitImGuiManager>(Schedules.Startup)
+            .AddSystem<BeforeFrameImGuiManager>(Schedules.PreUpdate)
+            .AddSystem<AfterFrameImGuiManager>(Schedules.PreUpdate)
+            .AddSystem<SetDefaultFont>(Schedules.PreUpdate)
+            .AddSystem<RemoveDefaultFont>(Schedules.PostRender);
     }
 }

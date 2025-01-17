@@ -12,19 +12,19 @@ public interface IMetaSystem
     /// Gets the metadata and access information for a system
     /// </summary>
     public SystemMeta Meta { get; }
-    
+
     /// <summary>
     /// Initialize the system and its parameters.
     /// </summary>
     /// <param name="world"></param>
     public void Initialize(PolyWorld world);
-    
+
     /// <summary>
     /// Called whenever a new table is created. The system should check if the table has any components that it is interested in and update
     /// its metadata accordingly.
     /// </summary>
     /// <param name="cache"></param>
-    public void UpdateStorageAccess(TableCache tables, ResourceStorage resources); 
+    public void UpdateStorageAccess(TableCache tables, ResourceStorage resources);
 }
 
 public interface ICondition : IMetaSystem
@@ -43,8 +43,8 @@ public interface ISystem : IMetaSystem
     /// </summary>
     /// <returns></returns>
     public List<ISystemSet> GetDefaultSystemSets();
-    
-    
+
+
     /// <summary>
     /// Execute the system
     /// </summary>
@@ -59,28 +59,28 @@ public abstract class ClassSystem : ISystem, IIntoSystemConfigs, IIntoSystemSet
         Meta = new SystemMeta(GetType().Name);
         Params = parameters.ToList();
     }
-    
+
     protected void SetupFromBuilder(ParamBuilder builder)
     {
         BuildParameters(builder);
         Params.AddRange(builder.Build());
     }
-    
+
     protected abstract void BuildParameters(ParamBuilder builder);
-    
-    
+
+
     protected List<ISystemParam> Params;
     public SystemMeta Meta { get; }
     public virtual void Initialize(PolyWorld world)
     {
         SetupFromBuilder(world.GetParamBuilder());
-        
+
         foreach (var param in Params)
         {
             param.Initialize(world, Meta);
         }
     }
-    
+
     protected int TableGeneration;
     protected int ResourceGeneration;
 
@@ -95,7 +95,7 @@ public abstract class ClassSystem : ISystem, IIntoSystemConfigs, IIntoSystemSet
                 parameter.EvaluateNewStorage(Meta, storage);
             }
         }
-        
+
         (oldGeneration, ResourceGeneration) = (ResourceGeneration, resources.Generation);
         for (var i = oldGeneration; i < ResourceGeneration; i++)
         {
@@ -127,27 +127,27 @@ public abstract class ClassSystem : ISystem, IIntoSystemConfigs, IIntoSystemSet
     public abstract void Run(PolyWorld world);
     public NodeConfigs<ISystem> IntoConfigs()
     {
-            IIntoNodeConfigs<ISystem> baseConfig = NodeConfigs<ISystem>.Of(new SystemConfig(this));
+        IIntoNodeConfigs<ISystem> baseConfig = NodeConfigs<ISystem>.Of(new SystemConfig(this));
 
-            // Apply any attributes of this type onto its base config
-            var attributes = Attribute.GetCustomAttributes(GetType(), true);
-            foreach (var attr in attributes)
+        // Apply any attributes of this type onto its base config
+        var attributes = Attribute.GetCustomAttributes(GetType(), true);
+        foreach (var attr in attributes)
+        {
+            if (attr is SystemConfigAttribute configAttr)
             {
-                if (attr is SystemConfigAttribute configAttr)
-                {
-                    baseConfig = configAttr.Apply(baseConfig);
-                }
+                baseConfig = configAttr.Apply(baseConfig);
             }
+        }
 
-            return baseConfig.IntoConfigs();
+        return baseConfig.IntoConfigs();
     }
 
     public ISystemSet IntoSystemSet()
     {
         return new SystemTypeSet(GetType());
     }
-    
-    
+
+
     // Re-export all the interface methods from IIntoSystemConfigs to make it easier to chain them
 
     public IIntoNodeConfigs<ISystem> InSet(IIntoSystemSet set) => IntoConfigs().InSet(set);

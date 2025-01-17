@@ -41,7 +41,8 @@ public sealed class ParamGenerator : IIncrementalGenerator
         {
             ctor.AddParameter($"ITSystemParam<T{i}>", $"p{i}");
         }
-        ctor.WithBody(b => {
+        ctor.WithBody(b =>
+        {
             var paramText = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"p{i}"));
             b.AppendLine($"_params = ({paramText});");
         });
@@ -52,7 +53,8 @@ public sealed class ParamGenerator : IIncrementalGenerator
         Class.AddMethod("Initialize", Accessibility.Public).Override()
             .AddParameter("PolyWorld", "world")
             .AddParameter("SystemMeta", "meta")
-            .WithBody(b => {
+            .WithBody(b =>
+            {
                 for (var i = 1; i <= numParams; i++)
                 {
                     b.AppendLine($"_params.Item{i}.Initialize(world, meta);");
@@ -63,7 +65,8 @@ public sealed class ParamGenerator : IIncrementalGenerator
             .AddParameter("SystemMeta", "meta")
             .AddParameter("Table", "table")
             .AddParameter("int", "tableGen")
-            .WithBody(b => {
+            .WithBody(b =>
+            {
                 for (var i = 1; i <= numParams; i++)
                 {
                     b.AppendLine($"_params.Item{i}.EvaluateNewTable(meta, table, tableGen);");
@@ -74,16 +77,18 @@ public sealed class ParamGenerator : IIncrementalGenerator
             .WithReturnType($"({typeString})")
             .AddParameter("PolyWorld", "world")
             .AddParameter("SystemMeta", "meta")
-            .WithBody(b => {
+            .WithBody(b =>
+            {
                 var paramText = string.Join(", ", Enumerable.Range(1, numParams).Select(i => $"_params.Item{i}.Get(world, meta)"));
                 b.AppendLine($"return ({paramText});");
             });
-        
+
         Class.AddMethod("IsGettable", Accessibility.Public).Override()
             .WithReturnType("bool")
             .AddParameter("PolyWorld", "world")
             .AddParameter("SystemMeta", "meta")
-            .WithBody(b => {
+            .WithBody(b =>
+            {
                 var paramText = string.Join(" && ", Enumerable.Range(1, numParams).Select(i => $"_params.Item{i}.IsGettable(world, meta)"));
                 b.AppendLine($"return ({paramText});");
             });

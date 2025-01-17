@@ -45,7 +45,7 @@ public static class Vector2Ext
     /// </summary>
     /// <param name="vec">Vec.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 Round(this Vector2 vec) => new (Mathf.Round(vec.X), Mathf.Round(vec.Y));
+    public static Vector2 Round(this Vector2 vec) => new(Mathf.Round(vec.X), Mathf.Round(vec.Y));
 
 
     /// <summary>
@@ -69,7 +69,7 @@ public static class Vector2Ext
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 Floor(Vector2 val) => new ((int)val.X, (int)val.Y);
+    public static Vector2 Floor(Vector2 val) => new((int)val.X, (int)val.Y);
 
 
     /// <summary>
@@ -77,7 +77,7 @@ public static class Vector2Ext
     /// </summary>
     /// <returns>The vector.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 HalfVector() => new (0.5f, 0.5f);
+    public static Vector2 HalfVector() => new(0.5f, 0.5f);
 
 
     /// <summary>
@@ -95,7 +95,7 @@ public static class Vector2Ext
     /// <param name="first">First.</param>
     /// <param name="second">Second.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 Perpendicular(ref Vector2 first, ref Vector2 second) => new (-1f * (second.Y - first.Y), second.X - first.X);
+    public static Vector2 Perpendicular(ref Vector2 first, ref Vector2 second) => new(-1f * (second.Y - first.Y), second.X - first.X);
 
 
     /// <summary>
@@ -104,7 +104,7 @@ public static class Vector2Ext
     /// <param name="first">First.</param>
     /// <param name="second">Second.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 Perpendicular(Vector2 first, Vector2 second) => new (-1f * (second.Y - first.Y), second.X - first.X);
+    public static Vector2 Perpendicular(Vector2 first, Vector2 second) => new(-1f * (second.Y - first.Y), second.X - first.X);
 
 
     /// <summary>
@@ -112,7 +112,7 @@ public static class Vector2Ext
     /// </summary>
     /// <param name="original">Original.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 Perpendicular(Vector2 original) => new (-original.Y, original.X);
+    public static Vector2 Perpendicular(Vector2 original) => new(-original.Y, original.X);
 
 
     /// <summary>
@@ -192,7 +192,7 @@ public static class Vector2Ext
     /// <returns>The vector3.</returns>
     /// <param name="vec">Vec.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector3 ToVector3(this Vector2 vec) => new (vec, 0);
+    public static Vector3 ToVector3(this Vector2 vec) => new(vec, 0);
 
 
     /// <summary>
@@ -214,7 +214,7 @@ public static class Vector2Ext
     /// <param name="matrix">The transformation <see cref="Matrix" />.</param>
     /// <returns>Transformed <see cref="Vector2" />.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 Transform(Vector2 position, Matrix2D matrix) => new (position.X * matrix.M11 + position.Y * matrix.M21 + matrix.M31,
+    public static Vector2 Transform(Vector2 position, Matrix2D matrix) => new(position.X * matrix.M11 + position.Y * matrix.M21 + matrix.M31,
         position.X * matrix.M12 + position.Y * matrix.M22 + matrix.M32);
 
 

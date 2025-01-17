@@ -13,12 +13,12 @@ namespace PolyECS.Scheduling.Configs;
 /// </summary>
 public abstract class NodeConfig<T> : IIntoNodeConfigs<T>
 {
-    public List<ICondition> Conditions = new ();
+    public List<ICondition> Conditions = new();
     public T Node;
     /// <summary>
     ///     Hierarchy and depdendency metadata for this node
     /// </summary>
-    public SubgraphInfo Subgraph = new ();
+    public SubgraphInfo Subgraph = new();
 
     protected NodeConfig(T node) => Node = node;
 

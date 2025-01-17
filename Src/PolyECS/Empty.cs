@@ -4,5 +4,5 @@ namespace PolyECS;
 public sealed class Empty
 {
     private Empty() { }
-    public static Empty Instance { get; } = new ();
+    public static Empty Instance { get; } = new();
 }

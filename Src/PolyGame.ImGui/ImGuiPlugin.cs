@@ -2,23 +2,54 @@ using Hexa.NET.ImGui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using PolyECS;
+using PolyECS.Scheduling.Configs;
 using PolyECS.Systems;
 using Num = System.Numerics;
 
 namespace PolyGame.ImGuiNet;
 
+public enum ImGuiSets
+{
+    Init,
+    StartFrame,
+    EndFrame
+}
+
 public class ImGuiPlugin : IPlugin
 {
     public void Apply(App app)
     {
-        var renderer = new ImGuiRenderer(app);
-        renderer.RebuildFontAtlas();
-        app.SetResource(renderer);
-        app.AddSystems(Schedules.PreUpdate, new StartImGuiFrame());
-        app.AddSystems(Schedules.LastRender, new EndImGuiFrame());
+        app.RegisterResource<ImGuiContextPtr>() // Resource will be created at startup, see InitImGui
+            .SetResource(new ImGuiRenderer(app))
+            .AddSystem<InitImGui>(Schedules.Startup)
+            .AddSystem<InitImGuiRenderer>(Schedules.Startup)
+            .AddSystem<StartImGuiFrame>(Schedules.PreUpdate)
+            // TODO investigate how this should work in a split render world
+            .AddSystem<EndImGuiFrame>(Schedules.PostRender);
     }
 }
 
+[InSet<ImGuiSets>(ImGuiSets.Init)]
+public partial class InitImGui : AutoSystem
+{
+    public void Run(ResMut<ImGuiContextPtr?> ctx)
+    {
+        ctx.Set(ImGui.CreateContext());
+    }
+}
+
+[AfterSystem<InitImGui>()]
+[InSet<ImGuiSets>(ImGuiSets.Init)]
+public partial class InitImGuiRenderer : AutoSystem
+{
+    public void Run(ImGuiRenderer renderer)
+    {
+        renderer.SetupInput();
+        renderer.RebuildFontAtlas();
+    }
+}
+
+[InSet<ImGuiSets>(ImGuiSets.StartFrame)]
 public partial class StartImGuiFrame : AutoSystem
 {
     int frameCount = 0;
@@ -30,11 +61,13 @@ public partial class StartImGuiFrame : AutoSystem
         {
             ImGui.EndFrame();
         }
+
         renderer.BeforeLayout(gameTime);
         frameCount++;
     }
 }
 
+[InSet<ImGuiSets>(ImGuiSets.EndFrame)]
 public partial class EndImGuiFrame : AutoSystem
 {
     public void Run(ImGuiRenderer renderer)
@@ -47,9 +80,9 @@ public partial class TestImGuiRender : AutoSystem
 {
     public TestImGuiRender(GraphicsDevice device, ImGuiRenderer renderer)
     {
-
         // First, load the texture as a Texture2D (can also be done using the XNA/FNA content pipeline)
-        _xnaTexture = CreateTexture(device, 300, 150, pixel => {
+        _xnaTexture = CreateTexture(device, 300, 150, pixel =>
+        {
             var red = (pixel % 300) / 2;
             return new Color(red, 1, 1);
         });
@@ -78,7 +111,7 @@ public partial class TestImGuiRender : AutoSystem
     }
 
     private Texture2D _xnaTexture;
-    private IntPtr _imGuiTexture;
+    private ImTextureID _imGuiTexture;
 
     public void Run(ImGuiRenderer renderer, PolyWorld world)
     {
@@ -91,7 +124,7 @@ public partial class TestImGuiRender : AutoSystem
 
     private bool show_test_window = false;
     private bool show_another_window = false;
-    private Num.Vector3 clear_color = new (114f / 255f, 144f / 255f, 154f / 255f);
+    private Num.Vector3 clear_color = new(114f / 255f, 144f / 255f, 154f / 255f);
     private string _textBuffer = "";
 
     protected virtual void ImGuiLayout()
@@ -104,7 +137,8 @@ public partial class TestImGuiRender : AutoSystem
             ImGui.ColorEdit3("clear color", ref clear_color);
             if (ImGui.Button("Test Window")) show_test_window = !show_test_window;
             if (ImGui.Button("Another Window")) show_another_window = !show_another_window;
-            ImGui.Text(string.Format("Application average {0:F3} ms/frame ({1:F1} FPS)", 1000f / ImGui.GetIO().Framerate, ImGui.GetIO().Framerate));
+            ImGui.Text(string.Format("Application average {0:F3} ms/frame ({1:F1} FPS)",
+                1000f / ImGui.GetIO().Framerate, ImGui.GetIO().Framerate));
 
             ImGui.InputText("Text input", ref _textBuffer, 100);
 

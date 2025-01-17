@@ -30,14 +30,14 @@ public struct Matrix2D : IEquatable<Matrix2D>
     /// <summary>
     ///     Returns the identity matrix.
     /// </summary>
-    public static Matrix2D Identity { get; } = new (1f, 0f, 0f, 1f, 0f, 0f);
+    public static Matrix2D Identity { get; } = new(1f, 0f, 0f, 1f, 0f, 0f);
 
     /// <summary>
     ///     Position stored in this matrix.
     /// </summary>
     public Vector2 Translation
     {
-        get => new (M31, M32);
+        get => new(M31, M32);
         set
         {
             M31 = value.X;
@@ -79,7 +79,7 @@ public struct Matrix2D : IEquatable<Matrix2D>
     /// </summary>
     public Vector2 Scale
     {
-        get => new (XAxis.Length() * Math.Sign(Determinant()), YAxis.Length());
+        get => new(XAxis.Length() * Math.Sign(Determinant()), YAxis.Length());
         set
         {
             var oldScale = Scale;
@@ -88,9 +88,9 @@ public struct Matrix2D : IEquatable<Matrix2D>
         }
     }
 
-    public Vector2 XAxis => new (M11, M12);
+    public Vector2 XAxis => new(M11, M12);
 
-    public Vector2 YAxis => new (M21, M22);
+    public Vector2 YAxis => new(M21, M22);
 
     #endregion
 
@@ -944,7 +944,7 @@ public struct Matrix2D : IEquatable<Matrix2D>
                                          M32.GetHashCode();
 
 
-    public static implicit operator Matrix(Matrix2D mat) => new (
+    public static implicit operator Matrix(Matrix2D mat) => new(
         mat.M11, mat.M12, 0, 0,
         mat.M21, mat.M22, 0, 0,
         0, 0, 1, 0,

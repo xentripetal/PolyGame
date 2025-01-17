@@ -120,9 +120,4 @@ public abstract class EditorWindow : IEditorWindow
 
     protected virtual void DisposeCore() { }
 
-    public void Focus()
-    {
-        ImGuiWindowPtr window = ImGui.FindWindowByName(Name);
-        ImGui.FocusWindow(window, ImGuiFocusRequestFlags.UnlessBelowModal);
-    }
 }

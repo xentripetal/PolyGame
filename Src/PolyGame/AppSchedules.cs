@@ -19,11 +19,11 @@ public partial class App
         schedule.AddSystems(systems);
         return this;
     }
-    
+
     public App AddSystem<T>(IIntoScheduleLabel label, Func<T, IIntoNodeConfigs<ISystem>>? cfg = null) where T : ClassSystem, new()
     {
         var sys = new T();
-        
+
         if (cfg != null)
         {
             return AddSystems(label, cfg(sys));

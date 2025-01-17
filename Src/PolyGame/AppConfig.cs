@@ -2,7 +2,7 @@ namespace PolyGame;
 
 public partial class App
 {
-    protected HashSet<IPlugin> _plugins = new ();
+    protected HashSet<IPlugin> _plugins = new();
 
     public App AddPlugin(IPlugin plugin)
     {

@@ -38,7 +38,7 @@ internal struct ParsedAutoSystem
 
 
     public AutoSystemBuilder? Value = null;
-    public List<Diagnostic> Diagnostics = new ();
+    public List<Diagnostic> Diagnostics = new();
 
     public ParsedAutoSystem() { }
 }
@@ -118,7 +118,7 @@ class AutoSystemBuilder
         // Manually add Systems
         file.AddNamespaceImport("PolyECS.Systems");
         file.AddNamespaceImport("PolyECS");
-        
+
         // If its a nested class, we need to add the parent class
         var cur = Syntax.Parent;
         ClassBuilder ext = null;
@@ -145,19 +145,19 @@ class AutoSystemBuilder
             ext.AddProperty(p.PropertyName).WithAccessModifier(Accessibility.Private).SetType(p.TypeName);
         }
         ext.AddMethod("BuildParameters", Accessibility.Protected).Override().AddParameter("ParamBuilder", "builder")
-            .WithBody(b => {
+            .WithBody(b =>
+            {
                 foreach (var p in Params) p.ParamCreatorCode(b);
             });
-        
+
         ext.AddMethod("Run", Accessibility.Public).Override()
-            .AddParameter("PolyWorld", "world").WithBody(b => {
+            .AddParameter("PolyWorld", "world").WithBody(b =>
+            {
                 foreach (var p in Params)
                 {
                     p.RunPreconditionCode(b);
                 }
-                b.AppendLine($"{RunMethod.Identifier.ToString()}({
-                    string.Join(", ", Params.Select(p => p.ParamGetterCode()))
-                });");
+                b.AppendLine($"{RunMethod.Identifier.ToString()}({string.Join(", ", Params.Select(p => p.ParamGetterCode()))});");
             });
 
         return file;

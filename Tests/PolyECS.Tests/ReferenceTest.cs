@@ -9,14 +9,14 @@ namespace PolyECS.Tests;
 // Components
 file record struct Position(float X, float Y)
 {
-    public static Position operator +(Position a, Position b) => new (a.X + b.X, a.Y + b.Y);
-    public static Position operator *(Position a, Position b) => new (a.X * b.X, a.Y * b.Y);
+    public static Position operator +(Position a, Position b) => new(a.X + b.X, a.Y + b.Y);
+    public static Position operator *(Position a, Position b) => new(a.X * b.X, a.Y * b.Y);
 }
 
 file record struct Scale(float X, float Y)
 {
-    public static Scale operator +(Scale a, Scale b) => new (a.X + b.X, a.Y + b.Y);
-    public static Scale operator *(Scale a, Scale b) => new (a.X * b.X, a.Y * b.Y);
+    public static Scale operator +(Scale a, Scale b) => new(a.X + b.X, a.Y + b.Y);
+    public static Scale operator *(Scale a, Scale b) => new(a.X * b.X, a.Y * b.Y);
 }
 
 // Tags
@@ -34,7 +34,7 @@ public class ReferenceTest
     {
         Assert.False(RuntimeHelpers.IsReferenceOrContainsReferences<int>());
     }
-    
+
     public class TestClassComponent
     {
         public List<bool> Value;
@@ -63,12 +63,12 @@ public class ReferenceTest
         var e2 = e1.Clone();
         world.Progress();
     }
-    
+
     [Fact]
     public void TableObserver()
     {
         using var world = World.Create();
-        world.Observer().With(Ecs.Any).Event(Ecs.OnTableCreate).Each( (Iter it, int i) =>
+        world.Observer().With(Ecs.Any).Event(Ecs.OnTableCreate).Each((Iter it, int i) =>
         {
             _testOutputHelper.WriteLine("Table created");
         });

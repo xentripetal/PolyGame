@@ -14,14 +14,14 @@ public abstract class EnumSetReferenceAttribute<T> : SystemConfigAttribute where
     public EnumSetReferenceAttribute(T set) => ReferenceSet = new EnumSystemSet<T>(set);
 }
 
-public abstract class GenericSetReferenceAttribute<T> : SystemConfigAttribute where T : ISystem 
+public abstract class GenericSetReferenceAttribute<T> : SystemConfigAttribute where T : ISystem
 {
     protected IIntoSystemSet ReferenceSet;
 
     public GenericSetReferenceAttribute() => ReferenceSet = new SystemTypeSet<T>();
 }
 
-public class BeforeSystemAttribute<T> : GenericSetReferenceAttribute<T> where T : ISystem 
+public class BeforeSystemAttribute<T> : GenericSetReferenceAttribute<T> where T : ISystem
 {
     public override IIntoNodeConfigs<ISystem> Apply(IIntoNodeConfigs<ISystem> configs) => configs.Before(ReferenceSet);
 }

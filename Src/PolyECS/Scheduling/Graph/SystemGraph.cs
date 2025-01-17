@@ -17,38 +17,38 @@ namespace PolyECS.Scheduling.Graph;
 /// </remarks>
 public class SystemGraph
 {
-    public readonly UndirectedGraph<NodeId, Edge<NodeId>> AmbiguousWith = new ();
-    protected readonly HashSet<NodeId> AmbiguousWithAll = new ();
+    public readonly UndirectedGraph<NodeId, Edge<NodeId>> AmbiguousWith = new();
+    protected readonly HashSet<NodeId> AmbiguousWithAll = new();
     protected ulong AnonymousSets;
-    protected readonly Dictionary<uint, NodeId> AutoSyncNodeIds = new ();
+    protected readonly Dictionary<uint, NodeId> AutoSyncNodeIds = new();
     public bool Changed = true;
-    public ScheduleBuildSettings Config = new (autoInsertApplyDeferred: true);
-    protected List<(NodeId, NodeId, AccessElement[])> ConflictingSystems = new ();
+    public ScheduleBuildSettings Config = new(autoInsertApplyDeferred: true);
+    protected List<(NodeId, NodeId, AccessElement[])> ConflictingSystems = new();
 
     /// Directed acyclic graph of the dependency (which systems/sets have to run before which other systems/sets)
-    protected readonly BidirectionalGraph<NodeId, Edge<NodeId>> Dependency = new ();
+    protected readonly BidirectionalGraph<NodeId, Edge<NodeId>> Dependency = new();
 
     /// Directed acyclic graph of the hierarchy (which systems/sets are children of which sets)
-    protected BidirectionalGraph<NodeId, Edge<NodeId>> Hierarchy = new ();
+    protected BidirectionalGraph<NodeId, Edge<NodeId>> Hierarchy = new();
 
     /// Dependency edges that will **not** automatically insert an instance of `apply_deferred` on the edge.
-    protected readonly HashSet<(NodeId, NodeId)> NoSyncEdges = new ();
+    protected readonly HashSet<(NodeId, NodeId)> NoSyncEdges = new();
     /// List of conditions for each system, in the same order as `systems`
-    protected readonly List<List<ICondition>> SystemConditions = new ();
+    protected readonly List<List<ICondition>> SystemConditions = new();
     /// List of systems in the schedule
-    protected readonly List<ISystem> Systems = new ();
+    protected readonly List<ISystem> Systems = new();
 
     /// List of conditions for each system set, in the same order as `system_sets`
-    protected readonly List<List<ICondition>> SystemSetConditions = new ();
+    protected readonly List<List<ICondition>> SystemSetConditions = new();
 
     /// Map from system set to node id
-    public readonly Dictionary<ISystemSet, NodeId> SystemSetIds = new ();
+    public readonly Dictionary<ISystemSet, NodeId> SystemSetIds = new();
     /// List of system sets in the schedule
-    protected readonly List<ISystemSet> SystemSets = new ();
+    protected readonly List<ISystemSet> SystemSets = new();
 
     /// Systems that have not been initialized yet; for system sets, we store the index of the first uninitialized condition
     /// (all the conditions after that index still need to be initialized)
-    protected readonly List<(NodeId, int)> Uninit = new ();
+    protected readonly List<(NodeId, int)> Uninit = new();
 
     /// <summary>
     ///     Returns the set at the given <see cref="NodeId" />, if it exists
@@ -138,7 +138,7 @@ public class SystemGraph
 
     protected ProcessConfigsResult ProcessConfig<TNode>(NodeConfig<TNode> config, bool collectNodes)
     {
-        List<NodeId> nodes = new ();
+        List<NodeId> nodes = new();
         var id = config.ProcessConfig(this);
         if (collectNodes)
         {
