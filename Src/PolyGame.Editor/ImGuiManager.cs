@@ -14,7 +14,8 @@ using PolyGame.ImGuiNet;
 
 namespace PolyGame.Editor;
 
-[After<ImGuiSets>(ImGuiSets.Init)]
+[BeforeSystem<InitImGuiRenderer>]
+[AfterSystem<InitImGui>]
 public partial class InitImGuiManager : AutoSystem
 {
     public unsafe void Run(ImGuiContextPtr ctx, ResMut<ImGuiConfigFlags?> flags, ResMut<ImNodesContextPtr?> nodesCtx,
@@ -51,9 +52,9 @@ public partial class InitImGuiManager : AutoSystem
 
         uint* glyphRanges = stackalloc uint[]
         {
-            (uint)0xe005, (uint)0xe684,
-            (uint)0xF000, (uint)0xF8FF,
-            (uint)0 // null terminator
+            0xe005, 0xe684,
+            0xF000, 0xF8FF,
+            0 // null terminator
         };
 
         var baseDir = "../../../../PolyGame.Editor/";
@@ -63,17 +64,18 @@ public partial class InitImGuiManager : AutoSystem
 
         using (ImGuiFontBuilder builder = new(fonts))
         {
-            builder.AddFontFromFileTTF(baseDir + "assets/shared/fonts/arial.ttf", 15)
+            builder.AddFontFromFileTTF(path + "assets/shared/fonts/arial.ttf", 15)
                 .SetOption(conf => conf.GlyphMinAdvanceX = 16)
-                .AddFontFromFileTTF(baseDir + "assets/shared/fonts/fa-solid-900.ttf", 14, glyphRanges)
-                .AddFontFromFileTTF(baseDir + "assets/shared/fonts/fa-brands-400.ttf", 14, glyphRanges);
+                .AddFontFromFileTTF(path + "assets/shared/fonts/fa-solid-900.ttf", 14, glyphRanges)
+                .AddFontFromFileTTF(path + "assets/shared/fonts/fa-brands-400.ttf", 14, glyphRanges);
             ImGuiManager.RegisterFont("Default", builder.Font);
         }
 
+
         ImGuiFontBuilder iconsRegularBuilder = new(fonts);
-        iconsRegularBuilder.AddFontFromFileTTF(baseDir + "assets/shared/fonts/arial.ttf", 15)
+        iconsRegularBuilder.AddFontFromFileTTF(path + "assets/shared/fonts/arial.ttf", 15)
             .SetOption(conf => conf.GlyphMinAdvanceX = 16)
-            .AddFontFromFileTTF(baseDir + "assets/shared/fonts/fa-regular-400.ttf", 14, glyphRanges);
+            .AddFontFromFileTTF(path + "assets/shared/fonts/fa-regular-400.ttf", 14, glyphRanges);
         ImGuiManager.RegisterFont("Icons-Regular", iconsRegularBuilder.Font);
         iconsRegularBuilder.Dispose();
 

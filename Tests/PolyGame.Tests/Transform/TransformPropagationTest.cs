@@ -8,6 +8,8 @@ public class TransformPropagationTest : SystemTest
     public TransformPropagationTest()
     {
         Schedule.AddSystems(new PropagateTransform());
+        World.FlecsWorld.Component<Vector2>().Member<float>("X").Member<float>("Y");
+        World.Register<Rotation2D>();
         World.Register<Position2D>();
         World.Register<Scale2D>();
     }
