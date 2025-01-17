@@ -10,11 +10,11 @@ public struct StorageKey : IEquatable<StorageKey>
         SubId = subId;
         Type = type;
     }
-    
+
     public int Id;
     public int SubId;
     public StorageType Type;
-    
+
     public Storage ToStorage(PolyWorld world)
     {
         return new Storage(world, Type, Id);
@@ -49,7 +49,7 @@ public struct Storage
         Table = table;
         table.Type().Get(subId);
     }
-    
+
     public Storage(ResourceEntry resource)
     {
         Id = resource.Id;
@@ -71,7 +71,7 @@ public struct Storage
             world.Resources.TryGetEntry(id, out Resource);
         }
     }
-    
+
     public int Id;
     public int SubId;
     public StorageType Type;
@@ -97,7 +97,7 @@ public struct Storage
     }
 
     public ResourceEntry? Resource;
-    
+
     public StorageKey Key => new StorageKey(Id, SubId, Type);
 }
 

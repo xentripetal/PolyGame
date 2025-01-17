@@ -9,16 +9,16 @@ namespace PolyGame.Graphics.Renderers;
 
 public class RenderGraph
 {
-    protected List<Renderer> AfterPostProcessorRenderers = new ();
+    protected List<Renderer> AfterPostProcessorRenderers = new();
 
-    protected List<Renderer> Renderers = new ();
+    protected List<Renderer> Renderers = new();
 
     public RenderGraph(IEnumerable<Renderer> renderers)
     {
         foreach (var renderer in renderers)
             AddRenderer(renderer);
     }
-    
+
     public void OnSceneBackBufferSizeChanged(Screen screen, int width, int height)
     {
         foreach (var renderer in Renderers)
@@ -26,7 +26,7 @@ public class RenderGraph
         foreach (var renderer in AfterPostProcessorRenderers)
             renderer.OnSceneBackBufferSizeChanged(screen, width, height);
     }
-    
+
     public RenderGraph ClearRenderers()
     {
         Renderers.Clear();

@@ -11,15 +11,15 @@ namespace PolyGame;
 /// </summary>
 public class FastList<T>
 {
-	/// <summary>
-	///     direct access to the backing buffer. Do not use buffer.Length! Use FastList.length
-	/// </summary>
-	public T[] Buffer;
+    /// <summary>
+    ///     direct access to the backing buffer. Do not use buffer.Length! Use FastList.length
+    /// </summary>
+    public T[] Buffer;
 
-	/// <summary>
-	///     direct access to the length of the filled items in the buffer. Do not change.
-	/// </summary>
-	public int Length;
+    /// <summary>
+    ///     direct access to the length of the filled items in the buffer. Do not change.
+    /// </summary>
+    public int Length;
 
 
     public FastList(int size) => Buffer = new T[size];

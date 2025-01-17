@@ -129,7 +129,7 @@ public static class SyntaxHelpers
 
         return usings;
     }
-    
+
     private static readonly Dictionary<string, string> _typeMappings = new Dictionary<string, string>
     {
         { "Boolean", "bool" },
@@ -148,7 +148,7 @@ public static class SyntaxHelpers
         { "Object", "object" },
         { "String", "string" }
     };
-    
+
     public static string GetTypeName(this ITypeSymbol symbol)
     {
         if (symbol.ContainingNamespace.Name == "System" && _typeMappings.TryGetValue(symbol.Name, out var name))
@@ -161,7 +161,7 @@ public static class SyntaxHelpers
             if (namedType?.TypeArguments.Any() ?? false)
             {
                 var genericArgs = string.Join(",", namedType.TypeArguments.Select(GetTypeName));
-                sb.Append($"<{ genericArgs }>");
+                sb.Append($"<{genericArgs}>");
             }
         }
 

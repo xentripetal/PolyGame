@@ -32,13 +32,13 @@ public struct Affine2
         Matrix2 = Mat2.Identity;
         Translation = translation;
     }
-    
+
     public Affine2()
     {
         Matrix2 = Mat2.Identity;
         Translation = Vector2.Zero;
     }
-    
+
     [ComponentMembers<Affine2>]
     public static void RegisterMembers(UntypedComponent component)
     {
@@ -52,9 +52,9 @@ public struct Affine2
     /// <summary>
     ///     Returns the identity matrix.
     /// </summary>
-    public static Affine2 Identity { get; } = new (Vector2.Zero, Mat2.Identity);
+    public static Affine2 Identity { get; } = new(Vector2.Zero, Mat2.Identity);
 
-    public static Affine2 Zero { get; } = new (Vector2.Zero, Mat2.Zero);
+    public static Affine2 Zero { get; } = new(Vector2.Zero, Mat2.Zero);
 
     public float RotationDegrees
     {

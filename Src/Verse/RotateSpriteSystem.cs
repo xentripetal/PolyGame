@@ -33,7 +33,8 @@ public partial class RotateSpriteSystem : AutoSystem
         }
 
 
-        sprites.Each((ref Rotation2D rotation, ref Scale2D scale) => {
+        sprites.Each((ref Rotation2D rotation, ref Scale2D scale) =>
+        {
             rotation.Degrees += rotChange * 10 * (float)delta;
             scale.Value += scaleChange * new Vector2(0.5f, 0.5f) * (float)delta;
         });

@@ -16,7 +16,7 @@ public struct RenderableReference : IComparable<RenderableReference>
             return SubSortKey.CompareTo(other.SubSortKey);
         }
         return SortKey.CompareTo(other.SortKey);
-    } 
+    }
 }
 
 /// <summary>

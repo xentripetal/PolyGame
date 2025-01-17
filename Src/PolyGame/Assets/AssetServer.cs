@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Flecs.NET.Bindings;
 using Flecs.NET.Core;
@@ -20,14 +21,14 @@ public class AssetServer : IDisposable
         Failed
     }
 
-    protected ListPool<Asset> assets = new ();
-    protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new ();
-    protected ReaderWriterLockSlim handleLock = new ();
+    protected ListPool<Asset> assets = new();
+    protected Dictionary<AssetPath, (int, ushort)> assignedHandles = new();
+    protected ReaderWriterLockSlim handleLock = new();
 
 
-    protected Dictionary<string, IAssetLoader> loadersByExtension = new ();
+    protected Dictionary<string, IAssetLoader> loadersByExtension = new();
 
-    protected List<Delegate> typeHooks = new ();
+    protected List<Delegate> typeHooks = new();
     protected World[] worlds;
 
     public AssetServer(World[] worlds) => this.worlds = worlds;
@@ -62,6 +63,7 @@ public class AssetServer : IDisposable
         }
     }
 
+    [RequiresDynamicCode()]
     protected Handle<T> CreateHandle<T>(int id, ushort generation)
     {
         unsafe
@@ -149,7 +151,8 @@ public class AssetServer : IDisposable
         }
         if (async)
         {
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 LoadInternal<T>(handle.Index(), handle.Generation(), path, loader);
             });
         }

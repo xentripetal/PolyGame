@@ -8,7 +8,7 @@ public abstract class SystemTest : IDisposable
 {
     protected Schedule Schedule;
 
-    protected ScheduleLabel ScheduleLabel = new ("TestSchedule");
+    protected ScheduleLabel ScheduleLabel = new("TestSchedule");
     protected PolyWorld World;
 
     public SystemTest()

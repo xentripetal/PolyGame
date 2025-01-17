@@ -8,7 +8,7 @@ namespace PolyGame.Transform;
 [RequiredComponent<Rotation2D>]
 [RequiredComponent<Scale2D>]
 [RequiredComponent<GlobalTransform2D>]
-public record struct Position2D(Vector2 Value) 
+public record struct Position2D(Vector2 Value)
 {
     [ComponentMembers<Position2D>]
     public static void Register(UntypedComponent component)
@@ -40,7 +40,7 @@ public record struct Rotation2D
     }
 }
 
-public record struct Scale2D 
+public record struct Scale2D
 {
     public Vector2 Value;
     public Scale2D(Vector2 scale) => Value = scale;
@@ -51,12 +51,12 @@ public record struct Scale2D
     {
         component.Member<Vector2>("Value");
     }
-    
+
     public static implicit operator Vector2(Scale2D scale) => scale.Value;
     public static implicit operator Scale2D(Vector2 scale) => new(scale);
 }
 
-public record struct GlobalTransform2D(Affine2 Value) 
+public record struct GlobalTransform2D(Affine2 Value)
 {
     [ComponentMembers<GlobalTransform2D>]
     public static void Register(PolyWorld world, UntypedComponent component)

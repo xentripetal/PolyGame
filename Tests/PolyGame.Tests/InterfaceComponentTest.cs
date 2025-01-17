@@ -32,7 +32,7 @@ public class InterfaceComponentTest
 
         world.Entity("T1-Interface").Set(new ITestWrapper(new T1()));
         world.Entity("T2-Interface").Set(new ITestWrapper(new T2()));
-        
+
         world.Entity("T1-NonStruct").Set<ITest>(new T1());
         world.Entity("T2-NonStruct").Set<ITest>(new T2());
         world.Query<ITest>().Each((Entity entity, ref ITest wrapper) => _out.WriteLine($"{entity.Name()} - {wrapper.DoSomething()}"));

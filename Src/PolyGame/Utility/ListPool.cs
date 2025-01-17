@@ -2,7 +2,7 @@ namespace PolyGame;
 
 public class ListPool<T>
 {
-    protected Stack<int> _freeIndices = new ();
+    protected Stack<int> _freeIndices = new();
     protected T[] Buffer;
     protected ushort[] Generations;
 

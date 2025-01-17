@@ -623,7 +623,7 @@ public static class Mathf
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Vector2 AngleToVector(float angleRadians, float length) => new (Cos(angleRadians) * length, Sin(angleRadians) * length);
+    public static Vector2 AngleToVector(float angleRadians, float length) => new(Cos(angleRadians) * length, Sin(angleRadians) * length);
 
 
     /// <summary>

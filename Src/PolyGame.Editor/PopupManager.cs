@@ -6,8 +6,8 @@ using System.Collections.Generic;
 
 public static class PopupManager
 {
-    private static readonly List<IPopup> popups = new ();
-    private static readonly object _lock = new ();
+    private static readonly List<IPopup> popups = new();
+    private static readonly object _lock = new();
 
     public static object SyncLock => _lock;
 
@@ -35,7 +35,7 @@ public static class PopupManager
 
     public static T Show<T>() where T : IPopup, new()
     {
-        T popup = new ();
+        T popup = new();
         lock (_lock)
         {
             popups.Add(popup);

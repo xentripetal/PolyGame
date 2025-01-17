@@ -137,7 +137,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
     public Component<T> Register<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods |
                                     DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-        T>()
+    T>()
     {
         Component<T> comp;
         var name = "";
@@ -154,7 +154,7 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
 
         // If it has a public parameterless constructor, use it
         if (t.GetConstructor(Type.EmptyTypes) != null)
-            comp.Ctor((delegate(ref T data, TypeInfo info) { data = (T)Activator.CreateInstance(t)!; }));
+            comp.Ctor((delegate (ref T data, TypeInfo info) { data = (T)Activator.CreateInstance(t)!; }));
 
 
         // Register any attributes on the type
@@ -166,16 +166,17 @@ public partial class PolyWorld : IDisposable, IIntoSystemParam, IStaticSystemPar
         // Scan for any static methods with registration attributes
         var staticMethods = typeof(T).GetMethods(BindingFlags.Static | BindingFlags.Public);
         foreach (var method in staticMethods)
-        foreach (var attr in method.GetCustomAttributes())
-        {
-            if (attr is MethodComponentRegistrationAttribute<T> registrationAttribute)
+            foreach (var attr in method.GetCustomAttributes())
             {
-                registrationAttribute.Apply(method, comp, this);
-            } else if (attr is UntypedMethodComponentRegistrationAttribute untypedAttribute)
-            {
-                untypedAttribute.Apply(method, comp.UntypedComponent, this);
+                if (attr is MethodComponentRegistrationAttribute<T> registrationAttribute)
+                {
+                    registrationAttribute.Apply(method, comp, this);
+                }
+                else if (attr is UntypedMethodComponentRegistrationAttribute untypedAttribute)
+                {
+                    untypedAttribute.Apply(method, comp.UntypedComponent, this);
+                }
             }
-        }
 
 
         return comp;

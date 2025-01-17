@@ -27,7 +27,7 @@ public class QuadMesh : IDisposable
                 new Vector2(1, 0))
         };
 
-        var indices = new short[] {0, 1, 2, 2, 3, 0};
+        var indices = new short[] { 0, 1, 2, 2, 3, 0 };
 
         _vertexBuffer = new VertexBuffer(device, VertexPositionTexture.VertexDeclaration, 4, BufferUsage.WriteOnly);
         _vertexBuffer.SetData(verts);

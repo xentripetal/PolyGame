@@ -11,7 +11,7 @@ public class TransformPropagationTest : SystemTest
         World.Register<Position2D>();
         World.Register<Scale2D>();
     }
-    
+
     [Fact]
     public void Test()
     {

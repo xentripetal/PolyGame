@@ -4,28 +4,28 @@ namespace PolyGame;
 
 public static class Schedules
 {
-    public static readonly ScheduleLabel PreStartup = new ("pre-startup");
-    public static readonly ScheduleLabel Startup = new ("startup");
-    public static readonly ScheduleLabel PostStartup = new ("post-startup");
+    public static readonly ScheduleLabel PreStartup = new("pre-startup");
+    public static readonly ScheduleLabel Startup = new("startup");
+    public static readonly ScheduleLabel PostStartup = new("post-startup");
 
-    public static readonly ScheduleLabel FirstUpdate = new ("first-update");
-    public static readonly ScheduleLabel PreUpdate = new ("pre-update");
-    public static readonly ScheduleLabel Update = new ("update");
-    public static readonly ScheduleLabel PostUpdate = new ("post-update");
-    public static readonly ScheduleLabel LastUpdate = new ("last-update");
+    public static readonly ScheduleLabel FirstUpdate = new("first-update");
+    public static readonly ScheduleLabel PreUpdate = new("pre-update");
+    public static readonly ScheduleLabel Update = new("update");
+    public static readonly ScheduleLabel PostUpdate = new("post-update");
+    public static readonly ScheduleLabel LastUpdate = new("last-update");
 
-    public static readonly ScheduleLabel FirstRender = new ("first-render");
-    public static readonly ScheduleLabel PreRender = new ("pre-render");
-    public static readonly ScheduleLabel Render = new ("render");
-    public static readonly ScheduleLabel PostRender = new ("post-render");
-    public static readonly ScheduleLabel LastRender = new ("last-render");
+    public static readonly ScheduleLabel FirstRender = new("first-render");
+    public static readonly ScheduleLabel PreRender = new("pre-render");
+    public static readonly ScheduleLabel Render = new("render");
+    public static readonly ScheduleLabel PostRender = new("post-render");
+    public static readonly ScheduleLabel LastRender = new("last-render");
 
     public static ScheduleLabel Default = Update;
 }
 
 public class MainScheduleOrder
 {
-    public List<ScheduleLabel> RenderLabels = new ([
+    public List<ScheduleLabel> RenderLabels = new([
         Schedules.FirstRender,
         Schedules.PreRender,
         Schedules.Render,
@@ -33,12 +33,12 @@ public class MainScheduleOrder
         Schedules.LastRender
     ]);
 
-    public List<ScheduleLabel> StartupLabels = new ([
+    public List<ScheduleLabel> StartupLabels = new([
         Schedules.PreStartup,
         Schedules.Startup,
         Schedules.PostStartup
     ]);
-    public List<ScheduleLabel> UpdateLabels = new ([
+    public List<ScheduleLabel> UpdateLabels = new([
         Schedules.FirstUpdate,
         Schedules.PreUpdate,
         Schedules.Update,

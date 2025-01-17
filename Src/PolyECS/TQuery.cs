@@ -202,7 +202,7 @@ public struct AllTerms : ITermFilter
 
         public ref QueryBuilder Apply(ref QueryBuilder qb) => ref qb.TermAt(index);
     }
-    
+
     public IEnumerable<object> GetChildren(ref QueryBuilder qb)
     {
         int termCount = qb.GetTermCount();

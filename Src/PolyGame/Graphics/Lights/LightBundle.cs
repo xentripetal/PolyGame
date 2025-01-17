@@ -53,8 +53,8 @@ public class SpotLightBundle : BaseLightBundle
     public SpotLightBundle(uint sortLayer, SpotLight? light = null, ZIndex index = default, TransformBundle? transform = null) : base(sortLayer, index,
         transform)
     {
-      Light = light ?? new SpotLight();  
-    } 
+        Light = light ?? new SpotLight();
+    }
 
     protected override Entity ApplyLight(Entity entity)
     {

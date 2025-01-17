@@ -10,7 +10,7 @@ public static class ShapeHelper
 
         for (var i = 0; i < vertCount; i++)
         {
-            var a = 2.0f * MathHelper.Pi * (i / (float) vertCount);
+            var a = 2.0f * MathHelper.Pi * (i / (float)vertCount);
             verts[i] = new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * radius;
         }
 

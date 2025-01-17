@@ -20,7 +20,7 @@ public class ResourceStorage : IEnumerable<ResourceEntry>
     {
         return Register(typeof(T), value);
     }
-    
+
     public int RegisterDyn(Type type)
     {
         return Register(type, null);

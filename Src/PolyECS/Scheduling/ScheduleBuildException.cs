@@ -17,13 +17,15 @@ public class ScheduleBuildException : ArgumentException
     public class SetsHaveOrderButIntersect : ScheduleBuildException
     {
         public SetsHaveOrderButIntersect(string a, string b) : base(
-            $"{a} and {b} have a `before`-`after` relationship (which may be transitive) but share systems.") { }
+            $"{a} and {b} have a `before`-`after` relationship (which may be transitive) but share systems.")
+        { }
     }
 
     public class SystemTypeSetAmbiguity : ScheduleBuildException
     {
         public SystemTypeSetAmbiguity(string a) : base(
-            $"Tried to order against `{a}` in a schedule that has more than one `{a}` instance. `{a}` is a `SystemTypeSet` and cannot be used for ordering if ambiguous. Use a different set without this restriction.") { }
+            $"Tried to order against `{a}` in a schedule that has more than one `{a}` instance. `{a}` is a `SystemTypeSet` and cannot be used for ordering if ambiguous. Use a different set without this restriction.")
+        { }
     }
 
     public class HierarchyLoop : ScheduleBuildException

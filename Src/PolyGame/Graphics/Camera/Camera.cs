@@ -8,7 +8,7 @@ using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Camera;
 
-public struct CameraInset 
+public struct CameraInset
 {
     public float Left;
     public float Right;
@@ -28,10 +28,10 @@ public struct CameraInset
 
 public class CameraBundle
 {
-    public Camera Camera = new ();
+    public Camera Camera = new();
     public CameraInset Inset;
-    public RenderGraph RenderGraph = new ([new DefaultRenderer()]);
-    public TransformBundle Transform = new ();
+    public RenderGraph RenderGraph = new([new DefaultRenderer()]);
+    public TransformBundle Transform = new();
 
     public void Apply(Entity entity)
     {
@@ -44,7 +44,7 @@ public class CameraBundle
     }
 }
 
-public struct ComputedCamera 
+public struct ComputedCamera
 {
     /// <summary>
     ///     Used to convert from world coordinates to screen
@@ -141,7 +141,7 @@ public struct ComputedCamera
     }
 }
 
-public struct Camera 
+public struct Camera
 {
     public float PositionZ3D = 2000f;
 
@@ -185,7 +185,7 @@ public struct Camera
     ///     Minimum and Maximum bounds for the zoom level. Default is 0.3 to 3. This is only enforced if you use
     ///     <see cref="SetZoom" />.
     /// </summary>
-    public Range<float> ZoomBounds = new (0.3f, 3f);
+    public Range<float> ZoomBounds = new(0.3f, 3f);
 
 
     /// <summary>

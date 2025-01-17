@@ -37,7 +37,7 @@ public struct SpotLight
     /// Virtual height of the light. 
     /// </summary>
     public float Height = 140f;
-    
+
     public SpotLight(float radius = 1f, float intensity = 3f, Color? color = null, float coneAngle = 90f, float height = 140f)
     {
         Radius = radius;
@@ -46,9 +46,9 @@ public struct SpotLight
         ConeAngle = coneAngle;
         Height = height;
     }
-    
+
     public SpotLight()
-    {}
+    { }
 }
 
 public struct AreaLight
@@ -69,7 +69,7 @@ public struct AreaLight
     }
 
     public AreaLight()
-    {}
+    { }
 }
 
 public struct DirLight

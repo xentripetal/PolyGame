@@ -10,7 +10,7 @@ public partial class App
     public App Register<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods |
                                     DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-        T>()
+    T>()
     {
         World.Register<T>();
         return this;

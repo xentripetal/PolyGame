@@ -31,12 +31,12 @@ public struct Anchor
         Y = y;
     }
 
-    public static Anchor Center => new (0.5f, 0.5f);
-    public static Anchor TopLeft => new (0.0f, 0.0f);
-    public static Anchor TopRight => new (1.0f, 0.0f);
-    public static Anchor BottomLeft => new (0.0f, 1.0f);
-    public static Anchor BottomRight => new (1.0f, 1.0f);
-    public static implicit operator Vector2(Anchor anchor) => new (anchor.X, anchor.Y);
+    public static Anchor Center => new(0.5f, 0.5f);
+    public static Anchor TopLeft => new(0.0f, 0.0f);
+    public static Anchor TopRight => new(1.0f, 0.0f);
+    public static Anchor BottomLeft => new(0.0f, 1.0f);
+    public static Anchor BottomRight => new(1.0f, 1.0f);
+    public static implicit operator Vector2(Anchor anchor) => new(anchor.X, anchor.Y);
 }
 
 public record struct ZIndex(int Value, bool Relative = false)
@@ -56,19 +56,19 @@ public record struct SortLayer(uint Value)
 
 public class SpriteBundle
 {
-    public Sprite Sprite = new ();
+    public Sprite Sprite = new();
     public Handle<Texture2D> Texture = default;
-    public TransformBundle Transform = new ();
+    public TransformBundle Transform = new();
     public Material? Material = null;
-    public ZIndex ZIndex = new ();
-    public SortLayer Layer = new ();
+    public ZIndex ZIndex = new();
+    public SortLayer Layer = new();
 
     public SpriteBundle WithMaterial(Material material)
     {
         Material = material;
         return this;
     }
-    
+
     public SpriteBundle WithLayer(uint layer)
     {
         Layer = new SortLayer(layer);

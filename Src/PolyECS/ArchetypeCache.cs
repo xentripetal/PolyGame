@@ -9,10 +9,10 @@ namespace PolyECS;
 /// </summary>
 public class TableCache
 {
-    protected readonly Dictionary<Id, HashSet<Table>> exactTableLookup = new ();
-    protected readonly HashSet<Table> tableSet = new ();
+    protected readonly Dictionary<Id, HashSet<Table>> exactTableLookup = new();
+    protected readonly HashSet<Table> tableSet = new();
     protected Query tableQuery;
-    protected List<Table> Tables = new ();
+    protected List<Table> Tables = new();
     protected World world;
 
     public TableCache(World world)
@@ -32,7 +32,7 @@ public class TableCache
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Tables[index];
     }
-    
+
     public IEnumerable<Table> GetRange(int start, int count) => Tables.GetRange(start, count);
 
 
@@ -51,7 +51,8 @@ public class TableCache
     public void Update()
     {
         // TODO - if we do a manual iter we can skip locking tables
-        tableQuery.Iter(it => {
+        tableQuery.Iter(it =>
+        {
             RegisterTable(it.Table());
         });
     }

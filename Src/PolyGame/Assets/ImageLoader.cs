@@ -4,7 +4,7 @@ namespace PolyGame.Assets;
 
 public class ImageLoader : IAssetLoader
 {
-    protected Dictionary<string, Texture2D> _textures = new ();
+    protected Dictionary<string, Texture2D> _textures = new();
 
     protected GraphicsDevice GraphicsDevice;
 

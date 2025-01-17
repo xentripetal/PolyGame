@@ -131,7 +131,7 @@ public static class EffectResource
                 if (stream.CanSeek)
                 {
                     bytes = new byte[stream.Length];
-                    stream.Read(bytes, 0, bytes.Length);
+                    stream.ReadExactly(bytes);
                 }
                 else
                 {

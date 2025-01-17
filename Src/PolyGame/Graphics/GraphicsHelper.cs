@@ -21,4 +21,5 @@ public static class GraphicsHelper
 
         texture.SetData(data);
         return texture;
-    }}
+    }
+}

@@ -75,7 +75,8 @@ public class HierarchyWidget : EditorWindow
 
         var q = world.QueryBuilder().Without(Ecs.ChildOf, Ecs.Wildcard).Build();
         Entity? prevEntity = null;
-        q.Each((Entity en) => {
+        q.Each((Entity en) =>
+        {
             if (prevEntity != null)
             {
                 DisplayNode(prevEntity.Value, false, !prevEntity.Value.Name().Contains(searchString), drawList, table, avail, 0, false);
@@ -128,7 +129,7 @@ public class HierarchyWidget : EditorWindow
     )
     {
         // Don't render Component entities
-        if (entity.Has<flecs.EcsComponent>() || entity.Has(Ecs.Private) || entity.Has(Ecs.Module) || entity.Name().Length == 0 )
+        if (entity.Has<flecs.EcsComponent>() || entity.Has(Ecs.Private) || entity.Has(Ecs.Module) || entity.Name().Length == 0)
         {
             return;
         }
@@ -240,7 +241,8 @@ public class HierarchyWidget : EditorWindow
         if (isOpen)
         {
             int i = 0;
-            entity.Children((child => {
+            entity.Children((child =>
+            {
                 bool isLast = i >= childCount - 1;
                 DisplayNode(child, false, !child.Name().Contains(searchString), drawList, table, avail, level + 1, isLast);
                 i++;
@@ -269,11 +271,11 @@ public class HierarchyWidget : EditorWindow
         const float lineThickness = 2;
         const float lineWidth = 10;
         float indentSpacing = ImGui.GetStyle().IndentSpacing * (level - 1) + ImGui.GetTreeNodeToLabelSpacing() * 0.5f - lineThickness * 0.5f;
-        Vector2 lineMin = new (rect.Min.X + indentSpacing, rect.Min.Y);
-        Vector2 lineMax = new (lineMin.X + lineThickness, rect.Max.Y);
+        Vector2 lineMin = new(rect.Min.X + indentSpacing, rect.Min.Y);
+        Vector2 lineMax = new(lineMin.X + lineThickness, rect.Max.Y);
         Vector2 lineMidpoint = lineMin + (lineMax - lineMin) * 0.5f;
-        Vector2 lineTMin = new (lineMax.X, lineMidpoint.Y - lineThickness * 0.5f);
-        Vector2 lineTMax = new (lineMax.X + lineWidth, lineMidpoint.Y + lineThickness * 0.5f);
+        Vector2 lineTMin = new(lineMax.X, lineMidpoint.Y - lineThickness * 0.5f);
+        Vector2 lineTMax = new(lineMax.X + lineWidth, lineMidpoint.Y + lineThickness * 0.5f);
         if (isLast)
         {
             lineMax.Y = lineTMax.Y; // set vertical line y to horizontal line y to create a L shape

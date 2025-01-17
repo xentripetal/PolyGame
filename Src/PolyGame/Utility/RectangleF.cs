@@ -7,27 +7,27 @@ namespace PolyGame;
 /// <summary>
 ///     Describes a 2D-rectangle.
 /// </summary>
-public struct RectangleF : IEquatable<RectangleF> 
+public struct RectangleF : IEquatable<RectangleF>
 {
-	/// <summary>
-	///     The x coordinate of the top-left corner of this <see cref="RectangleF" />.
-	/// </summary>
-	public float X;
+    /// <summary>
+    ///     The x coordinate of the top-left corner of this <see cref="RectangleF" />.
+    /// </summary>
+    public float X;
 
-	/// <summary>
-	///     The y coordinate of the top-left corner of this <see cref="RectangleF" />.
-	/// </summary>
-	public float Y;
+    /// <summary>
+    ///     The y coordinate of the top-left corner of this <see cref="RectangleF" />.
+    /// </summary>
+    public float Y;
 
-	/// <summary>
-	///     The width of this <see cref="RectangleF" />.
-	/// </summary>
-	public float Width;
+    /// <summary>
+    ///     The width of this <see cref="RectangleF" />.
+    /// </summary>
+    public float Width;
 
-	/// <summary>
-	///     The height of this <see cref="RectangleF" />.
-	/// </summary>
-	public float Height;
+    /// <summary>
+    ///     The height of this <see cref="RectangleF" />.
+    /// </summary>
+    public float Height;
 
 
     #region Public Properties
@@ -35,13 +35,13 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <summary>
     ///     Returns a <see cref="RectangleF" /> with X=0, Y=0, Width=0, Height=0.
     /// </summary>
-    public static RectangleF Empty { get; } = new ();
+    public static RectangleF Empty { get; } = new();
 
     /// <summary>
     ///     returns a RectangleF of float.Min/Max values
     /// </summary>
     /// <value>The max rect.</value>
-    public static RectangleF MaxRect => new (float.MinValue / 2, float.MinValue / 2, float.MaxValue, float.MaxValue);
+    public static RectangleF MaxRect => new(float.MinValue / 2, float.MinValue / 2, float.MaxValue, float.MaxValue);
 
     /// <summary>
     ///     Returns the x coordinate of the left edge of this <see cref="RectangleF" />.
@@ -67,7 +67,7 @@ public struct RectangleF : IEquatable<RectangleF>
     ///     gets the max point of the rectangle, the bottom-right corner
     /// </summary>
     /// <value>The max.</value>
-    public Vector2 Max => new (Right, Bottom);
+    public Vector2 Max => new(Right, Bottom);
 
     /// <summary>
     ///     Whether or not this <see cref="RectangleF" /> has a <see cref="Width" /> and
@@ -80,7 +80,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// </summary>
     public Vector2 Location
     {
-        get => new (X, Y);
+        get => new(X, Y);
         set
         {
             X = value.X;
@@ -93,7 +93,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// </summary>
     public Vector2 Size
     {
-        get => new (Width, Height);
+        get => new(Width, Height);
         set
         {
             Width = value.X;
@@ -108,7 +108,7 @@ public struct RectangleF : IEquatable<RectangleF>
     ///     If <see cref="Width" /> or <see cref="Height" /> is an odd number,
     ///     the center point will be rounded down.
     /// </remarks>
-    public Vector2 Center => new (X + Width / 2, Y + Height / 2);
+    public Vector2 Center => new(X + Width / 2, Y + Height / 2);
 
     #endregion
 
@@ -163,7 +163,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <returns>The minimum max points.</returns>
     /// <param name="min">Minimum.</param>
     /// <param name="max">Max.</param>
-    public static RectangleF FromMinMax(Vector2 min, Vector2 max) => new (min.X, min.Y, max.X - min.X, max.Y - min.Y);
+    public static RectangleF FromMinMax(Vector2 min, Vector2 max) => new(min.X, min.Y, max.X - min.X, max.Y - min.Y);
 
 
     /// <summary>
@@ -172,7 +172,7 @@ public struct RectangleF : IEquatable<RectangleF>
     /// <returns>The minimum max points.</returns>
     /// <param name="min">Minimum.</param>
     /// <param name="max">Max.</param>
-    public static RectangleF FromMinMax(float minX, float minY, float maxX, float maxY) => new (minX, minY, maxX - minX, maxY - minY);
+    public static RectangleF FromMinMax(float minX, float minY, float maxX, float maxY) => new(minX, minY, maxX - minX, maxY - minY);
 
 
     /// <summary>
@@ -978,7 +978,7 @@ public struct RectangleF : IEquatable<RectangleF>
     public static bool operator !=(RectangleF a, RectangleF b) => !(a == b);
 
 
-    public static implicit operator Rectangle(RectangleF self) => new ((int)self.X, (int)self.Y, (int)self.Width, (int)self.Height);
+    public static implicit operator Rectangle(RectangleF self) => new((int)self.X, (int)self.Y, (int)self.Width, (int)self.Height);
 
     #endregion
 }

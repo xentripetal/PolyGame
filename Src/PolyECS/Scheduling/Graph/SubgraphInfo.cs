@@ -15,11 +15,11 @@ public class SubgraphInfo
     /// <summary>
     ///     The sets that the node depends on (must run before or after)
     /// </summary>
-    public List<Dependency> Dependencies = new ();
+    public List<Dependency> Dependencies = new();
     /// <summary>
     ///     The sets that the node belongs to (hierarchy)
     /// </summary>
-    public List<ISystemSet> Hierarchy = new ();
+    public List<ISystemSet> Hierarchy = new();
 
     /// <summary>
     ///     Marks the given set as ambiguous with this node. If the node is already marked as globally ambiguous, this does

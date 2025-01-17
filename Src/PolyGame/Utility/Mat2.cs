@@ -17,7 +17,7 @@ public struct Mat2 : IEquatable<Mat2>
 
     public Vector2 XAxis;
     public Vector2 YAxis;
-    
+
     [ComponentMembers<Mat2>]
     public static void RegisterMembers(UntypedComponent component)
     {
@@ -33,12 +33,12 @@ public struct Mat2 : IEquatable<Mat2>
     /// <summary>
     ///     Returns the identity matrix.
     /// </summary>
-    public static Mat2 Identity { get; } = new (1f, 0f, 0f, 1f);
+    public static Mat2 Identity { get; } = new(1f, 0f, 0f, 1f);
 
     /// <summary>
     ///     Returns the zero matrix.
     /// </summary>
-    public static Mat2 Zero { get; } = new (0f, 0f, 0f, 0f);
+    public static Mat2 Zero { get; } = new(0f, 0f, 0f, 0f);
 
     /// <summary>
     ///     rotation in radians stored in this matrix
@@ -75,7 +75,7 @@ public struct Mat2 : IEquatable<Mat2>
     /// </summary>
     public Vector2 Scale
     {
-        get => new (XAxis.Length() * Math.Sign(Determinant()), YAxis.Length());
+        get => new(XAxis.Length() * Math.Sign(Determinant()), YAxis.Length());
         set
         {
             var oldScale = Scale;

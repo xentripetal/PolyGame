@@ -7,7 +7,7 @@ public struct AccessElement : IEquatable<AccessElement>
 {
     public ulong Id;
     public ResourceType Type;
-    
+
     public static AccessElement OfComponent(ulong id) => new AccessElement { Id = id, Type = ResourceType.Component };
     public static AccessElement OfResource(int id) => new AccessElement { Id = (ulong)id, Type = ResourceType.Resource };
 

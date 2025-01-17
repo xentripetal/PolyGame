@@ -4,105 +4,105 @@ using PolyGame.Physics;
 
 namespace PolyGame.Graphics.Lights;
 
-	/// <summary>
-	/// builds a Polygon from the passed in verts. Verts should be relative to 0,0 and contain the outer perimeter of the polygon. A center
-	/// vert will be added and used to triangulate the polygon. If you need a transform matrix for the Polygon set the position/scale and
-	/// then fetch the transformMatrix property.
-	/// </summary>
-	public class PolygonMesh : IDisposable
-	{
-		VertexBuffer _vertexBuffer;
-		IndexBuffer _indexBuffer;
-		int _primitiveCount;
+/// <summary>
+/// builds a Polygon from the passed in verts. Verts should be relative to 0,0 and contain the outer perimeter of the polygon. A center
+/// vert will be added and used to triangulate the polygon. If you need a transform matrix for the Polygon set the position/scale and
+/// then fetch the transformMatrix property.
+/// </summary>
+public class PolygonMesh : IDisposable
+{
+    VertexBuffer _vertexBuffer;
+    IndexBuffer _indexBuffer;
+    int _primitiveCount;
 
 
-		#region static creation helpers
+    #region static creation helpers
 
-		public static PolygonMesh CreateRectangle(GraphicsDevice device)
-		{
-			var points = new Vector2[]
-			{
-				new Vector2(1, 1),
-				new Vector2(0, 1),
-				new Vector2(0, 0),
-				new Vector2(1, 0)
-			};
-			return new PolygonMesh(device, points);
-		}
-
-
-		/// <summary>
-		/// creates a circular polygon
-		/// </summary>
-		/// <returns>The symmetrical polygon.</returns>
-		/// <param name="vertCount">Vert count.</param>
-		/// <param name="radius">Radius.</param>
-		public static PolygonMesh CreateSymmetricalPolygon(GraphicsDevice device, int vertCount, float radius)
-		{
-			return new PolygonMesh(device, ShapeHelper.BuildSymmetricalPolygon(vertCount, radius));
-		}
+    public static PolygonMesh CreateRectangle(GraphicsDevice device)
+    {
+        var points = new Vector2[]
+        {
+                new Vector2(1, 1),
+                new Vector2(0, 1),
+                new Vector2(0, 0),
+                new Vector2(1, 0)
+        };
+        return new PolygonMesh(device, points);
+    }
 
 
-		/// <summary>
-		/// creates a circular polygon
-		/// </summary>
-		/// <returns>The symmetrical polygon.</returns>
-		/// <param name="vertCount">Vert count.</param>
-		public static PolygonMesh CreateSymmetricalPolygon(GraphicsDevice device, int vertCount) => CreateSymmetricalPolygon(device, vertCount, 1);
-
-		#endregion
-
-
-		public PolygonMesh(GraphicsDevice device, Vector2[] points)
-		{
-			var verts = GenerateVerts(points);
-
-			// each point needs 3 verts
-			var indices = new short[points.Length * 3];
-			for (short i = 0; i < points.Length; i++)
-			{
-				indices[i * 3] = 0;
-				indices[(i * 3) + 1] = (short) (i + 1);
-				indices[(i * 3) + 2] = (short) (i + 2);
-			}
-
-			indices[(points.Length * 3) - 1] = 1;
-
-			_vertexBuffer = new VertexBuffer(device, VertexPosition.VertexDeclaration, verts.Length, BufferUsage.WriteOnly);
-			_vertexBuffer.SetData(verts);
-			_indexBuffer = new IndexBuffer(device, IndexElementSize.SixteenBits, indices.Length, BufferUsage.WriteOnly);
-			_indexBuffer.SetData(indices);
-			_primitiveCount = points.Length;
-		}
+    /// <summary>
+    /// creates a circular polygon
+    /// </summary>
+    /// <returns>The symmetrical polygon.</returns>
+    /// <param name="vertCount">Vert count.</param>
+    /// <param name="radius">Radius.</param>
+    public static PolygonMesh CreateSymmetricalPolygon(GraphicsDevice device, int vertCount, float radius)
+    {
+        return new PolygonMesh(device, ShapeHelper.BuildSymmetricalPolygon(vertCount, radius));
+    }
 
 
-		VertexPosition[] GenerateVerts(Vector2[] points)
-		{
-			// we need to make tris from the points. all points will be shared with the center (0,0)
-			var verts = new VertexPosition[points.Length + 1];
+    /// <summary>
+    /// creates a circular polygon
+    /// </summary>
+    /// <returns>The symmetrical polygon.</returns>
+    /// <param name="vertCount">Vert count.</param>
+    public static PolygonMesh CreateSymmetricalPolygon(GraphicsDevice device, int vertCount) => CreateSymmetricalPolygon(device, vertCount, 1);
 
-			// the first point is the center so we start at 1
-			for (var i = 1; i <= points.Length; i++)
-			{
-				verts[i].Position.X = points[i - 1].X;
-				verts[i].Position.Y = points[i - 1].Y;
-			}
-
-			return verts;
-		}
+    #endregion
 
 
-		public void Render(GraphicsDevice device)
-		{
-			device.SetVertexBuffer(_vertexBuffer);
-			device.Indices = _indexBuffer;
-			device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _primitiveCount);
-		}
+    public PolygonMesh(GraphicsDevice device, Vector2[] points)
+    {
+        var verts = GenerateVerts(points);
+
+        // each point needs 3 verts
+        var indices = new short[points.Length * 3];
+        for (short i = 0; i < points.Length; i++)
+        {
+            indices[i * 3] = 0;
+            indices[(i * 3) + 1] = (short)(i + 1);
+            indices[(i * 3) + 2] = (short)(i + 2);
+        }
+
+        indices[(points.Length * 3) - 1] = 1;
+
+        _vertexBuffer = new VertexBuffer(device, VertexPosition.VertexDeclaration, verts.Length, BufferUsage.WriteOnly);
+        _vertexBuffer.SetData(verts);
+        _indexBuffer = new IndexBuffer(device, IndexElementSize.SixteenBits, indices.Length, BufferUsage.WriteOnly);
+        _indexBuffer.SetData(indices);
+        _primitiveCount = points.Length;
+    }
 
 
-		void IDisposable.Dispose()
-		{
-			_vertexBuffer.Dispose();
-			_indexBuffer.Dispose();
-		}
-	}
+    VertexPosition[] GenerateVerts(Vector2[] points)
+    {
+        // we need to make tris from the points. all points will be shared with the center (0,0)
+        var verts = new VertexPosition[points.Length + 1];
+
+        // the first point is the center so we start at 1
+        for (var i = 1; i <= points.Length; i++)
+        {
+            verts[i].Position.X = points[i - 1].X;
+            verts[i].Position.Y = points[i - 1].Y;
+        }
+
+        return verts;
+    }
+
+
+    public void Render(GraphicsDevice device)
+    {
+        device.SetVertexBuffer(_vertexBuffer);
+        device.Indices = _indexBuffer;
+        device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _primitiveCount);
+    }
+
+
+    void IDisposable.Dispose()
+    {
+        _vertexBuffer.Dispose();
+        _indexBuffer.Dispose();
+    }
+}

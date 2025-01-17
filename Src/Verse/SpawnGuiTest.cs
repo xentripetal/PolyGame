@@ -10,7 +10,7 @@ public partial class SpawnGuiTest : AutoSystem
     [AutoRunMethod]
     public void Run(Desktop desktop)
     {
-        
+
         var grid = new Grid
         {
             RowSpacing = 8,
@@ -29,7 +29,7 @@ public partial class SpawnGuiTest : AutoSystem
         };
         grid.Widgets.Add(helloWorld);
 
-// ComboBox
+        // ComboBox
         var combo = new ComboBox();
         Grid.SetColumn(combo, 1);
         Grid.SetRow(combo, 0);
@@ -39,7 +39,7 @@ public partial class SpawnGuiTest : AutoSystem
         combo.Items.Add(new ListItem("Blue", Color.Blue));
         grid.Widgets.Add(combo);
 
-// Button
+        // Button
         var button = new Button
         {
             Content = new Label
@@ -58,7 +58,7 @@ public partial class SpawnGuiTest : AutoSystem
 
         grid.Widgets.Add(button);
 
-// Spin button
+        // Spin button
         var spinButton = new SpinButton
         {
             Width = 100,
