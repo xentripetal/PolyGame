@@ -16,10 +16,8 @@ public class TransformPlugin : IPlugin
 {
     public void Apply(App app)
     {
-        app.RegisterType<Vector2>().Member<float>("X").Member<float>("Y");
-        app.RegisterType<Position2D>().Member<Vector2>("Value");
-        app.RegisterType<Rotation2D>().Member<float>("Value");
-        app.RegisterType<Scale2D>().Member<Vector2>("Value");
+        app.World.Register<Vector2>().Member<float>("X").Member<float>("Y");
+        app.Register<Position2D>().Register<Rotation2D>().Register<Scale2D>();
 
         var syncSystem = new PropagateTransform();
         app.ConfigureSets(Schedules.PostStartup, SetConfigs.Of(TransformSystem.TransformPropagate))

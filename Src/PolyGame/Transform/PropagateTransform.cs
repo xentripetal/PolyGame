@@ -12,12 +12,11 @@ public partial class PropagateTransform : AutoSystem
         {
             while (it.Next())
             {
-                /**
                 if (!it.Changed())
                 {
                     it.Skip();
                     continue;
-                }**/
+                }
                 // TODO bundle views
                 var pos = it.Field<Position2D>(0);
                 var rot = it.Field<Rotation2D>(1);

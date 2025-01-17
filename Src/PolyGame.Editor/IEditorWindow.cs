@@ -23,5 +23,4 @@ public interface IEditorWindow
 
     void Init(PolyWorld world, GraphicsDevice device);
 
-    void Focus();
 }

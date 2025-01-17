@@ -18,4 +18,8 @@
       <ProjectReference Include="..\PolyGame\PolyGame.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.4" />
+    </ItemGroup>
+
 </Project>

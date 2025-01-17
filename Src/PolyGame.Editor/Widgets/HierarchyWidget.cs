@@ -65,7 +65,7 @@ public class HierarchyWidget : EditorWindow
 
         ImGui.PushStyleColor(ImGuiCol.TableRowBg, 0xff1c1c1c);
         ImGui.PushStyleColor(ImGuiCol.TableRowBgAlt, 0xff232323);
-        ImGuiTablePtr table = ImGui.GetCurrentTable();
+        ImGuiTablePtr table = ImGuiP.GetCurrentTable();
 
         ImGui.Indent();
         ImGui.TableHeadersRow();
@@ -153,7 +153,7 @@ public class HierarchyWidget : EditorWindow
         ImGui.TableNextRow();
         ImGui.TableSetColumnIndex(0);
 
-        ImRect rect = ImGui.TableGetCellBgRect(table, 0);
+        ImRect rect = ImGuiP.TableGetCellBgRect(table, 0);
         rect.Max.X = avail.X + rect.Min.X;
         rect.Max.Y += ImGui.GetTextLineHeight();
 

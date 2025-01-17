@@ -8,12 +8,24 @@ public class TransformPropagationTest : SystemTest
     public TransformPropagationTest()
     {
         Schedule.AddSystems(new PropagateTransform());
+        World.Register<Position2D>();
+        World.Register<Scale2D>();
+    }
+    
+    [Fact]
+    public void Test()
+    {
+        var e = World.Entity().Set(new Position2D(new Vector2(2, 2)));
+        Progress();
+        var trans = e.Get<GlobalTransform2D>().Value;
+        Assert.Equal(new Vector2(2, 2), trans.Translation);
+        Assert.Equal(new Vector2(1, 1), trans.Scale);
+        Assert.Equal(0, trans.RotationDegrees);
     }
 
     [Fact]
     public void NoRotation()
     {
-
         var e = World.Entity();
         new TransformBundle(new Vector2(2, 2), 0, Vector2.One).Apply(e);
         Progress();

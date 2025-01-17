@@ -8,14 +8,15 @@ using PolyGame.Transform;
 
 namespace PolyGame.Graphics.Camera;
 
-public struct CameraInset : IComponent
+public struct CameraInset 
 {
     public float Left;
     public float Right;
     public float Top;
     public float Bottom;
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component
             .Member<float>("Left")
@@ -43,7 +44,7 @@ public class CameraBundle
     }
 }
 
-public struct ComputedCamera : IComponent
+public struct ComputedCamera 
 {
     /// <summary>
     ///     Used to convert from world coordinates to screen
@@ -127,7 +128,8 @@ public struct ComputedCamera : IComponent
         }
     }
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component
             .Member<Matrix2D>("TransformMatrix")
@@ -139,7 +141,7 @@ public struct ComputedCamera : IComponent
     }
 }
 
-public struct Camera : IComponent
+public struct Camera 
 {
     public float PositionZ3D = 2000f;
 
@@ -246,7 +248,8 @@ public struct Camera : IComponent
 
     public Camera() { }
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component
             .Member<float>("PositionZ3D")

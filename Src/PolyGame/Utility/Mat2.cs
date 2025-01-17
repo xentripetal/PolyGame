@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
+using PolyECS;
 
 namespace PolyGame;
 
@@ -15,6 +17,13 @@ public struct Mat2 : IEquatable<Mat2>
 
     public Vector2 XAxis;
     public Vector2 YAxis;
+    
+    [ComponentMembers<Mat2>]
+    public static void RegisterMembers(UntypedComponent component)
+    {
+        component.Member<Vector2>("XAxis");
+        component.Member<Vector2>("YAxis");
+    }
 
     #endregion
 

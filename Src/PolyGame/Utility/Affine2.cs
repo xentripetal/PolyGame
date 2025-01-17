@@ -1,3 +1,5 @@
+using Flecs.NET.Core;
+using PolyECS;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace PolyGame;
@@ -29,6 +31,19 @@ public struct Affine2
     {
         Matrix2 = Mat2.Identity;
         Translation = translation;
+    }
+    
+    public Affine2()
+    {
+        Matrix2 = Mat2.Identity;
+        Translation = Vector2.Zero;
+    }
+    
+    [ComponentMembers<Affine2>]
+    public static void RegisterMembers(UntypedComponent component)
+    {
+        component.Member<Vector2>("Translation");
+        component.Member<Mat2>("Matrix2");
     }
 
     public Mat2 Matrix2;

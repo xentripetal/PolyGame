@@ -7,7 +7,7 @@ namespace PolyGame;
 /// <summary>
 ///     Describes a 2D-rectangle.
 /// </summary>
-public struct RectangleF : IEquatable<RectangleF>, IComponent
+public struct RectangleF : IEquatable<RectangleF> 
 {
 	/// <summary>
 	///     The x coordinate of the top-left corner of this <see cref="RectangleF" />.
@@ -949,7 +949,8 @@ public struct RectangleF : IEquatable<RectangleF>, IComponent
     /// <returns><see cref="String" /> representation of this <see cref="RectangleF" />.</returns>
     public override string ToString() => string.Format("X:{0}, Y:{1}, Width: {2}, Height: {3}", X, Y, Width, Height);
 
-    public static void Register(UntypedComponent component)
+    [ComponentMembers]
+    public static void Register(PolyWorld world, UntypedComponent component)
     {
         component.Member<float>("X").Member<float>("Y").Member<float>("Width").Member<float>("Height");
     }
