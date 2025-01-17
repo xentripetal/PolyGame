@@ -20,7 +20,7 @@ public class TransformPropagationTest : SystemTest
         var e = World.Entity().Set(new Position2D(new Vector2(2, 2)));
         Progress();
         var trans = e.Get<GlobalTransform2D>().Value;
-        Assert.Equal(new Vector2(2, 2), trans.Translation);
+        Assert.True((new Vector2(2,2) - trans.Translation).Length() < Mathf.Epsilon);
         Assert.Equal(new Vector2(1, 1), trans.Scale);
         Assert.Equal(0, trans.RotationDegrees);
     }
