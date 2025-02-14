@@ -58,6 +58,8 @@ public partial class App : Game, IDisposable
         {
             schedules.Insert(new Schedule(label));
         }
+
+        Profiler.AppInfo("Main");
     }
 
     public new void Dispose()
@@ -91,6 +93,7 @@ public partial class App : Game, IDisposable
 
     protected override void Update(GameTime gameTime)
     {
+        using var z = Profiler.BeginZone("Update");
         base.Update(gameTime);
         World.SetResource(gameTime);
         World.FlecsWorld.Set(gameTime);
@@ -99,17 +102,21 @@ public partial class App : Game, IDisposable
         // Run our main schedule
         foreach (var schedule in MainScheduleOrder.UpdateLabels)
         {
+            using var _ = Profiler.BeginZone(schedule.Name);
             World.RunSchedule(schedule);
         }
     }
 
     protected override void Draw(GameTime gameTime)
     {
+        var z = Profiler.BeginZone("Draw");
         base.Draw(gameTime);
         foreach (var schedule in MainScheduleOrder.RenderLabels)
         {
             World.RunSchedule(schedule);
         }
+        z.Dispose();
+        Profiler.EmitFrameMark();
     }
 
     ~App()

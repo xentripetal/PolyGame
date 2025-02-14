@@ -23,6 +23,7 @@ public static class WindowManager
     {
         categories.Add(Default);
         Register<HierarchyWidget>();
+        Register<FPSTracker>();
         /**
 
         Register<OutputWidget>();

@@ -14,8 +14,13 @@ public class WithoutRelationshipTest
         var child = world.Entity("child").Add<Flag>();
         child.ChildOf(parent);
 
-        var hadMatch = false;
-
+        var count = 0;
+        world.QueryBuilder().With<Flag>().Without(Ecs.ChildOf, Ecs.Wildcard).Build().Each((entity =>
+        {
+            Assert.Equal(entity, parent);
+            count++;
+        }));
+        Assert.Equal(1, count);
     }
 
     [Fact]

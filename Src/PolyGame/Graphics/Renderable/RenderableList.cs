@@ -96,5 +96,6 @@ public class RenderableList
         {
             _renderables.Buffer[i].Clear();
         }
+        Count = 0;
     }
 }

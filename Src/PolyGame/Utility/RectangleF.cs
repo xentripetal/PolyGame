@@ -374,7 +374,7 @@ public struct RectangleF : IEquatable<RectangleF>
                                                 Left < value.Right &&
                                                 value.Top < Bottom &&
                                                 Top < value.Bottom;
-
+    
 
     /// <summary>
     ///     Gets whether or not the other <see cref="RectangleF" /> intersects with this rectangle.

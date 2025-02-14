@@ -1,14 +1,16 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace PolyGame.Graphics;
 
-public class Screen
+public class Screen : IScreen
 {
     protected GraphicsDeviceManager _graphicsManager;
 
     public Screen(GraphicsDeviceManager manager) => _graphicsManager = manager;
 
+    public Point Offset => new(0, 0);
     public GraphicsDevice GraphicsDevice => _graphicsManager.GraphicsDevice;
     /// <summary>
     ///     width of the GraphicsDevice back buffer
@@ -35,6 +37,7 @@ public class Screen
     /// </summary>
     /// <value>The screen size.</value>
     public Vector2 Size => new(Width, Height);
+
 
     /// <summary>
     ///     gets the Screen's center.null Note that this is the center of the backbuffer! If you are rendering to a smaller
@@ -100,8 +103,6 @@ public class Screen
         set => _graphicsManager.SupportedOrientations = value;
     }
 
-    public void ApplyChanges() => _graphicsManager.ApplyChanges();
-
     /// <summary>
     ///     sets the preferredBackBuffer then applies the changes
     /// </summary>
@@ -111,6 +112,6 @@ public class Screen
     {
         PreferredBackBufferWidth = width;
         PreferredBackBufferHeight = height;
-        ApplyChanges();
+        _graphicsManager.ApplyChanges();
     }
 }

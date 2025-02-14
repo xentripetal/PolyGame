@@ -6,6 +6,10 @@
         <IsPackable>false</IsPackable>
 
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

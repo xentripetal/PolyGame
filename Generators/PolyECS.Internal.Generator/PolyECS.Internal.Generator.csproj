@@ -5,6 +5,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable> <!-- CodeGenHelpers has a bunch of nullability issues and it injects itself so ditch it. -->
         <LangVersion>13</LangVersion>
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

@@ -68,7 +68,6 @@ public static class Designer
         //ImGuiConsole.Draw();
         MessageBoxes.Draw();
         PopupManager.Draw();
-        ImGui.ShowDemoWindow();
     }
 
     public static void OpenFile(string? path)

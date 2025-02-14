@@ -124,7 +124,7 @@ public class FinalRenderTarget : IDisposable
     public RenderTarget2D? DestinationRenderTarget;
 
     public void SetDesignResolution(
-        Screen screen,
+        IScreen screen,
         int width,
         int height,
         ResolutionPolicy resolutionPolicy,
@@ -139,7 +139,7 @@ public class FinalRenderTarget : IDisposable
         UpdateResolutionScaler(screen);
     }
 
-    void UpdateResolutionScaler(Screen screen)
+    void UpdateResolutionScaler(IScreen screen)
     {
         var designSize = _designResolutionSize;
         var screenSize = new Point(screen.Width, screen.Height);
@@ -169,7 +169,8 @@ public class FinalRenderTarget : IDisposable
         switch (_resolutionPolicy)
         {
             case ResolutionPolicy.None:
-                FinalRenderDestinationRect.X = FinalRenderDestinationRect.Y = 0;
+                FinalRenderDestinationRect.X = screen.Offset.X;
+                FinalRenderDestinationRect.Y = screen.Offset.Y;
                 FinalRenderDestinationRect.Width = screenSize.X;
                 FinalRenderDestinationRect.Height = screenSize.Y;
                 rectCalculated = true;
@@ -212,8 +213,8 @@ public class FinalRenderTarget : IDisposable
 
                 FinalRenderDestinationRect.Width = Mathf.CeilToInt(designSize.X * PixelPerfectScale);
                 FinalRenderDestinationRect.Height = Mathf.CeilToInt(designSize.Y * PixelPerfectScale);
-                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2;
-                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2;
+                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2 + screen.Offset.X;
+                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2 + screen.Offset.Y;
                 rectCalculated = true;
 
                 break;
@@ -232,8 +233,8 @@ public class FinalRenderTarget : IDisposable
 
                 FinalRenderDestinationRect.Width = Mathf.CeilToInt(designSize.X * PixelPerfectScale);
                 FinalRenderDestinationRect.Height = Mathf.CeilToInt(designSize.Y * PixelPerfectScale);
-                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2;
-                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2;
+                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2 + screen.Offset.X;
+                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2 + screen.Offset.Y;
                 rectCalculated = true;
 
                 break;
@@ -253,8 +254,8 @@ public class FinalRenderTarget : IDisposable
 
                 FinalRenderDestinationRect.Width = Mathf.CeilToInt(designSize.X * resolutionScaleX);
                 FinalRenderDestinationRect.Height = Mathf.CeilToInt(designSize.Y * PixelPerfectScale);
-                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2;
-                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2;
+                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2 + screen.Offset.X;
+                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2 + screen.Offset.Y;
                 rectCalculated = true;
 
                 renderTargetWidth = (int)(designSize.X * resolutionScaleX / PixelPerfectScale);
@@ -275,8 +276,8 @@ public class FinalRenderTarget : IDisposable
 
                 FinalRenderDestinationRect.Width = Mathf.CeilToInt(designSize.X * PixelPerfectScale);
                 FinalRenderDestinationRect.Height = Mathf.CeilToInt(designSize.Y * resolutionScaleY);
-                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2;
-                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2;
+                FinalRenderDestinationRect.X = (screenSize.X - FinalRenderDestinationRect.Width) / 2 + screen.Offset.X;
+                FinalRenderDestinationRect.Y = (screenSize.Y - FinalRenderDestinationRect.Height) / 2 + screen.Offset.Y;
                 rectCalculated = true;
 
                 renderTargetHeight = (int)(designSize.Y * resolutionScaleY / PixelPerfectScale);
@@ -302,11 +303,11 @@ public class FinalRenderTarget : IDisposable
         if (!rectCalculated)
         {
             // calculate the display rect of the RenderTarget
-            var renderWidth = designSize.X * resolutionScaleX;
-            var renderHeight = designSize.Y * resolutionScaleY;
+            var renderWidth = Math.Min(designSize.X * resolutionScaleX, screen.Width);
+            var renderHeight = Math.Min(designSize.Y * resolutionScaleY, screen.Height);
 
-            FinalRenderDestinationRect = new Rectangle((int)((screenSize.X - renderWidth) / 2),
-                (int)((screenSize.Y - renderHeight) / 2), (int)renderWidth, (int)renderHeight);
+            FinalRenderDestinationRect = new Rectangle((int)((screenSize.X - renderWidth) / 2 + screen.Offset.X),
+                (int)((screenSize.Y - renderHeight) / 2 + screen.Offset.Y), (int)renderWidth, (int)renderHeight);
         }
 
 
@@ -360,7 +361,7 @@ public class FinalRenderTarget : IDisposable
     public Vector2 Scale { get; protected set; }
     public Vector2 Offset { get; protected set; }
 
-    public delegate void BackBufferSizeChangedEventHandler(Screen screen, int newWidth, int newHeight);
+    public delegate void BackBufferSizeChangedEventHandler(IScreen screen, int newWidth, int newHeight);
     public event BackBufferSizeChangedEventHandler OnSceneBackBufferSizeChanged;
 
     public void Dispose()

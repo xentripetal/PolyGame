@@ -57,7 +57,7 @@ public record struct SortLayer(uint Value)
 public class SpriteBundle
 {
     public Sprite Sprite = new();
-    public Handle<Texture2D> Texture = default;
+    public Texture2D Texture;
     public TransformBundle Transform = new();
     public Material? Material = null;
     public ZIndex ZIndex = new();
@@ -94,7 +94,7 @@ public class SpriteBundle
     }
 
 
-    public SpriteBundle(Handle<Texture2D> texture)
+    public SpriteBundle(Texture2D texture)
     {
         Texture = texture;
     }
@@ -110,6 +110,7 @@ public class SpriteBundle
             .Set(Texture)
             .Set(ZIndex)
             .Set(Layer)
+            .Add<RenderBounds>()
             .Add<GlobalZIndex>();
     }
 }

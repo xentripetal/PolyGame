@@ -78,6 +78,7 @@ public class SingleThreadedExecutor : IExecutor
 
             try
             {
+                using var _ = Profiler.BeginZone(system.Meta.Name);
                 world.RunSystem(system);
             }
             catch (Exception e)

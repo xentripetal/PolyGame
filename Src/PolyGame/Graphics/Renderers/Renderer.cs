@@ -131,6 +131,6 @@ public abstract class Renderer : IComparable<Renderer>
         **/
     }
 
-    public virtual void OnSceneBackBufferSizeChanged(Screen screen, int newWidth, int newHeight)
+    public virtual void OnSceneBackBufferSizeChanged(IScreen screen, int newWidth, int newHeight)
         => RenderTexture?.OnSceneBackBufferSizeChanged(screen, newWidth, newHeight);
 }

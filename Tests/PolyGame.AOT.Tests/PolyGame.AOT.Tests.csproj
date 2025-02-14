@@ -7,6 +7,8 @@
 
         <OutputType>exe</OutputType>
         <PublishAot>true</PublishAot>
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

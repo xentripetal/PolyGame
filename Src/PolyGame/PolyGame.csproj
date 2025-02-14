@@ -6,6 +6,8 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PublishAot>true</PublishAot>
         <LangVersion>13</LangVersion>
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

@@ -15,6 +15,7 @@ public partial class PropagateZIndex : AutoSystem
                 if (!it.Changed())
                 {
                     it.Skip();
+                    continue;
                 }
                 var index = it.Field<ZIndex>(0);
                 var globalIndex = it.Field<GlobalZIndex>(1);

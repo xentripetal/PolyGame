@@ -11,6 +11,7 @@ namespace PolyGame.Graphics;
 public enum RenderSets
 {
     PropagateZIndex,
+    ComputeBounds,
     Queue,
     Sort,
     Render
@@ -28,8 +29,9 @@ public class RenderPlugin : IPlugin
             .SetResource(finalTarget)
             .SetResource(new RenderableList())
             .SetResource(new ClearColor(Color.CornflowerBlue))
-            .ConfigureSets(Schedules.Render, SetConfigs.Of(RenderSets.PropagateZIndex, RenderSets.Queue, RenderSets.Sort, RenderSets.Render).Chained())
+            .ConfigureSets(Schedules.Render, SetConfigs.Of(RenderSets.PropagateZIndex, RenderSets.ComputeBounds, RenderSets.Queue, RenderSets.Sort, RenderSets.Render).Chained())
             .AddSystems(Schedules.PreUpdate, new SetViewport())
+            .AddSystem<ComputeSpriteRenderBounds>(Schedules.Render)
             .AddSystems(Schedules.Render,
                 new PropagateZIndex().InSet(RenderSets.PropagateZIndex),
                 new QueueSprites(registry).InSet(RenderSets.Queue),

@@ -1,5 +1,4 @@
-using System.Runtime.CompilerServices;
-using DotNext;
+using System.Diagnostics;
 using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +9,7 @@ using PolyGame.Graphics.Camera;
 using PolyGame.Graphics.Renderable;
 using PolyGame.Graphics.Renderers;
 using PolyGame.Transform;
+using Serilog;
 
 namespace PolyGame.Graphics.Sprites;
 
@@ -24,14 +24,14 @@ public partial class QueueSprites : AutoSystem
     public QueueSprites(DrawFuncRegistry registry) => DrawSpriteIndex = registry.RegisterDrawFunc(DrawSprite);
 
     public void Run(TQuery<ComputedCamera, RenderableList, In<Term0>> cameras,
-        TQuery<Sprite, GlobalZIndex, SortLayer, Handle<Texture2D>, GlobalTransform2D, In<AllTerms>> sprites,
+        TQuery<RenderBounds, GlobalZIndex, SortLayer, GlobalTransform2D, (In<AllTerms>, With<Sprite>, With<Texture2D>)> sprites,
         [In] MissingTexture2D? missingTexture, AssetServer assets)
     {
         MissingTexture = null;
         // Check the missing texture resource every frame
         if (missingTexture.HasValue)
         {
-            var tex = assets.Get(missingTexture.Value.Value);
+            var tex = missingTexture.Value.Value.Get(assets);
             if (tex != null)
             {
                 MissingTexture = tex;
@@ -45,50 +45,34 @@ public partial class QueueSprites : AutoSystem
             var bounds = cCam.Bounds;
             sprites.Each((
                 Entity en,
-                ref Sprite sprite,
+                ref RenderBounds spriteBounds,
                 ref GlobalZIndex index,
                 ref SortLayer layer,
-                ref Handle<Texture2D> texHandle,
-                ref GlobalTransform2D trans
+                ref GlobalTransform2D pos
             ) =>
             {
-                var tex = assets.Get(texHandle);
-                if (tex == null)
-                {
-                    if (MissingTexture == null)
-                    {
-                        return;
-                    }
-
-                    tex = MissingTexture;
-                }
-
-                var scale = trans.Value.Scale;
-                var size = new Vector2(tex.Width * scale.X, tex.Height * scale.Y);
-                var pos = trans.Value.Translation - sprite.Anchor * size;
-
                 // TODO doesn't account for rotation
-                if (bounds.Intersects(new RectangleF(pos, size)))
+                if (bounds.Intersects(spriteBounds.Bounds))
                 {
                     // TODO add metric for num renderables
                     renderables.Add(new RenderableReference
                     {
                         SortKey = index,
-                        SubSortKey = pos.Y,
+                        SubSortKey = pos.Value.Translation.Y,
                         DrawFuncIndex = DrawSpriteIndex,
                         Entity = en
                     }, layer);
                 }
             });
+            Log.Information("Total Renderables:" + renderables.Count);
         });
     }
 
     public void DrawSprite(Renderer renderer, AssetServer assets, RenderableReference renderable, Batcher batch)
     {
         var sprite = renderable.Entity.Get<Sprite>();
-        var imageHandle = renderable.Entity.Get<Handle<Texture2D>>();
         var transform = renderable.Entity.Get<GlobalTransform2D>().Value;
-        var image = assets.Get(imageHandle);
+        var image = renderable.Entity.Get<Texture2D>();
         if (image == null)
         {
             image = MissingTexture;

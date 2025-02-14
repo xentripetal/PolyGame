@@ -11,6 +11,8 @@
 
         <RootNamespace>PolyECS.Generator</RootNamespace>
         <PackageId>PolyECS.Generator</PackageId>
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

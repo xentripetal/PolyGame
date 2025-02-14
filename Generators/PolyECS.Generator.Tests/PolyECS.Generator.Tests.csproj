@@ -9,6 +9,10 @@
         <RootNamespace>PolyECS.Generator.Tests</RootNamespace>
 
         <LangVersion>13</LangVersion>
+
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>

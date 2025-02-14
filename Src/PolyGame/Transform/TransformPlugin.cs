@@ -17,7 +17,7 @@ public class TransformPlugin : IPlugin
     public void Apply(App app)
     {
         app.World.Register<Vector2>().Member<float>("X").Member<float>("Y");
-        app.Register<Position2D>().Register<Rotation2D>().Register<Scale2D>();
+        app.Register<Position2D>().Register<Rotation2D>().Register<Scale2D>().Register<GlobalTransform2D>();
 
         var syncSystem = new PropagateTransform();
         app.ConfigureSets(Schedules.PostStartup, SetConfigs.Of(TransformSystem.TransformPropagate))
