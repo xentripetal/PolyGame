@@ -62,9 +62,11 @@ public record struct Scale2D
 
 public record struct GlobalTransform2D(Affine2 Value)
 {
-    [ComponentMembers<GlobalTransform2D>]
+    [ComponentMembers]
     public static void Register(PolyWorld world, UntypedComponent component)
     {
+        world.FlecsWorld.Component<Mat2>().Member<Vector2>("XAxis").Member<Vector2>("YAxis");
+        world.FlecsWorld.Component<Affine2>().Member<Mat2>("Matrix2").Member<Vector2>("Translation");
         component.Member<Affine2>("Value");
     }
 

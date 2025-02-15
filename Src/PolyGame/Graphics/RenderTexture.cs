@@ -19,7 +19,7 @@ public class RenderTexture : IDisposable
     /// </summary>
     public RenderTarget2D RenderTarget;
 
-    private Screen Screen;
+    private IScreen Screen;
 
     /// <summary>
     /// resize behavior that should occur when onSceneBackBufferSizeChanged is called
@@ -32,7 +32,7 @@ public class RenderTexture : IDisposable
     /// <summary>
     /// helper for creating a full screen RenderTarget2D
     /// </summary>
-    public RenderTexture(Screen screen)
+    public RenderTexture(IScreen screen)
     {
         RenderTarget = new RenderTarget2D(screen.GraphicsDevice, screen.Width, screen.Height, false, screen.BackBufferFormat, screen.PreferredDepthStencilFormat,
             0, RenderTargetUsage.PreserveContents);
@@ -44,7 +44,7 @@ public class RenderTexture : IDisposable
     /// helper for creating a full screen RenderTarget2D with a specific DepthFormat
     /// </summary>
     /// <param name="preferredDepthFormat">Preferred depth format.</param>
-    public RenderTexture(Screen screen, DepthFormat preferredDepthFormat)
+    public RenderTexture(IScreen screen, DepthFormat preferredDepthFormat)
     {
         RenderTarget = new RenderTarget2D(screen.GraphicsDevice, screen.Width, screen.Height, false, screen.BackBufferFormat, preferredDepthFormat,
             0, RenderTargetUsage.PreserveContents);
@@ -57,7 +57,7 @@ public class RenderTexture : IDisposable
     /// </summary>
     /// <param name="width">Width.</param>
     /// <param name="height">Height.</param>
-    public RenderTexture(Screen screen, int width, int height)
+    public RenderTexture(IScreen screen, int width, int height)
     {
         RenderTarget = new RenderTarget2D(screen.GraphicsDevice, width, height, false, screen.BackBufferFormat,
             screen.PreferredDepthStencilFormat, 0, RenderTargetUsage.PreserveContents);
@@ -71,7 +71,7 @@ public class RenderTexture : IDisposable
     /// <param name="width">Width.</param>
     /// <param name="height">Height.</param>
     /// <param name="preferredDepthFormat">Preferred depth format.</param>
-    public RenderTexture(Screen screen, int width, int height, DepthFormat preferredDepthFormat)
+    public RenderTexture(IScreen screen, int width, int height, DepthFormat preferredDepthFormat)
     {
         RenderTarget = new RenderTarget2D(screen.GraphicsDevice, width, height, false, screen.BackBufferFormat,
             preferredDepthFormat, 0, RenderTargetUsage.PreserveContents);
@@ -86,7 +86,7 @@ public class RenderTexture : IDisposable
     /// <param name="height">Height.</param>
     /// <param name="preferredFormat">Preferred format.</param>
     /// <param name="preferredDepthFormat">Preferred depth format.</param>
-    public RenderTexture(Screen screen, int width, int height, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat)
+    public RenderTexture(IScreen screen, int width, int height, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat)
     {
         RenderTarget = new RenderTarget2D(screen.GraphicsDevice, width, height, false, preferredFormat,
             preferredDepthFormat, 0, RenderTargetUsage.PreserveContents);
@@ -101,7 +101,7 @@ public class RenderTexture : IDisposable
     /// </summary>
     /// <param name="newWidth">New width.</param>
     /// <param name="newHeight">New height.</param>
-    public void OnSceneBackBufferSizeChanged(Screen screen, int newWidth, int newHeight)
+    public void OnSceneBackBufferSizeChanged(IScreen screen, int newWidth, int newHeight)
     {
         switch (ResizeBehavior)
         {

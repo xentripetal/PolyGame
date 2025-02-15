@@ -46,16 +46,16 @@ public partial class DeferredLighting : ISample
             world.SetResource(new ClearColor(Color.DarkGray));
 
 
-            var moonTex = assets.Load<Texture2D>("Content/DeferredLighting/moon.png");
-            var moonNormal = assets.Load<Texture2D>("Content/DeferredLighting/moonNorm.png", false);
-            var orangeTex = assets.Load<Texture2D>("Content/DeferredLighting/orange.png");
-            var orangeNormal = assets.Load<Texture2D>("Content/DeferredLighting/orangeNorm.png", false);
-            var bg = assets.Load<Texture2D>("Content/DeferredLighting/bg.png");
-            var bgNorm = assets.Load<Texture2D>("Content/DeferredLighting/bgNorm.png", false);
+            var moonTex = assets.Load<Texture2D>("Content/DeferredLighting/moon.png").Get(assets);
+            var moonNormal = assets.Load<Texture2D>("Content/DeferredLighting/moonNorm.png", false).Get(assets);
+            var orangeTex = assets.Load<Texture2D>("Content/DeferredLighting/orange.png").Get(assets);
+            var orangeNormal = assets.Load<Texture2D>("Content/DeferredLighting/orangeNorm.png", false).Get(assets);
+            var bg = assets.Load<Texture2D>("Content/DeferredLighting/bg.png").Get(assets);
+            var bgNorm = assets.Load<Texture2D>("Content/DeferredLighting/bgNorm.png", false).Get(assets);
             // TODO materials as assets
-            var moonMat = new DeferredSpriteMaterial(assets.Get(moonNormal)!);
-            var orangeMat = new DeferredSpriteMaterial(assets.Get(orangeNormal)!);
-            var bgMat = new DeferredSpriteMaterial(assets.Get(bgNorm)!);
+            var moonMat = new DeferredSpriteMaterial(moonNormal);
+            var orangeMat = new DeferredSpriteMaterial(orangeNormal);
+            var bgMat = new DeferredSpriteMaterial(bgNorm);
 
             var moon = new SpriteBundle(moonTex).WithMaterial(material: moonMat).WithTransform(new TransformBundle(new Vector2(100, 400)))
                 .Apply(world.Entity("Moon"));

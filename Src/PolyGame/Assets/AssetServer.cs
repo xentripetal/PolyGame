@@ -40,6 +40,16 @@ public class AssetServer : IDisposable
         handleLock.Dispose();
     }
 
+    public T TestDirectLoad<T>(string path)
+    {
+        if (!loadersByExtension.TryGetValue(new AssetPath(path).Extension, out var loader))
+        {
+            Log.Warning("No loader found for loading asset {Path} with extension {Extension}", path, new AssetPath(path).Extension);
+            return default;
+        }
+        return loader.Load<T>(new AssetPath(path));
+    }
+
     public void AddLoader(IAssetLoader loader)
     {
         foreach (var extension in loader.SupportedExtensions)
@@ -74,7 +84,11 @@ public class AssetServer : IDisposable
                     if (!Type<Handle<T>>.IsRegistered(world.Handle))
                     {
                         var component = Type<Handle<T>>.RegisterComponent(world, true, true, 0, "");
-                        world.Component<Handle<T>>().Dtor((ref Handle<T> data, TypeInfo info) =>
+                        
+                        world.Component<Handle<T>>().Ctor((ref Handle<T> data, TypeInfo info) =>
+                        {
+                            
+                        }).Dtor((ref Handle<T> data, TypeInfo info) =>
                         {
                             Release(data);
                         });
@@ -311,6 +325,10 @@ public class AssetServer : IDisposable
     protected void UnloadInLock(int id)
     {
         var asset = assets[id];
+        if (asset.State == LoadState.Unloaded)
+        {
+            return;
+        }
         if (asset.State == LoadState.Loaded)
         {
             var loader = loadersByExtension[asset.Path.Extension];
@@ -320,7 +338,7 @@ public class AssetServer : IDisposable
             assets.Free(id);
             assignedHandles.Remove(asset.Path);
         }
-        else if (asset.State == LoadState.Loading)
+        else if (asset.State == LoadState.Loading || asset.State == LoadState.PendingDispose)
         {
             asset.State = LoadState.PendingDispose;
             assets[id] = asset;

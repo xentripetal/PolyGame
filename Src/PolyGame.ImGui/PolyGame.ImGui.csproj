@@ -8,7 +8,9 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <AssemblyName>PolyGame.ImGuiNet</AssemblyName>
         <RootNamespace>PolyGame.ImGuiNet</RootNamespace>
-        <LangVersion>13</LangVersion> <!-- ImGui.NET does not support AOT due to reflection. This should only be used for local dev -->
+        <LangVersion>13</LangVersion>
+        <Configurations>Debug;Release;Debug Profiling;Release Profiling</Configurations>
+        <Platforms>AnyCPU</Platforms> <!-- ImGui.NET does not support AOT due to reflection. This should only be used for local dev -->
     </PropertyGroup>
 
     <ItemGroup>

@@ -11,7 +11,7 @@ public class HierarchyWidget : EditorWindow
 {
     public HierarchyWidget()
     {
-        IsShown = true;
+        IsShown = false;
     }
 
     private enum HierarchyLevelColoring
@@ -60,38 +60,48 @@ public class HierarchyWidget : EditorWindow
 
         var avail = ImGui.GetContentRegionAvail();
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-        ImGui.BeginTable("Table", 1, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg | ImGuiTableFlags.PreciseWidths);
-        ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
-
-        ImGui.PushStyleColor(ImGuiCol.TableRowBg, 0xff1c1c1c);
-        ImGui.PushStyleColor(ImGuiCol.TableRowBgAlt, 0xff232323);
-        ImGuiTablePtr table = ImGuiP.GetCurrentTable();
-
-        ImGui.Indent();
-        ImGui.TableHeadersRow();
-
-        ImGui.Unindent();
-        // TODO drag drop target
-
-        var q = world.QueryBuilder().Without(Ecs.ChildOf, Ecs.Wildcard).Build();
-        Entity? prevEntity = null;
-        q.Each((Entity en) =>
+        if (ImGui.BeginTable("Table", 1,
+                ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg | ImGuiTableFlags.PreciseWidths))
         {
-            if (prevEntity != null)
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+
+            ImGui.PushStyleColor(ImGuiCol.TableRowBg, 0xff1c1c1c);
+            ImGui.PushStyleColor(ImGuiCol.TableRowBgAlt, 0xff232323);
+            ImGuiTablePtr table = ImGuiP.GetCurrentTable();
+
+            ImGui.Indent();
+            ImGui.TableHeadersRow();
+
+            ImGui.Unindent();
+            // TODO drag drop target
+
+            var q = world.QueryBuilder().Without(Ecs.ChildOf, Ecs.Wildcard).Build();
+            Entity? prevEntity = null;
+            var seen = 0;
+            q.Iter(i =>
             {
-                DisplayNode(prevEntity.Value, false, !prevEntity.Value.Name().Contains(searchString), drawList, table, avail, 0, false);
-            }
-            prevEntity = en;
-        });
-        if (prevEntity != null)
-        {
-            DisplayNode(prevEntity.Value, false, !prevEntity.Value.Name().Contains(searchString), drawList, table, avail, 0, true);
+                while (i.Next())
+                {
+                    if (seen > 100)
+                        continue;
+                    for (int j = 0; j < i.Count(); j++)
+                    {
+                        seen++;
+                        if (seen > 100)
+                            return;
+                        var en = i.Entity(j);
+                        DisplayNode(en, false, !en.Name().Contains(searchString), drawList,
+                            table, avail, 0, false);
+                    }
+                }
+            });
+
+
+            ImGui.PopStyleColor();
+            ImGui.PopStyleColor();
+            ImGui.EndTable();
         }
 
-
-        ImGui.PopStyleColor();
-        ImGui.PopStyleColor();
-        ImGui.EndTable();
         var space = ImGui.GetContentRegionAvail();
         ImGui.Dummy(space);
 
@@ -129,10 +139,12 @@ public class HierarchyWidget : EditorWindow
     )
     {
         // Don't render Component entities
-        if (entity.Has<flecs.EcsComponent>() || entity.Has(Ecs.Private) || entity.Has(Ecs.Module) || entity.Name().Length == 0)
+        if (entity.Has<flecs.EcsComponent>() || entity.Has(Ecs.Private) || entity.Has(Ecs.Module) ||
+            entity.Name().Length == 0)
         {
             return;
         }
+
         SetLevel(level, isLast);
 
         /**
@@ -244,7 +256,8 @@ public class HierarchyWidget : EditorWindow
             entity.Children((child =>
             {
                 bool isLast = i >= childCount - 1;
-                DisplayNode(child, false, !child.Name().Contains(searchString), drawList, table, avail, level + 1, isLast);
+                DisplayNode(child, false, !child.Name().Contains(searchString), drawList, table, avail, level + 1,
+                    isLast);
                 i++;
             }));
             ImGui.TreePop();
@@ -265,12 +278,14 @@ public class HierarchyWidget : EditorWindow
             {
                 continue;
             }
+
             DrawTreeLine(drawList, rect, lowerLevel, false, true);
         }
 
         const float lineThickness = 2;
         const float lineWidth = 10;
-        float indentSpacing = ImGui.GetStyle().IndentSpacing * (level - 1) + ImGui.GetTreeNodeToLabelSpacing() * 0.5f - lineThickness * 0.5f;
+        float indentSpacing = ImGui.GetStyle().IndentSpacing * (level - 1) + ImGui.GetTreeNodeToLabelSpacing() * 0.5f -
+                              lineThickness * 0.5f;
         Vector2 lineMin = new(rect.Min.X + indentSpacing, rect.Min.Y);
         Vector2 lineMax = new(lineMin.X + lineThickness, rect.Max.Y);
         Vector2 lineMidpoint = lineMin + (lineMax - lineMin) * 0.5f;
@@ -280,6 +295,7 @@ public class HierarchyWidget : EditorWindow
         {
             lineMax.Y = lineTMax.Y; // set vertical line y to horizontal line y to create a L shape
         }
+
         uint color = GetColorForLevel(level);
         drawList.AddRectFilled(lineMin, lineMax, color);
         if (!isLevelLower)

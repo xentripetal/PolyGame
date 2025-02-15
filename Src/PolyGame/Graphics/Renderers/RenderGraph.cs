@@ -19,7 +19,7 @@ public class RenderGraph
             AddRenderer(renderer);
     }
 
-    public void OnSceneBackBufferSizeChanged(Screen screen, int width, int height)
+    public void OnSceneBackBufferSizeChanged(IScreen screen, int width, int height)
     {
         foreach (var renderer in Renderers)
             renderer.OnSceneBackBufferSizeChanged(screen, width, height);

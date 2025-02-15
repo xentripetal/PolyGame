@@ -1,4 +1,3 @@
-using Flecs.NET.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using PolyECS;
@@ -10,7 +9,7 @@ namespace Verse;
 
 public partial class RotateSpriteSystem : AutoSystem
 {
-    public void Run(Query<Rotation2D, Scale2D> sprites, KeyboardState state, GameTime gameTime)
+    public void Run(TQuery<Rotation2D, Scale2D, With<Sprite>> sprites, KeyboardState state, GameTime gameTime)
     {
         var delta = gameTime.ElapsedGameTime.TotalSeconds;
         var rotChange = 0f;
@@ -19,14 +18,17 @@ public partial class RotateSpriteSystem : AutoSystem
         {
             rotChange -= 1;
         }
+
         if (state.IsKeyDown(Keys.E))
         {
             rotChange += 1;
         }
+
         if (state.IsKeyDown(Keys.Left))
         {
             scaleChange -= 1;
         }
+
         if (state.IsKeyDown(Keys.Right))
         {
             scaleChange += 1;

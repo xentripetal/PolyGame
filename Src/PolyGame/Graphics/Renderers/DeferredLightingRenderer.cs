@@ -302,7 +302,7 @@ public class DeferredLightingRenderer : Renderer
     #endregion
 
 
-    public override void OnSceneBackBufferSizeChanged(Screen screen, int newWidth, int newHeight)
+    public override void OnSceneBackBufferSizeChanged(IScreen screen, int newWidth, int newHeight)
     {
         // create our RenderTextures if we havent and resize them if we have
         if (DiffuseRT == null)

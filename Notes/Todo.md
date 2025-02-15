@@ -1,7 +1,7 @@
 # Todo
 
 Unorganized, unplanned list of ideas and things to do.
-- [ ] Change resources to have Optional logic
+- [X] Change resources to have Optional logic
 - [ ] Nested Assets (E.g. materials and XML references)
 - [ ] Post processing
 - [ ] A proper render graph
